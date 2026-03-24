@@ -1,0 +1,125 @@
+import React from 'react';
+import { WorkspaceConfig } from '../../types';
+import { WorkspaceTab } from './WorkspaceTab';
+
+interface WorkspaceHeaderProps {
+  workspaces: WorkspaceConfig[];
+  activeWorkspaceId: string | null;
+  sessionsByWorkspace: Record<string, number>;
+  onWorkspaceClick: (workspaceId: string) => void;
+  onWorkspaceClose: (workspaceId: string) => void;
+  onNewWorkspace: () => void;
+  isWindows: boolean;
+  onThemeToggle: () => void;
+  theme: 'dark' | 'light';
+  onTerminate: () => void;
+  onMinimizeWindow: () => void;
+  onMaximizeWindow: () => void;
+  onCloseWindow: () => void;
+}
+
+export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
+  workspaces,
+  activeWorkspaceId,
+  sessionsByWorkspace,
+  onWorkspaceClick,
+  onWorkspaceClose,
+  onNewWorkspace,
+  isWindows,
+  onThemeToggle,
+  theme,
+  onTerminate,
+  onMinimizeWindow,
+  onMaximizeWindow,
+  onCloseWindow,
+}) => {
+  return (
+    <header className={`
+      fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-main border-b border-theme select-none transition-colors
+      ${isWindows ? 'titlebar-drag active:cursor-grabbing' : ''}
+    `}>
+      <div className="flex items-center h-full overflow-x-auto overflow-y-hidden titlebar-nodrag">
+        {workspaces.map((workspace) => (
+          <WorkspaceTab
+            key={workspace.id}
+            workspace={workspace}
+            isActive={workspace.id === activeWorkspaceId}
+            sessionsCount={sessionsByWorkspace[workspace.id] || 0}
+            onClick={() => onWorkspaceClick(workspace.id)}
+            onClose={(e) => {
+              e.stopPropagation();
+              onWorkspaceClose(workspace.id);
+            }}
+          />
+        ))}
+
+        <button
+          onClick={onNewWorkspace}
+          className="flex items-center gap-1 h-10 px-4 border-l border-theme bg-theme-card hover:bg-theme-card-hover transition-all duration-200 text-zinc-500 hover:text-zinc-300 titlebar-nodrag"
+          title="Create new workspace"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-xs font-bold tracking-wider uppercase">New</span>
+        </button>
+      </div>
+
+      <div className="flex-1 h-full" />
+
+      <div className="flex items-center h-full gap-0 titlebar-nodrag">
+        <button
+          onClick={onThemeToggle}
+          className="flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main"
+          title="Switch Theme"
+        >
+          {theme === 'dark' ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 18v1m9-9h1M3 9h1m12.728-4.272l-.707.707M6.343 17.657l-.707.707M16.95 16.95l.707.707M7.05 7.05l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+          )}
+        </button>
+
+        <button
+          onClick={onTerminate}
+          className="flex items-center px-5 h-full border-l border-theme bg-zinc-900/50 hover:bg-rose-950/30 text-[10px] text-zinc-500 hover:text-rose-500 transition-all font-bold uppercase tracking-widest"
+          title="Terminate Session"
+        >
+          Terminate
+        </button>
+
+        {isWindows && (
+          <div className="flex h-full border-l border-theme">
+            <button
+              onClick={onMinimizeWindow}
+              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors"
+              title="Minimize"
+            >
+              <svg className="w-3 h-3" viewBox="0 0 12 12"><rect fill="currentColor" width="10" height="1" x="1" y="6" /></svg>
+            </button>
+            <button
+              onClick={onMaximizeWindow}
+              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors"
+              title="Maximize"
+            >
+              <svg className="w-3 h-3" viewBox="0 0 12 12"><rect fill="none" stroke="currentColor" width="9" height="9" x="1.5" y="1.5" strokeWidth="1" /></svg>
+            </button>
+            <button
+              onClick={onCloseWindow}
+              className="w-12 h-full flex items-center justify-center hover:bg-rose-600 text-zinc-500 hover:text-white transition-colors"
+              title="Close"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 12 12">
+                <path fill="none" stroke="currentColor" strokeWidth="1.2" d="M1,1 L11,11 M1,11 L11,1" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};

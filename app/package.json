@@ -1,0 +1,35 @@
+{
+  "name": "agentsland",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
+    "@tauri-apps/plugin-opener": "^2",
+    "@types/react-grid-layout": "^1.3.6",
+    "@xterm/addon-fit": "^0.11.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-grid-layout": "^2.2.3",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@xterm/xterm": "^6.0.0",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3"
+  }
+}

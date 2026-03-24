@@ -1,0 +1,111 @@
+export type AgentType = "claude" | "codex" | "gemini" | "opencode" | "cursor";
+
+export type AgentTaskStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
+
+export type CliStatus = "NotInstalled" | "Installed" | "Checking" | "Error";
+
+export type CliLaunchStatus = "NotLaunched" | "Starting" | "Running" | "AuthenticationRequired" | "Error";
+
+export type AuthStatus = "Unknown" | "Checking" | "Authenticated" | "NotAuthenticated" | "Error";
+
+export type PrerequisiteType = "NodeJs" | "Npm" | "Git" | "Bun" | "Pnpm";
+
+export interface PrerequisiteStatus {
+  name: string;
+  prerequisiteType: PrerequisiteType;
+  installed: boolean;
+  version: string | null;
+  minimumVersion: string;
+  meetsMinimum: boolean;
+  installUrl: string;
+  requiredFor: string[];
+}
+
+export interface AgentCliInfo {
+  agent: AgentType;
+  binaryName: string;
+  displayName: string;
+  description: string;
+  provider: string;
+  status: CliStatus;
+  version: string | null;
+  path: string | null;
+  error: string | null;
+  docsUrl: string;
+  iconPath: string;
+}
+
+export interface InstallProgress {
+  agent: AgentType;
+  stage: "CheckingPrerequisites" | "Installing" | "Verifying" | "Completed" | "Failed";
+  message: string;
+}
+
+export interface CliLaunchState {
+  sessionId: string;
+  agent: AgentType;
+  status: CliLaunchStatus;
+  error: string | null;
+  version: string | null;
+}
+
+export interface AuthInfo {
+  agent: AgentType;
+  status: AuthStatus;
+  error: string | null;
+  configPath: string | null;
+}
+
+export interface LayoutConfig {
+  type: "grid";
+  sessions: number;
+  rows?: number;
+  cols?: number;
+}
+
+export interface AgentFleet {
+  totalSlots: number;
+  allocation: Record<AgentType, number>;
+}
+
+export interface WorkspaceConfig {
+  id: string;
+  name: string;
+  path: string;
+  layout: LayoutConfig;
+  agentFleet: AgentFleet;
+  createdAt: number;
+  lastOpened?: number;
+}
+
+export interface TerminalSession {
+  id: string;
+  workspaceId: string;
+  index: number;
+  cwd: string;
+  agent?: AgentType;
+  status: "idle" | "running" | "error";
+  shell: string;
+}
+
+export interface AgentTask {
+  id: string;
+  sessionId: string;
+  agent: AgentType;
+  prompt: string;
+  cwd: string;
+  status: AgentTaskStatus;
+  generatedCommand?: string;
+  output: string;
+  error?: string;
+  retryCount: number;
+  createdAt: number;
+  completedAt?: number;
+}
+
+export interface ExecuteAgentTaskRequest {
+  sessionId: string;
+  agent: AgentType;
+  prompt: string;
+  cwd: string;
+}

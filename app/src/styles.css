@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #09090b;
+  --bg-secondary: #0c0c0e;
+  --bg-tertiary: #18181b;
+  --border-primary: #27272a;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.light-theme {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252525;
+  --bg-tertiary: #2d2d2d;
+  --border-primary: #3f3f46;
+  --text-primary: #ffffff;
+  --text-secondary: #d4d4d8;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Helper Utility Classes for the New Theme System */
+.bg-theme-main {
+  background-color: var(--bg-primary);
+}
+
+.bg-theme-card {
+  background-color: var(--bg-secondary);
+}
+
+.bg-theme-hover {
+  background-color: var(--bg-tertiary);
+}
+
+.border-theme {
+  border-color: var(--border-primary);
+}
+
+.text-theme-main {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+/* Titlebar drag region — the correct way for Tauri borderless windows */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.titlebar-nodrag {
+  -webkit-app-region: no-drag;
+}
