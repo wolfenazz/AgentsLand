@@ -12,8 +12,10 @@ interface AppState {
   activeSessionId: string | null;
   activeSessionByWorkspace: Record<string, string | null>;
   isLoadingTerminals: boolean;
-  view: "setup" | "workspace";
+  view: "setup" | "workspace" | "docs";
+  previousView: "setup" | "workspace" | null;
   lastOpenedWorkspaceId: string | null;
+  terminalError: string | null;
 
   cliStatuses: Record<AgentType, AgentCliInfo | null>;
   prerequisites: PrerequisiteStatus[];
@@ -22,7 +24,8 @@ interface AppState {
   authInfos: Record<AgentType, any>;
   theme: "dark" | "light";
 
-  setView: (view: "setup" | "workspace") => void;
+  setView: (view: "setup" | "workspace" | "docs") => void;
+  setViewWithPrevious: (view: "docs") => void;
   setCurrentWorkspace: (workspace: WorkspaceConfig | null) => void;
   setSessions: (sessions: TerminalSession[]) => void;
   setIsLoadingTerminals: (loading: boolean) => void;
@@ -40,6 +43,7 @@ interface AppState {
   setSessionsForWorkspace: (workspaceId: string, sessions: TerminalSession[]) => void;
   setActiveSessionForWorkspace: (workspaceId: string, sessionId: string | null) => void;
   closeAllWorkspaces: () => void;
+  setTerminalError: (error: string | null) => void;
 
   setCliStatus: (agent: AgentType, info: AgentCliInfo) => void;
   setCliStatuses: (statuses: Record<AgentType, AgentCliInfo>) => void;
@@ -70,7 +74,9 @@ export const useAppStore = create<AppState>()(
       activeSessionByWorkspace: {} as Record<string, string | null>,
       isLoadingTerminals: false,
       view: "setup",
+      previousView: null,
       lastOpenedWorkspaceId: null,
+      terminalError: null,
       cliStatuses: initialCliStatuses,
       prerequisites: [],
       installInProgress: null,
@@ -79,12 +85,17 @@ export const useAppStore = create<AppState>()(
       theme: "dark",
 
       setView: (view) => set({ view }),
+      setViewWithPrevious: (view) => set((state) => ({ 
+        previousView: state.view === "docs" ? state.previousView : state.view as "setup" | "workspace",
+        view 
+      })),
       setCurrentWorkspace: (workspace) => set({
         currentWorkspace: workspace,
         lastOpenedWorkspaceId: workspace?.id ?? null,
       }),
       setSessions: (sessions) => set({ sessions }),
       setIsLoadingTerminals: (loading) => set({ isLoadingTerminals: loading }),
+      setTerminalError: (error) => set({ terminalError: error }),
       updateWorkspaceList: (workspaces) => set({ workspaceList: workspaces }),
       addToWorkspaceList: (workspace) =>
         set((state) => ({

@@ -9,11 +9,13 @@ interface WorkspaceConfigFormProps {
   workspaceName: string;
   selectedLayout: LayoutConfig;
   isAllocationValid: boolean;
+  hasOpenWorkspaces?: boolean;
   onSelectDirectory: () => void;
   onWorkspaceNameChange: (name: string) => void;
   onLayoutSelect: (layout: LayoutConfig) => void;
   onAllocationChange: (fleet: AgentFleet) => void;
   onCreateWorkspace: () => void;
+  onCancel?: () => void;
   isValid: boolean;
   isLoading?: boolean;
 }
@@ -23,11 +25,13 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
   workspaceName,
   selectedLayout,
   isAllocationValid,
+  hasOpenWorkspaces,
   onSelectDirectory,
   onWorkspaceNameChange,
   onLayoutSelect,
   onAllocationChange,
   onCreateWorkspace,
+  onCancel,
   isValid,
   isLoading,
 }) => {
@@ -79,7 +83,16 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
         </div>
       )}
 
-      <div className="flex justify-end mt-12 pt-8 border-t border-zinc-800/50">
+      <div className="flex justify-end gap-3 mt-12 pt-8 border-t border-zinc-800/50">
+        {hasOpenWorkspaces && onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-8 py-3 rounded-sm font-mono text-sm uppercase tracking-wider transition-all min-w-[160px] bg-transparent text-zinc-400 border border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
+          >
+            [ Cancel ]
+          </button>
+        )}
         <button
           type="button"
           onClick={onCreateWorkspace}

@@ -4,13 +4,15 @@ import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
+import { WorkspaceTab } from '../workspace/WorkspaceTab';
 
 interface SetupScreenProps {
   isWindows: boolean;
+  onDocsClick: () => void;
 }
 
-export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows }) => {
-  const { setView, theme, toggleTheme } = useAppStore();
+export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick }) => {
+  const { setView, theme, toggleTheme, openWorkspaces, switchWorkspace, sessionsByWorkspace, closeWorkspace } = useAppStore();
   const {
     selectedPath,
     workspaceName,
@@ -25,6 +27,27 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows }) => {
   } = useWorkspace();
 
   const [isLaunching, setIsLaunching] = React.useState(false);
+
+  const handleWorkspaceClick = (workspaceId: string) => {
+    switchWorkspace(workspaceId);
+    setView('workspace');
+  };
+
+  const handleWorkspaceClose = (workspaceId: string) => {
+    closeWorkspace(workspaceId);
+  };
+
+  const handleCancel = () => {
+    if (openWorkspaces.length > 0) {
+      switchWorkspace(openWorkspaces[0].id);
+      setView('workspace');
+    }
+  };
+
+  const sessionsCountMap: Record<string, number> = {};
+  Object.entries(sessionsByWorkspace).forEach(([workspaceId, sessions]) => {
+    sessionsCountMap[workspaceId] = sessions.length;
+  });
 
   const handleCreateWorkspace = async () => {
     if (isLaunching) return;
@@ -54,7 +77,36 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows }) => {
               AGENTSLAND
             </h1>
           </div>
+
+          <button
+            onClick={onDocsClick}
+            className="flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main"
+            title="Documentation"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </button>
         </div>
+
+        {/* Workspace tabs if there are open workspaces */}
+        {openWorkspaces.length > 0 && (
+          <div className="flex items-center h-full overflow-x-auto overflow-y-hidden titlebar-nodrag border-l border-theme">
+            {openWorkspaces.map((workspace) => (
+              <WorkspaceTab
+                key={workspace.id}
+                workspace={workspace}
+                isActive={false}
+                sessionsCount={sessionsCountMap[workspace.id] || 0}
+                onClick={() => handleWorkspaceClick(workspace.id)}
+                onClose={(e) => {
+                  e.stopPropagation();
+                  handleWorkspaceClose(workspace.id);
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Middle: Drag area spacer */}
         <div className="flex-1 h-full" />
@@ -115,11 +167,13 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows }) => {
             workspaceName={workspaceName}
             selectedLayout={selectedLayout}
             isAllocationValid={isAllocationValid}
+            hasOpenWorkspaces={openWorkspaces.length > 0}
             onSelectDirectory={selectDirectory}
             onWorkspaceNameChange={setWorkspaceName}
             onLayoutSelect={setSelectedLayout}
             onAllocationChange={updateAgentFleet}
             onCreateWorkspace={handleCreateWorkspace}
+            onCancel={handleCancel}
             isValid={isValid}
           />
 

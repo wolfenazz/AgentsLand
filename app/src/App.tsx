@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react';
 import { SetupScreen } from './components/setup/SetupScreen';
 import { Workspace } from './components/workspace/Workspace';
+import { DocsScreen } from './components/docs/DocsScreen';
 import { useAppStore } from './stores/appStore';
 import { initWindowPlatform } from './utils/window';
 
 function App() {
-  const { view, lastOpenedWorkspaceId, workspaceList, openWorkspaces, openWorkspace, setView, theme } = useAppStore();
+  const { 
+    view, 
+    previousView,
+    lastOpenedWorkspaceId, 
+    workspaceList, 
+    openWorkspaces, 
+    openWorkspace, 
+    setView, 
+    setViewWithPrevious,
+    theme,
+    toggleTheme 
+  } = useAppStore();
   const [isWindows, setIsWindows] = useState(false);
 
   useEffect(() => {
@@ -20,10 +32,40 @@ function App() {
     }
   }, []);
 
+  const handleDocsClick = () => {
+    setViewWithPrevious('docs');
+  };
+
+  const handleBackFromDocs = () => {
+    if (previousView) {
+      setView(previousView);
+    } else {
+      setView('setup');
+    }
+  };
+
   return (
     <div className={`min-h-screen ${theme === 'light' ? 'light-theme' : ''}`}>
-      {view === 'setup' && <SetupScreen isWindows={isWindows} />}
-      {view === 'workspace' && <Workspace isWindows={isWindows} />}
+      {view === 'setup' && (
+        <SetupScreen 
+          isWindows={isWindows} 
+          onDocsClick={handleDocsClick} 
+        />
+      )}
+      {view === 'workspace' && (
+        <Workspace 
+          isWindows={isWindows} 
+          onDocsClick={handleDocsClick} 
+        />
+      )}
+      {view === 'docs' && (
+        <DocsScreen
+          isWindows={isWindows}
+          onBack={handleBackFromDocs}
+          theme={theme}
+          onThemeToggle={toggleTheme}
+        />
+      )}
     </div>
   );
 }

@@ -13,12 +13,14 @@ interface CreateSessionsParams {
 export const useTerminal = () => {
   const sessions = useAppStore((state) => state.sessions);
   const isLoading = useAppStore((state) => state.isLoadingTerminals);
+  const error = useAppStore((state) => state.terminalError);
   const setSessions = useAppStore((state) => state.setSessions);
   const setIsLoading = useAppStore((state) => state.setIsLoadingTerminals);
-  const error = null;
+  const setTerminalError = useAppStore((state) => state.setTerminalError);
 
   const createSessions = useCallback(async (params: CreateSessionsParams) => {
     setIsLoading(true);
+    setTerminalError(null);
     setSessions([]); // Clear old sessions immediately
 
     try {
@@ -37,7 +39,9 @@ export const useTerminal = () => {
       setSessions(newSessions);
       return newSessions;
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
       console.error('Failed to create terminal sessions:', err);
+      setTerminalError(errorMsg);
       throw err;
     } finally {
       setIsLoading(false);

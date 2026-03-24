@@ -37,6 +37,18 @@ impl PtySession {
 
         println!("PtySession::create: shell={}, cwd={}", shell, cwd);
 
+        // Canonicalize or at least check if path exists
+        let path = std::path::Path::new(&cwd);
+        if !path.exists() {
+            return Err(anyhow::anyhow!("Workspace path does not exist: {}", cwd));
+        }
+        if !path.is_dir() {
+            return Err(anyhow::anyhow!(
+                "Workspace path is not a directory: {}",
+                cwd
+            ));
+        }
+
         let session = TerminalSession {
             id: session_id.clone(),
             workspace_id,

@@ -3,14 +3,32 @@ import { AgentType, AgentFleet } from '../types';
 
 const STORAGE_KEY = 'agentsland-agent-allocation';
 
+const VALID_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor'];
+
 const loadPersistedAllocation = (): Record<AgentType, number> | null => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (typeof parsed === 'object' && parsed !== null) {
+        // Sanity check: ensure only valid agents are in the record
+        const sanitized: any = {};
+        let hasValidData = false;
+
+        VALID_AGENTS.forEach(agent => {
+          if (typeof parsed[agent] === 'number') {
+            sanitized[agent] = parsed[agent];
+            hasValidData = true;
+          } else {
+            sanitized[agent] = 0;
+          }
+        });
+
+        return hasValidData ? sanitized : null;
+      }
     }
-  } catch {
-    console.warn('Failed to load persisted agent allocation');
+  } catch (error) {
+    console.warn('Failed to load persisted agent allocation:', error);
   }
   return null;
 };
@@ -63,7 +81,7 @@ export const useAgentAllocation = (totalSlots: number) => {
 
   const updateAllocation = useCallback((agent: AgentType, count: number) => {
     if (count < 0) return;
-    
+
     setAllocation((prev) => {
       if (Object.values(prev).reduce((s, c) => s + c, 0) - prev[agent] + count > totalSlots) {
         return prev;

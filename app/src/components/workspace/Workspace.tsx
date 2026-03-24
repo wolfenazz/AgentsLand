@@ -9,9 +9,10 @@ import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window'
 
 interface WorkspaceProps {
   isWindows: boolean;
+  onDocsClick: () => void;
 }
 
-export const Workspace: React.FC<WorkspaceProps> = ({ isWindows }) => {
+export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) => {
   const {
     currentWorkspace,
     openWorkspaces,
@@ -59,7 +60,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows }) => {
 
       markWorkspaceOpened(currentWorkspace.id);
     }
-  }, [currentWorkspace?.id, sessionsByWorkspace, isLoading]);
+  }, [currentWorkspace?.id, sessionsByWorkspace, isLoading, error, detectAllClis, checkAllAuth, createSessions, setSessionsForWorkspace, markWorkspaceOpened]);
 
   const handleBackToSetup = async () => {
     await killAllSessions();
@@ -124,6 +125,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows }) => {
         onWorkspaceClick={handleWorkspaceClick}
         onWorkspaceClose={handleWorkspaceClose}
         onNewWorkspace={handleNewWorkspace}
+        onDocsClick={onDocsClick}
         isWindows={isWindows}
         onThemeToggle={toggleTheme}
         theme={theme}
@@ -135,7 +137,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows }) => {
 
       <main className="flex-1 overflow-hidden p-1.5 pt-11.5 bg-theme-main">
         {currentWorkspace ? (
-          <TerminalGrid sessions={sessions} />
+          <TerminalGrid sessions={sessions} isLoading={isLoading} />
         ) : (
           <div className="flex-1 flex items-center justify-center text-zinc-500">
             <div className="text-center space-y-4">
