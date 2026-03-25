@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AgentType, AgentFleet } from '../types';
 
-const STORAGE_KEY = 'agentsland-agent-allocation';
+const STORAGE_KEY = 'yzpzcode-agent-allocation';
 
 const VALID_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor'];
 

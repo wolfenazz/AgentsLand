@@ -1,8 +1,8 @@
-# AgentsLand – Implementation Plan
+# YzPzCode – Implementation Plan
 
 ## 1. Vision
 
-AgentsLand is a native desktop "agentic development environment" that combines terminals, AI agents, code editing, and task management into a unified workflow. The goal is to reduce friction between thinking, coding, running, and orchestrating AI tools.
+YzPzCode is a native desktop "agentic development environment" that combines terminals, AI agents, code editing, and task management into a unified workflow. The goal is to reduce friction between thinking, coding, running, and orchestrating AI tools.
 
 ---
 
@@ -34,7 +34,7 @@ AgentsLand is a native desktop "agentic development environment" that combines t
 ## 3. Core Features Breakdown
 
 > ⚡ **Scope Update (MVP based on provided UI):**
-> For the first version, AgentsLand should focus ONLY on:
+> For the first version, YzPzCode should focus ONLY on:
 
 * Workspace creation flow
 * Layout selection (multi-terminal grid)
@@ -473,4 +473,4 @@ Allow agents to:
 
 ---
 
-This document serves as the foundation for building AgentsLand. Iterate as the architecture evolves.
+This document serves as the foundation for building YzPzCode. Iterate as the architecture evolves.

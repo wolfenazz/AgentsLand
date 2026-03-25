@@ -11,7 +11,9 @@ pub struct IdeConfig {
     pub binary_names: Vec<String>,
     pub windows_binary_names: Vec<String>,
     pub windows_search_paths: Vec<String>,
+    #[allow(dead_code)]
     pub macos_app_names: Vec<String>,
+    #[allow(dead_code)]
     pub linux_binary_names: Vec<String>,
 }
 
@@ -27,22 +29,6 @@ pub fn get_ide_config(ide: IdeType) -> IdeConfig {
         },
         IdeType::VisualStudio => IdeConfig {
             name: "Visual Studio 2022".to_string(),
-            binary_names: vec!["devenv".to_string()],
-            windows_binary_names: vec!["devenv.exe".to_string(), "WDExpress.exe".to_string()],
-            windows_search_paths: vec![
-                "Microsoft Visual Studio".to_string(),
-                "Microsoft Visual Studio\\2022\\Community\\Common7\\IDE".to_string(),
-                "Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE".to_string(),
-                "Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE".to_string(),
-                "Microsoft Visual Studio\\2019\\Community\\Common7\\IDE".to_string(),
-                "Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE".to_string(),
-                "Microsoft Visual Studio\\2019\\Enterprise\\Common7\\IDE".to_string(),
-            ],
-            macos_app_names: vec!["Visual Studio.app".to_string()],
-            linux_binary_names: vec!["devenv".to_string()],
-        },
-        IdeType::VisualStudio => IdeConfig {
-            name: "Visual Studio".to_string(),
             binary_names: vec!["devenv".to_string()],
             windows_binary_names: vec!["devenv.exe".to_string(), "WDExpress.exe".to_string()],
             windows_search_paths: vec![
@@ -77,7 +63,11 @@ pub fn get_ide_config(ide: IdeType) -> IdeConfig {
             name: "WebStorm".to_string(),
             binary_names: vec!["webstorm".to_string(), "webstorm64".to_string()],
             windows_binary_names: vec!["webstorm64.exe".to_string(), "webstorm.exe".to_string()],
-            windows_search_paths: vec!["JetBrains\\WebStorm".to_string()],
+            windows_search_paths: vec![
+                "JetBrains\\WebStorm".to_string(),
+                "JetBrains\\Toolbox\\apps\\WebStorm".to_string(),
+                "JetBrains\\Toolbox\\apps\\WS".to_string(),
+            ],
             macos_app_names: vec!["WebStorm.app".to_string()],
             linux_binary_names: vec!["webstorm".to_string()],
         },
@@ -85,10 +75,18 @@ pub fn get_ide_config(ide: IdeType) -> IdeConfig {
             name: "IntelliJ IDEA".to_string(),
             binary_names: vec!["idea".to_string(), "idea64".to_string()],
             windows_binary_names: vec!["idea64.exe".to_string(), "idea.exe".to_string()],
-            windows_search_paths: vec!["JetBrains\\IntelliJ IDEA".to_string()],
+            windows_search_paths: vec![
+                "JetBrains\\IntelliJ IDEA".to_string(),
+                "JetBrains\\IntelliJ IDEA Community Edition".to_string(),
+                "JetBrains\\IntelliJ IDEA Ultimate".to_string(),
+                "JetBrains\\Toolbox\\apps\\IntelliJIdea".to_string(),
+                "JetBrains\\Toolbox\\apps\\IDEA-U".to_string(),
+                "JetBrains\\Toolbox\\apps\\IDEA-C".to_string(),
+            ],
             macos_app_names: vec![
                 "IntelliJ IDEA.app".to_string(),
                 "IntelliJ IDEA CE.app".to_string(),
+                "IntelliJ IDEA Ultimate.app".to_string(),
             ],
             linux_binary_names: vec!["idea".to_string(), "idea-ultimate".to_string()],
         },

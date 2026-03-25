@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "AgentsLand",
+  "productName": "YzPzCode",
   "version": "0.1.0",
-  "identifier": "com.agentsland.app",
+  "identifier": "com.yzpzcode.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:8745",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "AgentsLand",
+        "title": "YzPzCode",
         "width": 1200,
         "height": 800,
         "minWidth": 1020,

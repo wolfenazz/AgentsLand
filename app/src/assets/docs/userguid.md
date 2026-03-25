@@ -1,11 +1,11 @@
-# AgentsLand User Guide
+# YzPzCode User Guide
 
 ## Table of Contents
 
-1. [What is AgentsLand?](#what-is-agentsland)
+1. [What is YzPzCode?](#what-is-yzpzcode)
 2. [Getting Started](#getting-started)
 3. [Before You Begin](#before-you-begin)
-4. [How to Use AgentsLand](#how-to-use-agentsland)
+4. [How to Use YzPzCode](#how-to-use-yzpzcode)
 5. [Understanding the Screens](#understanding-the-screens)
 6. [Common Tasks](#common-tasks)
 7. [Tips for Success](#tips-for-success)
@@ -13,13 +13,13 @@
 
 ---
 
-## What is AgentsLand?
+## What is YzPzCode?
 
-AgentsLand is a simple app that lets you work with AI coding assistants in multiple windows at the same time.
+YzPzCode is a simple app that lets you work with AI coding assistants in multiple windows at the same time.
 
 Think of it like having several AI assistants (like Claude, Codex, or Cursor) all helping you with your coding projects, each in their own workspace.
 
-**Why use AgentsLand?**
+**Why use YzPzCode?**
 - Work with multiple AI assistants at once
 - Each assistant gets its own terminal window
 - Great for reviewing code, generating code, or debugging
@@ -31,13 +31,13 @@ Think of it like having several AI assistants (like Claude, Codex, or Cursor) al
 
 ### 1. Download and Install
 
-- Download AgentsLand for your computer (macOS or Linux)
+- Download YzPzCode for your computer (macOS or Linux)
 - Open the downloaded file and follow the installation prompts
 - Launch the app from your Applications folder or desktop
 
 ### 2. Quick Overview
 
-When you first open AgentsLand, you'll see a **Setup Screen**. This is where you create your first workspace.
+When you first open YzPzCode, you'll see a **Setup Screen**. This is where you create your first workspace.
 
 **What is a workspace?**
 A workspace is like a project folder where you can work on one coding project. You can create multiple workspaces for different projects.
@@ -48,7 +48,7 @@ A workspace is like a project folder where you can work on one coding project. Y
 
 ### Install AI Tools
 
-AgentsLand works with popular AI coding tools. You'll need to install at least one before you can use it:
+YzPzCode works with popular AI coding tools. You'll need to install at least one before you can use it:
 
 | Tool | What it does | How to get it |
 |------|-------------|---------------|
@@ -70,7 +70,7 @@ After installing an AI tool, you'll need to sign in:
 
 ---
 
-## How to Use AgentsLand
+## How to Use YzPzCode
 
 ### Step 1: Create Your First Workspace
 
@@ -261,13 +261,13 @@ After you create a workspace, you'll see:
 ## Frequently Asked Questions
 
 **Q: Do I need to know how to code?**
-A: Yes, AgentsLand is designed for people who write code or are learning to code.
+A: Yes, YzPzCode is designed for people who write code or are learning to code.
 
 **Q: Can I use multiple AI tools at once?**
 A: Yes! You can mix different AI tools in the same workspace.
 
 **Q: Will my code be saved?**
-A: Yes, your code is saved in the project folder you selected. AgentsLand just helps you work on it.
+A: Yes, your code is saved in the project folder you selected. YzPzCode just helps you work on it.
 
 **Q: Is my data private?**
 A: Your code stays on your computer. However, when you use AI tools, they process your code according to their own privacy policies. Check each AI tool's privacy policy for details.

@@ -1,12 +1,12 @@
 [package]
-name = "agentsland"
+name = "yzpzcode"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
 
 [lib]
-name = "agentsland_lib"
+name = "yzpzcode_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

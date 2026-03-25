@@ -1,8 +1,8 @@
-# AgentsLand - Structured Implementation Plan v2
+# YzPzCode - Structured Implementation Plan v2
 
 ## 1. Executive Summary
 
-AgentsLand is a native desktop development environment integrating terminals, AI agents, and task management. This plan provides a structured, phased approach with clear MVP boundaries and incremental delivery.
+YzPzCode is a native desktop development environment integrating terminals, AI agents, and task management. This plan provides a structured, phased approach with clear MVP boundaries and incremental delivery.
 
 ---
 
@@ -313,7 +313,7 @@ async fn get_install_command(agent: AgentType) -> Result<String, String>
 
 **Acceptance Criteria:**
 - `npm run tauri dev` launches application
-- Default Tauri window displays "Hello AgentsLand"
+- Default Tauri window displays "Hello YzPzCode"
 - TypeScript compilation succeeds
 
 ---
@@ -693,7 +693,7 @@ src/
 - Manual CLI restart/retry options
 
 **Rationale:**
-Since AgentsLand installs and manages the actual agent CLIs (Claude Code, OpenCode, Codex, Gemini), we don't need a custom LLM execution system. The CLIs handle all AI interactions. This phase focuses on seamlessly integrating these CLIs into the terminal workflow.
+Since YzPzCode installs and manages the actual agent CLIs (Claude Code, OpenCode, Codex, Gemini), we don't need a custom LLM execution system. The CLIs handle all AI interactions. This phase focuses on seamlessly integrating these CLIs into the terminal workflow.
 
 **Tasks:**
 
@@ -1009,4 +1009,4 @@ agentic-space/
 
 ---
 
-This implementation plan provides clear boundaries, specific deliverables, and a phased approach to building AgentsLand's MVP.
+This implementation plan provides clear boundaries, specific deliverables, and a phased approach to building YzPzCode's MVP.

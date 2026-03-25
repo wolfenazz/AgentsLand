@@ -126,13 +126,45 @@ impl IdeDetector {
                     return (true, Some(direct_path.to_string_lossy().to_string()));
                 }
 
-                if let Ok(entries) = std::fs::read_dir(path) {
+                let bin_path = path.join("bin").join(binary);
+                if bin_path.exists() {
+                    return (true, Some(bin_path.to_string_lossy().to_string()));
+                }
+
+                if let Ok(entries) = std::fs::read_dir(&path) {
                     for entry in entries.flatten() {
                         let entry_path = entry.path();
                         if entry_path.is_dir() {
                             let exe_in_subdir = entry_path.join(binary);
                             if exe_in_subdir.exists() {
                                 return (true, Some(exe_in_subdir.to_string_lossy().to_string()));
+                            }
+
+                            let bin_in_subdir = entry_path.join("bin").join(binary);
+                            if bin_in_subdir.exists() {
+                                return (true, Some(bin_in_subdir.to_string_lossy().to_string()));
+                            }
+
+                            if let Ok(sub_entries) = std::fs::read_dir(&entry_path) {
+                                for sub_entry in sub_entries.flatten() {
+                                    let sub_path = sub_entry.path();
+                                    if sub_path.is_dir() {
+                                        let exe_deep = sub_path.join(binary);
+                                        if exe_deep.exists() {
+                                            return (
+                                                true,
+                                                Some(exe_deep.to_string_lossy().to_string()),
+                                            );
+                                        }
+                                        let bin_deep = sub_path.join("bin").join(binary);
+                                        if bin_deep.exists() {
+                                            return (
+                                                true,
+                                                Some(bin_deep.to_string_lossy().to_string()),
+                                            );
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -158,7 +190,51 @@ impl IdeDetector {
             }
         }
 
+        if self.check_jetbrains_toolbox(&local_app_data, &config.windows_binary_names) {
+            return (true, Some("JetBrains Toolbox".to_string()));
+        }
+
         (false, None)
+    }
+
+    #[cfg(target_os = "windows")]
+    fn check_jetbrains_toolbox(&self, local_app_data: &str, binaries: &[String]) -> bool {
+        let toolbox_path = format!("{}\\JetBrains\\Toolbox\\apps", local_app_data);
+        let toolbox = PathBuf::from(&toolbox_path);
+
+        if !toolbox.exists() {
+            return false;
+        }
+
+        fn search_dir(dir: &PathBuf, binaries: &[String], depth: usize) -> bool {
+            if depth > 5 {
+                return false;
+            }
+
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+
+                    if path.is_file() {
+                        if let Some(file_name) = path.file_name() {
+                            let name = file_name.to_string_lossy();
+                            for binary in binaries {
+                                if name.eq_ignore_ascii_case(binary) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } else if path.is_dir() {
+                        if search_dir(&path, binaries, depth + 1) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            false
+        }
+
+        search_dir(&toolbox, binaries, 0)
     }
 
     #[cfg(target_os = "macos")]

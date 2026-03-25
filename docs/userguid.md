@@ -1,4 +1,4 @@
-# AgentsLand User Guide
+# YzPzCode User Guide
 
 ## Table of Contents
 
@@ -15,9 +15,9 @@
 
 ## Getting Started
 
-### Launching AgentsLand
+### Launching YzPzCode
 
-To start AgentsLand, run:
+To start YzPzCode, run:
 
 ```bash
 npm run tauri dev
@@ -27,7 +27,7 @@ This will launch the application window with the setup screen.
 
 ### First Time Setup
 
-When you first open AgentsLand, you'll be greeted by the **Setup Screen**. This is where you configure your first workspace for running AI coding agents.
+When you first open YzPzCode, you'll be greeted by the **Setup Screen**. This is where you configure your first workspace for running AI coding agents.
 
 ---
 
@@ -259,7 +259,7 @@ Sessions can be in one of these states:
 **Solutions:**
 1. Click the refresh icon to re-detect CLI tools
 2. Verify the CLI binary is in your system PATH
-3. Restart AgentsLand
+3. Restart YzPzCode
 4. Check if the CLI requires authentication
 
 ### Workspace Creation Fails
@@ -280,7 +280,7 @@ Sessions can be in one of these states:
 1. Close and reopen the workspace
 2. Check system permissions for the workspace directory
 3. Verify PTY support on your system
-4. Restart AgentsLand
+4. Restart YzPzCode
 
 ### Agent Commands Not Working
 
@@ -328,7 +328,7 @@ If you encounter issues not covered in this guide:
 
 ## Next Steps
 
-Now that you're familiar with AgentsLand:
+Now that you're familiar with YzPzCode:
 
 - Explore different agent combinations for your workflow
 - Create multiple workspaces for different projects

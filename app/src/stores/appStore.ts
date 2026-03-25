@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -24,6 +24,7 @@ interface AppState {
   authInfos: Record<AgentType, any>;
   theme: "dark" | "light";
   selectedIdes: IdeType[];
+  ideStatuses: Record<IdeType, IdeInfo | null>;
 
   setView: (view: "setup" | "workspace" | "docs") => void;
   setViewWithPrevious: (view: "docs") => void;
@@ -54,6 +55,7 @@ interface AppState {
   setAuthInfo: (agent: AgentType, info: any) => void;
   toggleIde: (ide: IdeType) => void;
   setSelectedIdes: (ides: IdeType[]) => void;
+  setIdeStatuses: (statuses: Record<IdeType, IdeInfo | null>) => void;
 }
 
 const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
@@ -87,6 +89,17 @@ export const useAppStore = create<AppState>()(
       authInfos: {} as Record<AgentType, any>,
       theme: "dark",
       selectedIdes: [],
+      ideStatuses: {
+        vsCode: null,
+        visualStudio: null,
+        cursor: null,
+        zed: null,
+        webStorm: null,
+        intelliJ: null,
+        sublimeText: null,
+        windsurf: null,
+        perplexity: null,
+      },
 
       setView: (view) => set({ view }),
       setViewWithPrevious: (view) => set((state) => ({ 
@@ -253,9 +266,10 @@ export const useAppStore = create<AppState>()(
             : [...state.selectedIdes, ide],
         })),
       setSelectedIdes: (ides) => set({ selectedIdes: ides }),
+      setIdeStatuses: (statuses) => set({ ideStatuses: statuses }),
     }),
     {
-      name: 'agentsland-storage',
+      name: 'yzpzcode-storage',
       partialize: (state) => ({
         cliStatuses: state.cliStatuses,
         theme: state.theme,

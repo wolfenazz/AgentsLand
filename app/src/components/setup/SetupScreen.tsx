@@ -1,12 +1,12 @@
 import React from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { CliToolsTable } from './CliToolsTable';
-import { IdesTable } from './IdesTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
 import { WorkspaceTab } from '../workspace/WorkspaceTab';
-import logo from '../../assets/AgentsLandLogo.png';
+import logo from '../../assets/YzPzCodeLogo.png';
 import discordLogo from '../../assets/discordLOGO.png';
 import instagramLogo from '../../assets/Instagramlogo.png';
 
@@ -16,7 +16,7 @@ interface SetupScreenProps {
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick }) => {
-  const { setView, theme, toggleTheme, openWorkspaces, switchWorkspace, sessionsByWorkspace, closeWorkspace } = useAppStore();
+  const { setView, theme, toggleTheme, openWorkspaces, switchWorkspace, sessionsByWorkspace, closeWorkspace, selectedIdes, ideStatuses } = useAppStore();
   const {
     selectedPath,
     workspaceName,
@@ -91,7 +91,17 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     if (isLaunching) return;
     setIsLaunching(true);
     try {
-      await createWorkspace();
+      const workspace = await createWorkspace();
+      
+      const selectedInstalledIdes = selectedIdes.filter((ide) => ideStatuses[ide]?.installed);
+      for (const ide of selectedInstalledIdes) {
+        try {
+          await invoke('launch_ide_cmd', { ide, directory: workspace.path });
+        } catch (err) {
+          console.error(`Failed to launch ${ide}:`, err);
+        }
+      }
+      
       setView('workspace');
     } catch (error) {
       console.error('Failed to create workspace:', error);
@@ -110,7 +120,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
         {/* Left: Logo */}
         <div className="flex items-center h-full titlebar-nodrag">
           <div className="flex items-center gap-2 px-3 h-full border-r border-theme bg-theme-card cursor-default">
-            <img src={logo} alt="AgentsLand" className="h-6 w-auto" />
+            <img src={logo} alt="YzPzCode" className="h-6 w-auto" />
           </div>
 
           <button
@@ -198,8 +208,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
       <main className="flex-1 flex flex-col p-6 pt-20 overflow-y-auto">
         <div className="w-full max-w-6xl mx-auto py-12 space-y-8">
           <div className="flex flex-col items-center justify-center mb-8">
-            <img src={logo} alt="AgentsLand" className="h-16 w-auto mb-4" />
-            <p className="text-theme-secondary text-sm">Welcome to AgentsLand.. it's FREE for Ever !</p>
+            <img src={logo} alt="YzPzCode" className="h-16 w-auto mb-4" />
+            <p className="text-theme-secondary text-sm">Welcome to YzPzCode.. it's FREE for Ever !</p>
           </div>
           <WorkspaceConfigForm
             selectedPath={selectedPath}
@@ -217,8 +227,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
           />
 
           <CliToolsTable />
-
-          <IdesTable selectedPath={selectedPath} />
         </div>
       </main>
 

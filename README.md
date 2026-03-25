@@ -1,4 +1,4 @@
-# AgentsLand
+# YzPzCode
 
 A cross-platform desktop application for managing multiple AI coding agent CLIs in a unified workspace. Built with Tauri v2, React, and Rust.
 
@@ -48,7 +48,7 @@ A cross-platform desktop application for managing multiple AI coding agent CLIs 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd AgentsLand/app
+cd YzPzCode/app
 
 # Install dependencies
 npm install

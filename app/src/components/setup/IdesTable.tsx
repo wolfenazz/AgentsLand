@@ -3,7 +3,8 @@ import { useIde } from '../../hooks/useIde';
 import { useAppStore } from '../../stores/appStore';
 import { IdeInfo, IdeType } from '../../types';
 
-import visualStudioIcon from '../../assets/Visual_Studio.png';
+import vsCodeIcon from '../../assets/Visual_Studio_code.png';
+import visualStudioIcon from '../../assets/visual-studio-logo.png';
 import cursorIcon from '../../assets/cursor-ai.png';
 import zedIcon from '../../assets/zedlogo.png';
 import webStormIcon from '../../assets/WebStormLOGO.png';
@@ -19,7 +20,7 @@ interface IdesTableProps {
 const IDE_ORDER: IdeType[] = ['vsCode', 'visualStudio', 'cursor', 'zed', 'webStorm', 'intelliJ', 'sublimeText', 'windsurf', 'perplexity'];
 
 const IDE_ICONS: Record<IdeType, string> = {
-  vsCode: visualStudioIcon,
+  vsCode: vsCodeIcon,
   visualStudio: visualStudioIcon,
   cursor: cursorIcon,
   zed: zedIcon,
@@ -30,8 +31,20 @@ const IDE_ICONS: Record<IdeType, string> = {
   perplexity: perplexityIcon,
 };
 
+const IDE_DISPLAY_NAMES: Record<IdeType, string> = {
+  vsCode: 'VS Code',
+  visualStudio: 'Visual Studio',
+  cursor: 'Cursor',
+  zed: 'Zed',
+  webStorm: 'WebStorm',
+  intelliJ: 'IntelliJ',
+  sublimeText: 'Sublime',
+  windsurf: 'Windsurf',
+  perplexity: 'Perplexity',
+};
+
 export const IdesTable: React.FC<IdesTableProps> = ({ selectedPath }) => {
-  const { ideStatuses, detectAllIdes, launchIde, loading, error } = useIde();
+  const { ideStatuses, detectAllIdes, launchIde, loading } = useIde();
   const { selectedIdes, toggleIde } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
@@ -43,10 +56,6 @@ export const IdesTable: React.FC<IdesTableProps> = ({ selectedPath }) => {
   const ideList = IDE_ORDER.map((ide) => ideStatuses[ide]).filter((ide): ide is IdeInfo => ide !== null);
   const installedCount = ideList.filter((ide) => ide.installed).length;
   const selectedInstalledIdes = selectedIdes.filter((ide) => ideStatuses[ide]?.installed);
-
-  const handleToggleIde = (ide: IdeType) => {
-    toggleIde(ide);
-  };
 
   const handleExecute = async () => {
     if (!selectedPath || selectedInstalledIdes.length === 0 || isLaunching) return;
@@ -66,14 +75,6 @@ export const IdesTable: React.FC<IdesTableProps> = ({ selectedPath }) => {
     return (
       <div className="flex items-center gap-2 text-theme-secondary font-mono text-xs animate-pulse">
         <span>Detecting IDEs...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-xs text-rose-400 font-mono">
-        Error: {error}
       </div>
     );
   }
@@ -98,91 +99,94 @@ export const IdesTable: React.FC<IdesTableProps> = ({ selectedPath }) => {
       </button>
 
       {isOpen && (
-        <div className="mt-3 overflow-hidden border border-theme rounded-sm">
-          <table className="w-full">
-            <thead className="bg-theme-card border-b border-theme">
-              <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-medium text-theme-secondary font-mono uppercase tracking-wider w-8">
-                  <span className="sr-only">Select</span>
-                </th>
-                <th className="px-3 py-2 text-left text-[10px] font-medium text-theme-secondary font-mono uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-3 py-2 text-left text-[10px] font-medium text-theme-secondary font-mono uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-3 py-2 text-left text-[10px] font-medium text-theme-secondary font-mono uppercase tracking-wider">
-                  Path
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-theme bg-theme-main">
-              {ideList.map((ide) => (
-                <tr
+        <div className="mt-3 space-y-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9 gap-2">
+            {ideList.map((ide) => {
+              const isSelected = selectedIdes.includes(ide.ide);
+              const isInstalled = ide.installed;
+
+              return (
+                <button
                   key={ide.ide}
-                  className={`hover:bg-theme-hover transition-colors ${!ide.installed ? 'opacity-50' : ''}`}
+                  onClick={() => isInstalled && toggleIde(ide.ide)}
+                  disabled={!isInstalled}
+                  className={`
+                    flex flex-col items-center justify-center p-3 rounded-md border transition-all
+                    font-mono text-[10px] uppercase tracking-wider
+                    ${isInstalled
+                      ? isSelected
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-sm shadow-emerald-500/20'
+                        : 'border-theme hover:border-zinc-500 bg-theme-card hover:bg-theme-hover text-theme-secondary hover:text-theme-main cursor-pointer'
+                      : 'border-theme/30 bg-theme-card/50 text-zinc-600 cursor-not-allowed opacity-50'
+                    }
+                  `}
+                  title={isInstalled ? ide.path || ide.name : 'Not installed'}
                 >
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedIdes.includes(ide.ide)}
-                      onChange={() => handleToggleIde(ide.ide)}
-                      disabled={!ide.installed}
-                      className="w-3.5 h-3.5 rounded border-theme bg-transparent checked:bg-emerald-500 checked:border-emerald-500 focus:ring-0 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed"
+                  <div className="relative mb-1.5">
+                    <img
+                      src={getIdeIcon(ide.ide)}
+                      alt={ide.name}
+                      className={`w-6 h-6 object-contain ${!isInstalled ? 'grayscale opacity-50' : ''}`}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={getIdeIcon(ide.ide)}
-                        alt={ide.name}
-                        className="w-4 h-4 object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <div>
-                        <div className="font-medium text-theme-main font-mono text-xs">
-                          {ide.name}
-                        </div>
-                        <div className="text-[10px] text-theme-secondary font-mono">
-                          {ide.binaryName}
-                        </div>
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className={`text-xs font-mono ${ide.installed ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                      {ide.installed ? '✓ Installed' : '✗ Not Found'}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-xs text-theme-secondary font-mono truncate max-w-[200px]">
-                    {ide.path || 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    )}
+                  </div>
+                  <span className="truncate w-full text-center">{IDE_DISPLAY_NAMES[ide.ide]}</span>
+                  {!isInstalled && (
+                    <span className="text-[8px] text-zinc-600 mt-0.5">✗</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-          {ideList.length === 0 && (
-            <div className="p-4 text-center text-theme-secondary font-mono text-xs">
-              No IDEs detected
-            </div>
-          )}
-
-          <div className="p-3 border-t border-theme bg-theme-card flex items-center justify-between">
-            <span className="text-[10px] text-theme-secondary font-mono">
-              {selectedInstalledIdes.length} IDE{selectedInstalledIdes.length !== 1 ? 's' : ''} selected
+          <div className="flex items-center justify-between p-3 border border-theme rounded-md bg-theme-card">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-theme-secondary font-mono">
+                {selectedInstalledIdes.length > 0 ? (
+                  <>
+                    <span className="text-emerald-400">{selectedInstalledIdes.length}</span> IDE{selectedInstalledIdes.length !== 1 ? 's' : ''} selected
+                  </>
+                ) : (
+                  <span className="text-zinc-500">No IDEs selected</span>
+                )}
+              </span>
               {!selectedPath && selectedInstalledIdes.length > 0 && (
-                <span className="text-amber-400 ml-2">(Select a directory first)</span>
+                <span className="text-[10px] text-amber-400 font-mono">
+                  ⚠ Select a directory first
+                </span>
               )}
-            </span>
+            </div>
             <button
               onClick={handleExecute}
               disabled={!selectedPath || selectedInstalledIdes.length === 0 || isLaunching}
-              className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+              className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex items-center gap-2"
             >
-              {isLaunching ? 'Launching...' : 'Execute'}
+              {isLaunching ? (
+                <>
+                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Launching...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Execute</span>
+                </>
+              )}
             </button>
           </div>
         </div>

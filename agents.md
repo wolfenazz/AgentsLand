@@ -1,4 +1,4 @@
-# AgentsLand - AI Agent CLI Development Guide
+# YzPzCode - AI Agent CLI Development Guide
 
 This guide helps AI coding agents work effectively in this Tauri v2 application for managing AI CLI tools.
 

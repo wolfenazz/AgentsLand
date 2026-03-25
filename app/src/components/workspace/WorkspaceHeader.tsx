@@ -1,7 +1,7 @@
 import React from 'react';
 import { WorkspaceConfig } from '../../types';
 import { WorkspaceTab } from './WorkspaceTab';
-import logo from '../../assets/AgentsLandLogo.png';
+import logo from '../../assets/YzPzCodeLogo.png';
 
 interface WorkspaceHeaderProps {
   workspaces: WorkspaceConfig[];
@@ -42,7 +42,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       ${isWindows ? 'titlebar-drag active:cursor-grabbing' : ''}
     `}>
       <div className="flex items-center px-3 h-full border-r border-theme bg-theme-card cursor-default">
-        <img src={logo} alt="AgentsLand" className="h-6 w-auto" />
+        <img src={logo} alt="YzPzCode" className="h-6 w-auto" />
       </div>
 
       <button

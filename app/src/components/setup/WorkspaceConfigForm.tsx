@@ -2,6 +2,7 @@ import React from 'react';
 import { DirectorySelector } from './DirectorySelector';
 import { LayoutSelector } from './LayoutSelector';
 import { AgentFleetConfig } from './AgentFleetConfig';
+import { IdesSelector } from './IdesSelector';
 import { LayoutConfig, AgentFleet } from '../../types';
 
 interface WorkspaceConfigFormProps {
@@ -39,7 +40,7 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
     <div className="w-full max-w-4xl mx-auto space-y-8 p-8 bg-theme-card border border-theme rounded-sm shadow-2xl">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-theme-main mb-2 font-mono tracking-tight">
-          &gt; AgentsLand --setup
+          &gt; YzPzCode --setup
         </h1>
         <p className="text-theme-secondary font-mono text-sm opacity-70">
           Initialize your multi-terminal AI development environment
@@ -69,6 +70,8 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
         selectedLayout={selectedLayout}
         onSelectLayout={onLayoutSelect}
       />
+
+      <IdesSelector selectedPath={selectedPath} />
 
       <AgentFleetConfig
         totalSlots={selectedLayout.sessions}
