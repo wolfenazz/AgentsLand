@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { SetupScreen } from './components/setup/SetupScreen';
 import { Workspace } from './components/workspace/Workspace';
 import { DocsScreen } from './components/docs/DocsScreen';
+import { UpdateNotification } from './components/common/UpdateNotification';
 import { useAppStore } from './stores/appStore';
 import { initWindowPlatform } from './utils/window';
 
@@ -66,6 +67,7 @@ function App() {
           onThemeToggle={toggleTheme}
         />
       )}
+      <UpdateNotification />
     </div>
   );
 }
