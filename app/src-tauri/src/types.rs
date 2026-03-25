@@ -78,6 +78,30 @@ pub struct TerminalOutput {
     pub data: String,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+pub enum IdeType {
+    VsCode,
+    VisualStudio,
+    Cursor,
+    Zed,
+    WebStorm,
+    IntelliJ,
+    SublimeText,
+    Windsurf,
+    Perplexity,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IdeInfo {
+    pub ide: IdeType,
+    pub name: String,
+    pub binary_name: String,
+    pub installed: bool,
+    pub path: Option<String>,
+}
+
 pub fn get_default_shell() -> String {
     #[cfg(target_os = "windows")]
     {

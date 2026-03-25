@@ -10,6 +10,8 @@ export type AuthStatus = "Unknown" | "Checking" | "Authenticated" | "NotAuthenti
 
 export type PrerequisiteType = "NodeJs" | "Npm" | "Git" | "Bun" | "Pnpm";
 
+export type IdeType = "vsCode" | "visualStudio" | "cursor" | "zed" | "webStorm" | "intelliJ" | "sublimeText" | "windsurf" | "perplexity";
+
 export interface PrerequisiteStatus {
   name: string;
   prerequisiteType: PrerequisiteType;
@@ -108,4 +110,12 @@ export interface ExecuteAgentTaskRequest {
   agent: AgentType;
   prompt: string;
   cwd: string;
+}
+
+export interface IdeInfo {
+  ide: IdeType;
+  name: string;
+  binaryName: string;
+  installed: boolean;
+  path: string | null;
 }

@@ -6,8 +6,9 @@ use crate::agent_cli::{
     AgentCliDetector, AgentCliInfo, AgentCliInstaller, AuthDetector, AuthInfo, CliLaunchState,
     CliLauncher, PrerequisiteStatus, PrerequisitesChecker,
 };
+use crate::ide::{launch_ide, IdeDetector};
 use crate::terminal::TerminalManager;
-use crate::types::{AgentType, CreateSessionsRequest, TerminalSession};
+use crate::types::{AgentType, CreateSessionsRequest, IdeInfo, IdeType, TerminalSession};
 
 #[tauri::command]
 pub async fn create_terminal_sessions(
@@ -314,4 +315,21 @@ pub async fn maximize_window(window: tauri::Window) -> Result<(), String> {
 #[tauri::command]
 pub async fn close_window(window: tauri::Window) -> Result<(), String> {
     window.close().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn detect_ide(detector: State<'_, IdeDetector>, ide: IdeType) -> Result<IdeInfo, String> {
+    let mut det = detector.inner().clone();
+    Ok(det.detect(ide))
+}
+
+#[tauri::command]
+pub async fn detect_all_ides_cmd(detector: State<'_, IdeDetector>) -> Result<std::collections::HashMap<IdeType, IdeInfo>, String> {
+    let mut det = detector.inner().clone();
+    Ok(det.detect_all())
+}
+
+#[tauri::command]
+pub async fn launch_ide_cmd(ide: IdeType, directory: String) -> Result<(), String> {
+    launch_ide(ide, &directory)
 }

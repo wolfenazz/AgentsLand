@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
@@ -35,8 +35,20 @@ const MenuIcon = () => (
   </svg>
 );
 
+const SearchIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
+
 const CloseIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
@@ -49,6 +61,11 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
 }) => {
   const [activeSection, setActiveSection] = useState<string>('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<TocItem[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const tocItems = useMemo<TocItem[]>(() => {
     const lines = docsContent.split('\n');
@@ -80,6 +97,139 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
       setSidebarOpen(false);
     }
   }, []);
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    const normalizedQuery = query.toLowerCase();
+    const results: TocItem[] = [];
+    const lines = docsContent.split('\n');
+    
+    let currentSection: TocItem | null = null;
+
+    lines.forEach((line: string) => {
+      const h2Match = line.match(/^## (.+)$/);
+      const h3Match = line.match(/^### (.+)$/);
+      
+      if (h2Match) {
+        const text = h2Match[1];
+        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        currentSection = { id, text, level: 2 };
+        if (text.toLowerCase().includes(normalizedQuery)) {
+          results.push({ ...currentSection });
+        }
+      } else if (h3Match) {
+        const text = h3Match[1];
+        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        if (text.toLowerCase().includes(normalizedQuery)) {
+          results.push({ id, text, level: 3 });
+        }
+      } else if (line.trim() && !line.startsWith('#') && !line.startsWith('|') && !line.startsWith('-')) {
+        const contentLine = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '').trim();
+        if (contentLine.toLowerCase().includes(normalizedQuery) && currentSection) {
+          if (!results.find(r => r.id === currentSection!.id)) {
+            results.push({ ...currentSection });
+          }
+        }
+      }
+    });
+
+    setSearchResults(results.slice(0, 10));
+    setShowSearchResults(true);
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === 'Escape') {
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowSearchResults(false);
+        searchInputRef.current?.blur();
+      }
+      if (showSearchResults && searchResults.length > 0) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= Math.min(9, searchResults.length)) {
+          const result = searchResults[num - 1];
+          scrollToSection(result.id);
+          clearSearch();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSearchResults, searchResults]);
+
+  useEffect(() => {
+    const highlights = document.querySelectorAll('.search-highlight');
+    highlights.forEach(h => h.classList.remove('search-highlight'));
+    
+    if (searchQuery.trim().length >= 2) {
+      const walker = document.createTreeWalker(
+        document.querySelector('article')!,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+
+      const nodesToHighlight: Text[] = [];
+      let node: Text | null;
+      
+      while (node = walker.nextNode() as Text) {
+        const text = node.textContent?.toLowerCase() || '';
+        if (text.includes(searchQuery.toLowerCase())) {
+          nodesToHighlight.push(node);
+        }
+      }
+
+      nodesToHighlight.forEach(textNode => {
+        const parent = textNode.parentNode;
+        if (!parent) return;
+        
+        const text = textNode.textContent || '';
+        const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        const matches = text.match(regex);
+        
+        if (!matches) return;
+        
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        
+        text.replace(regex, (match, _p1, offset) => {
+          if (offset > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
+          }
+          const span = document.createElement('span');
+          span.className = 'search-highlight bg-yellow-500/20 text-yellow-200 rounded px-0.5 py-0.5';
+          span.textContent = match;
+          fragment.appendChild(span);
+          lastIndex = offset + match.length;
+          return match;
+        });
+        
+        if (lastIndex < text.length) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+        
+        parent.replaceChild(fragment, textNode);
+      });
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -126,7 +276,81 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
           </div>
         </div>
 
-        <div className="flex-1 h-full" />
+        <div className="flex-1 h-full flex items-center justify-center px-4">
+          <div className="relative w-full max-w-md">
+            <div className={`flex items-center h-7 px-3 rounded-sm border transition-all duration-200 ${
+              searchFocused 
+                ? 'border-blue-500 bg-theme-card shadow-lg shadow-blue-500/10' 
+                : 'border-theme bg-theme-card/50 hover:border-theme-secondary'
+            }`}>
+              <SearchIcon />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => {
+                  setTimeout(() => setSearchFocused(false), 200);
+                }}
+                placeholder="Search documentation..."
+                className="flex-1 bg-transparent border-none outline-none text-sm text-theme-main placeholder-theme-secondary ml-2 w-32"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="flex items-center justify-center text-theme-secondary hover:text-theme-main transition-colors"
+                  title="Clear search"
+                >
+                  <XIcon />
+                </button>
+              )}
+              <span className="text-xs text-theme-secondary/60 ml-2 hidden sm:block">
+                Ctrl+K
+              </span>
+            </div>
+
+            {showSearchResults && searchResults.length > 0 && (
+              <div className={`absolute top-full left-0 right-0 mt-2 bg-theme-card border border-theme rounded-sm shadow-xl z-50 transition-all duration-200 ${
+                searchFocused ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2 pointer-events-none'
+              }`}>
+                <div className="max-h-96 overflow-y-auto">
+                  {searchResults.map((result, index) => (
+                    <button
+                      key={result.id}
+                      onClick={() => {
+                        scrollToSection(result.id);
+                        clearSearch();
+                      }}
+                      className={`w-full text-left px-4 py-3 border-b border-theme last:border-b-0 transition-colors ${
+                        result.level === 3 ? 'pl-8' : ''
+                      } hover:bg-theme-hover group`}
+                    >
+                      <div className={`text-sm font-medium ${result.level === 3 ? 'text-theme-secondary' : 'text-theme-main'}`}>
+                        {result.text}
+                      </div>
+                      <div className="text-xs text-theme-secondary/60 mt-1">
+                        {result.level === 2 ? 'Section' : 'Subsection'} · Press {index + 1} to navigate
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showSearchResults && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+              <div className={`absolute top-full left-0 right-0 mt-2 bg-theme-card border border-theme rounded-sm shadow-xl z-50 transition-all duration-200 ${
+                searchFocused ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2 pointer-events-none'
+              }`}>
+                <div className="px-4 py-6 text-center">
+                  <SearchIcon />
+                  <p className="text-sm text-theme-secondary mt-2">No results found for "{searchQuery}"</p>
+                  <p className="text-xs text-theme-secondary/60 mt-1">Try different keywords</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}

@@ -2,337 +2,306 @@
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Setup Screen](#setup-screen)
-3. [Workspace Configuration](#workspace-configuration)
-4. [CLI Tool Management](#cli-tool-management)
-5. [Working with Workspaces](#working-with-workspaces)
-6. [Terminal Operations](#terminal-operations)
-7. [Tips & Best Practices](#tips--best-practices)
-8. [Troubleshooting](#troubleshooting)
+1. [What is AgentsLand?](#what-is-agentsland)
+2. [Getting Started](#getting-started)
+3. [Before You Begin](#before-you-begin)
+4. [How to Use AgentsLand](#how-to-use-agentsland)
+5. [Understanding the Screens](#understanding-the-screens)
+6. [Common Tasks](#common-tasks)
+7. [Tips for Success](#tips-for-success)
+8. [Need Help?](#need-help)
+
+---
+
+## What is AgentsLand?
+
+AgentsLand is a simple app that lets you work with AI coding assistants in multiple windows at the same time.
+
+Think of it like having several AI assistants (like Claude, Codex, or Cursor) all helping you with your coding projects, each in their own workspace.
+
+**Why use AgentsLand?**
+- Work with multiple AI assistants at once
+- Each assistant gets its own terminal window
+- Great for reviewing code, generating code, or debugging
+- Keep different projects in separate workspaces
 
 ---
 
 ## Getting Started
 
-### Launching AgentsLand
+### 1. Download and Install
 
-To start AgentsLand, run:
+- Download AgentsLand for your computer (macOS or Linux)
+- Open the downloaded file and follow the installation prompts
+- Launch the app from your Applications folder or desktop
 
-```bash
-npm run tauri dev
-```
+### 2. Quick Overview
 
-This will launch the application window with the setup screen.
+When you first open AgentsLand, you'll see a **Setup Screen**. This is where you create your first workspace.
 
-### First Time Setup
-
-When you first open AgentsLand, you'll be greeted by the **Setup Screen**. This is where you configure your first workspace for running AI coding agents.
-
----
-
-## Setup Screen
-
-The setup screen is your entry point to creating and configuring workspaces. It consists of three main sections:
-
-1. **Workspace Configuration** - Name, directory, and layout settings
-2. **Agent Fleet Configuration** - Allocate AI agents to terminal slots
-3. **CLI Tools** - Check installed AI CLI tools
+**What is a workspace?**
+A workspace is like a project folder where you can work on one coding project. You can create multiple workspaces for different projects.
 
 ---
 
-## Workspace Configuration
+## Before You Begin
 
-### 1. Workspace Name
+### Install AI Tools
 
-Enter a descriptive name for your workspace (e.g., `my-project`, `frontend-dev`, `api-backend`).
+AgentsLand works with popular AI coding tools. You'll need to install at least one before you can use it:
 
-### 2. Directory Selection
+| Tool | What it does | How to get it |
+|------|-------------|---------------|
+| **Claude** | General coding assistant | [Install Claude](https://docs.anthropic.com/claude/reference/claude-cli) |
+| **Codex** | Code generator | Check your provider's website |
+| **Gemini** | Google's AI assistant | [Install Gemini](https://ai.google.dev/gemini-api/docs/cli) |
+| **Cursor** | AI-powered coding | [Install Cursor](https://cursor.sh/docs) |
 
-Choose the working directory for your project:
+**Don't worry about technical details** - just visit the link and follow the simple install instructions.
 
-- Click the **"Browse"** button to open a folder picker
-- Navigate to your project directory
-- Select the folder and confirm
+### Sign In
 
-The selected path will be displayed in the directory field.
+After installing an AI tool, you'll need to sign in:
+- Open your terminal or command prompt
+- Type the tool's name and look for a "login" or "authenticate" option
+- Follow the on-screen instructions
 
-### 3. Terminal Layout
-
-Select how many terminal sessions you want in your workspace grid:
-
-| Layout | Grid | Best For |
-|--------|------|----------|
-| 1 Terminal | 1×1 | Single focused agent |
-| 2 Terminals | 2×1 | Two agents working together |
-| 4 Terminals | 2×2 | Small team collaboration |
-| 6 Terminals | 3×2 | Medium-scale projects |
-| 8 Terminals | 4×2 | Large-scale parallel work |
-
-Click on a layout option to see a visual preview. The selected layout will be highlighted.
+> **Tip:** You only need to do this once for each tool.
 
 ---
 
-## CLI Tool Management
+## How to Use AgentsLand
 
-### Checking CLI Status
+### Step 1: Create Your First Workspace
 
-Expand the **CLI Tools** section to view the status of all supported AI CLI tools:
+1. **Name your workspace**
+   - Type a name like "my-project" or "website-work"
+   - This helps you keep projects organized
 
-| Column | Description |
-|--------|-------------|
-| Name | Agent display name and binary name |
-| Provider | Platform name (Anthropic, OpenAI, Google, etc.) |
-| Status | Installation status (Installed, Not Installed, Error) |
-| Version | Detected CLI version |
+2. **Choose a folder**
+   - Click "Browse" to pick the folder where your project is
+   - This is where your AI assistants will work
 
-### Status Indicators
+3. **Pick a layout**
+   - Choose how many terminal windows you want
+   - **1 Terminal**: Simple, focused work
+   - **2-4 Terminals**: Good for most projects
+   - **6-8 Terminals**: For complex projects
 
-- ✓ **Installed** - CLI is detected and ready to use
-- ✗ **Not Installed** - CLI is not available on your system
-- ⟳ **Checking** - Currently detecting CLI status
-- ⚠ **Error** - Error occurred during detection
+### Step 2: Add AI Assistants
 
-### Refreshing CLI Detection
+1. Find the "Agent Fleet" section
+2. Turn on the AI tools you want to use
+3. Use the `+` and `-` buttons to set how many windows each tool gets
 
-Click the refresh icon (circular arrow) in the Agent Fleet section to re-detect all CLI tools.
+**Example:** If you have 4 terminals and turn on Claude (2) and Codex (1), you'll have 1 empty terminal left for regular commands.
 
----
+### Step 3: Start Working
 
-## Agent Fleet Configuration
-
-### Understanding Agent Allocation
-
-The Agent Fleet section allows you to assign specific AI agents to terminal slots in your workspace.
-
-**Key Concepts:**
-- **Total Slots**: Determined by your selected terminal layout
-- **Allocated Slots**: Number of slots assigned to AI agents
-- **Remaining Slots**: Unallocated slots (run as native shell sessions)
-
-### Available Agents
-
-| Agent | CLI Tool | Use Case |
-|-------|----------|----------|
-| Claude | `claude` | General-purpose coding assistant |
-| Codex | `codex` | Code generation and completion |
-| Gemini | `gemini` | Google's multi-modal AI assistant |
-| OpenCode | `opencode` | OpenCode AI CLI |
-| Cursor | `cursor` | Cursor AI-powered coding |
-
-### Allocating Agents
-
-1. **Enable an Agent**
-   - Click the toggle switch next to the agent name
-   - The card will become highlighted with a solid border
-
-2. **Set Allocation Count**
-   - Use the `+` and `-` buttons to adjust the number of slots for that agent
-   - Ensure total allocation doesn't exceed available slots
-   - Remaining slots are shown in the `/bin/sh` card
-
-3. **Utilization Bar**
-   - Shows current slot usage (used/total)
-   - Red warning appears if allocation exceeds available slots
-
-### Example Allocation
-
-For a **4 Terminal Layout** with 2 Claude and 1 Codex:
-
-```
-Total Slots: 4
-Claude: ████████ 2/2
-Codex:    ████ 1/1
-/bin/sh:  ████ 1 remaining
-```
+1. Click the **[ Execute ]** button
+2. Wait for your workspace to load (a few seconds)
+3. Start typing commands in each terminal window
 
 ---
 
-## Working with Workspaces
+## Understanding the Screens
 
-### Creating a Workspace
+### Setup Screen
 
-Once your configuration is complete:
+This is where you create new workspaces:
 
-1. Verify all settings:
-   - ✅ Workspace name is entered
-   - ✅ Directory is selected
-   - ✅ Layout is chosen
-   - ✅ Agent allocation is valid
+| Section | What it does |
+|---------|--------------|
+| **Workspace Configuration** | Name your project and pick the folder |
+| **Terminal Layout** | Choose how many terminal windows you want |
+| **Agent Fleet** | Turn on AI tools and assign them to windows |
+| **CLI Tools** | See which AI tools are installed on your computer |
 
-2. Click **[ Execute ]** button
-   - The button will show **[ LAUNCHING... ]** during initialization
-   - You'll be automatically redirected to the Workspace view
+### Workspace Screen
 
-### Workspace Header
+After you create a workspace, you'll see:
 
-The workspace header shows:
-
-- **Workspace Tabs**: Open workspaces as clickable tabs
-- **Active Workspace**: Currently selected tab (highlighted)
-- **Session Count**: Number of running sessions per workspace
-- **Theme Toggle**: Switch between dark and light themes
-- **Window Controls** (Windows only): Minimize, maximize, close
-
-### Switching Workspaces
-
-Click on any workspace tab to switch between open workspaces. Sessions for each workspace are preserved.
-
-### Creating New Workspaces
-
-Click the **[ + ]** button in the header to create a new workspace. This returns you to the Setup Screen.
-
-### Closing Workspaces
-
-Click the **[ × ]** next to a workspace tab to close it and terminate all its sessions.
-
-### Terminating All Sessions
-
-Use the **[ Terminate ]** button to close the current workspace and return to the Setup Screen.
+| Element | What it does |
+|---------|--------------|
+| **Tabs at top** | Switch between different workspaces |
+| **Theme button** | Switch between dark and light mode |
+| **Terminal grid** | Your terminal windows arranged in a grid |
+| **Each terminal** | Shows which AI tool is running in it |
 
 ---
 
-## Terminal Operations
+## Common Tasks
 
-### Terminal Grid
+### Create a New Workspace
 
-The main workspace area displays all terminal sessions in a grid layout matching your configuration.
+1. Click the **[ + ]** button at the top of the screen
+2. Fill in the workspace name and folder
+3. Choose your layout and AI tools
+4. Click **[ Execute ]**
 
-Each terminal pane shows:
-- **TTY Number** (e.g., TTY1, TTY2) - Session identifier
-- **Status Indicator** (green dot) - Active session
-- **Agent Assignment** - Which AI agent is assigned to this session
-- **Terminal Output** - Interactive terminal with xterm.js emulation
+### Switch Between Workspaces
 
-### Using Terminals
+- Click on any tab at the top of the screen
+- Each workspace is saved separately, so your work won't be lost
 
-1. **Select a Terminal**: Click on any terminal pane to focus it
-2. **Enter Commands**: Type commands and press Enter
-3. **Agent Context**: Each terminal runs in your workspace directory with the assigned agent
-4. **Copy/Paste**: Use standard keyboard shortcuts (Ctrl+C/Ctrl+V)
+### Close a Workspace
 
-### Session Status
+- Click the **[ × ]** next to the workspace tab
+- This closes the workspace and all its terminals
 
-Sessions can be in one of these states:
-- **Idle** - Waiting for input
-- **Running** - Processing a command
-- **Error** - An error occurred
+### Start Fresh
+
+- Click the **[ Terminate ]** button
+- This closes the current workspace and takes you back to the setup screen
 
 ---
 
-## Tips & Best Practices
+## Tips for Success
 
-### Workspace Organization
+### For Beginners
 
-- Use descriptive workspace names based on project type
-- Create separate workspaces for frontend, backend, and testing
-- Match layout size to your parallel work requirements
+- Start with **2 terminals** and 1 AI tool
+- Create a separate workspace for each project
+- Use the same AI tool across all terminals at first
 
-### Agent Selection
+### For Better Performance
 
-- Use **Claude** for general coding tasks and debugging
-- Use **Codex** for code generation and boilerplate
-- Use **Gemini** for multi-modal tasks (code + images/docs)
-- Mix different agents to leverage their strengths
+- Don't open too many workspaces at once
+- Start with fewer terminals if the app feels slow
+- Close workspaces you're not using
 
-### Performance
+### For Organized Work
 
-- Start with smaller layouts (2-4 terminals) for optimal performance
-- Increase terminal count only when needed
-- Close unused workspaces to free up resources
-
-### Workflow
-
-1. Plan your agent allocations before creating the workspace
-2. Use dedicated workspaces for different projects
-3. Keep CLI tools updated for best compatibility
-4. Regularly check CLI status to ensure agents are available
+- Use descriptive workspace names (e.g., "website-backend", "app-frontend")
+- Keep related projects in separate workspaces
+- Use different AI tools for different tasks:
+  - **Claude** for general coding and explaining code
+  - **Codex** for generating new code
+  - **Gemini** for working with images and documents
 
 ---
 
-## Troubleshooting
+## Need Help?
 
-### CLI Tools Not Detected
+### Common Problems
 
-**Problem:** Status shows "Not Installed" for a CLI you know is installed.
+**Problem: "Tool Not Installed"**
 
-**Solutions:**
-1. Click the refresh icon to re-detect CLI tools
-2. Verify the CLI binary is in your system PATH
-3. Restart AgentsLand
-4. Check if the CLI requires authentication
+**Solution:**
+1. Check if you installed the AI tool
+2. Try signing in to the tool
+3. Click the refresh button in the setup screen
 
-### Workspace Creation Fails
+**Problem: Workspace won't create**
 
-**Problem:** Clicking "Execute" doesn't create the workspace.
+**Solution:**
+1. Make sure you filled in all the fields
+2. Check that the folder exists on your computer
+3. Try closing and reopening the app
 
-**Solutions:**
-1. Check that all required fields are filled
-2. Verify the selected directory exists and is accessible
-3. Ensure agent allocation doesn't exceed total slots
-4. Check console for error messages
+**Problem: Terminals are stuck on "Initializing"**
 
-### Terminals Not Initializing
+**Solution:**
+1. Close the workspace
+2. Try creating it again
+3. Restart the app if it keeps happening
 
-**Problem:** Workspace loads but terminals show "Initializing TTY Sessions" indefinitely.
+**Problem: AI commands don't work**
 
-**Solutions:**
-1. Close and reopen the workspace
-2. Check system permissions for the workspace directory
-3. Verify PTY support on your system
-4. Restart AgentsLand
-
-### Agent Commands Not Working
-
-**Problem:** Terminal runs but agent commands fail.
-
-**Solutions:**
-1. Verify the CLI is properly authenticated
-2. Check API keys and authentication tokens
-3. Ensure the agent CLI supports your current directory
-4. Review CLI documentation for specific setup requirements
-
-### Performance Issues
-
-**Problem:** Application is slow or unresponsive.
-
-**Solutions:**
-1. Reduce the number of terminal sessions
-2. Close unused workspaces
-3. Check system resource usage (CPU, memory)
-4. Close other resource-intensive applications
+**Solution:**
+1. Make sure you're signed in to the AI tool
+2. Check your internet connection
+3. Try the tool's own documentation for help
 
 ---
 
-## Keyboard Shortcuts
+## Platform-Specific Tips
 
-| Action | Shortcut |
-|--------|----------|
-| Copy | Ctrl+C (when text is selected) |
-| Paste | Ctrl+V |
-| Clear Terminal | Ctrl+L (depends on shell) |
-| Switch Theme | Click theme toggle in header |
+### macOS Users
+
+**Opening the App:**
+- If macOS says the app is "damaged", right-click the app and select "Open"
+- You might need to allow the app in System Preferences > Security & Privacy
+
+**Best Performance:**
+- Close other apps when using many terminals
+- Use the latest version of macOS (10.15 or newer)
+
+### Linux Users
+
+**Best Performance:**
+- Close other resource-intensive apps
+- Use a lighter desktop environment if the app feels slow
+- Make sure your system is up to date
 
 ---
 
-## Getting Help
+## What Do All Those Buttons Do?
 
-If you encounter issues not covered in this guide:
+### Setup Screen Buttons
 
-1. Check the console for error messages
-2. Review the troubleshooting section above
-3. Verify your CLI tools are properly installed and authenticated
-4. Check the project documentation in `AGENTS.md` for development guidance
+| Button | What it does |
+|--------|--------------|
+| **[ Execute ]** | Creates your workspace and starts working |
+| **[ Browse ]** | Opens a folder picker to choose your project folder |
+| **Refresh icon** (↻) | Checks for newly installed AI tools |
+| **Toggle switches** | Turn AI tools on or off |
+
+### Workspace Screen Buttons
+
+| Button | What it does |
+|--------|--------------|
+| **[ + ]** | Creates a new workspace |
+| **[ × ]** (on tabs) | Closes that workspace |
+| **[ Terminate ]** | Closes current workspace and goes back to setup |
+| **Theme button** (☀️/🌙) | Switches between light and dark mode |
 
 ---
 
-## Next Steps
+## Frequently Asked Questions
 
-Now that you're familiar with AgentsLand:
+**Q: Do I need to know how to code?**
+A: Yes, AgentsLand is designed for people who write code or are learning to code.
 
-- Explore different agent combinations for your workflow
-- Create multiple workspaces for different projects
-- Integrate with your existing development pipeline
-- Customize your layouts for optimal productivity
+**Q: Can I use multiple AI tools at once?**
+A: Yes! You can mix different AI tools in the same workspace.
 
-Happy coding with AI agents! 🚀
+**Q: Will my code be saved?**
+A: Yes, your code is saved in the project folder you selected. AgentsLand just helps you work on it.
+
+**Q: Is my data private?**
+A: Your code stays on your computer. However, when you use AI tools, they process your code according to their own privacy policies. Check each AI tool's privacy policy for details.
+
+**Q: Can I use this without internet?**
+A: No, AI tools need an internet connection to work.
+
+**Q: How many workspaces can I have?**
+A: As many as you want! Just keep in mind that each workspace uses computer resources.
+
+**Q: Can I customize the terminal size?**
+A: The terminal size is determined by the layout you choose. Pick a layout with more terminals for smaller windows, or fewer terminals for larger ones.
+
+---
+
+## Getting More Help
+
+If you're still having trouble:
+
+1. **Check the error message** - Read what the screen says carefully
+2. **Try the simple fixes** - Close and reopen the app, or restart your computer
+3. **Visit the AI tool's website** - Each AI tool (Claude, Codex, etc.) has its own help documentation
+4. **Report the issue** - Use the app's feedback feature to let us know what's wrong
+
+---
+
+## You're All Set!
+
+Now you know how to:
+
+✅ Install and use AI coding tools
+✅ Create workspaces for your projects
+✅ Work with multiple AI assistants at once
+✅ Switch between different projects
+✅ Troubleshoot common problems
+
+**Happy coding with your AI assistants! 🚀**

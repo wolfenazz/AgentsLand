@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -23,6 +23,7 @@ interface AppState {
   cliLaunchStates: Record<string, any>;
   authInfos: Record<AgentType, any>;
   theme: "dark" | "light";
+  selectedIdes: IdeType[];
 
   setView: (view: "setup" | "workspace" | "docs") => void;
   setViewWithPrevious: (view: "docs") => void;
@@ -51,6 +52,8 @@ interface AppState {
   setInstallInProgress: (agent: AgentType | null) => void;
   setLaunchState: (sessionId: string, state: any) => void;
   setAuthInfo: (agent: AgentType, info: any) => void;
+  toggleIde: (ide: IdeType) => void;
+  setSelectedIdes: (ides: IdeType[]) => void;
 }
 
 const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
@@ -83,6 +86,7 @@ export const useAppStore = create<AppState>()(
       cliLaunchStates: {} as Record<string, any>,
       authInfos: {} as Record<AgentType, any>,
       theme: "dark",
+      selectedIdes: [],
 
       setView: (view) => set({ view }),
       setViewWithPrevious: (view) => set((state) => ({ 
@@ -242,12 +246,20 @@ export const useAppStore = create<AppState>()(
             [agent]: info,
           },
         })),
+      toggleIde: (ide) =>
+        set((state) => ({
+          selectedIdes: state.selectedIdes.includes(ide)
+            ? state.selectedIdes.filter((i) => i !== ide)
+            : [...state.selectedIdes, ide],
+        })),
+      setSelectedIdes: (ides) => set({ selectedIdes: ides }),
     }),
     {
       name: 'agentsland-storage',
       partialize: (state) => ({
         cliStatuses: state.cliStatuses,
         theme: state.theme,
+        selectedIdes: state.selectedIdes,
       }),
     }
   )

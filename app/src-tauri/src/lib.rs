@@ -1,11 +1,13 @@
 mod agent;
 mod agent_cli;
 mod commands;
+mod ide;
 mod terminal;
 mod types;
 
 use agent::AgentExecutor;
 use agent_cli::{AgentCliDetector, AgentCliInstaller, CliLauncher};
+use ide::IdeDetector;
 use terminal::TerminalManager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -16,6 +18,7 @@ pub fn run() {
     let cli_detector = AgentCliDetector::new();
     let mut cli_installer = AgentCliInstaller::new();
     let cli_launcher = CliLauncher::new(terminal_manager.clone());
+    let ide_detector = IdeDetector::new();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -25,6 +28,7 @@ pub fn run() {
         .manage(cli_detector.clone())
         .manage(cli_installer.clone())
         .manage(cli_launcher.clone())
+        .manage(ide_detector.clone())
         .setup(move |app| {
             terminal_manager.set_app_handle(app.handle().clone());
             agent_executor.set_app_handle(app.handle().clone());
@@ -61,6 +65,9 @@ pub fn run() {
             commands::minimize_window,
             commands::maximize_window,
             commands::close_window,
+            commands::detect_ide,
+            commands::detect_all_ides_cmd,
+            commands::launch_ide_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

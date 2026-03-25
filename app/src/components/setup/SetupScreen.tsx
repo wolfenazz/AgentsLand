@@ -1,6 +1,7 @@
 import React from 'react';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { CliToolsTable } from './CliToolsTable';
+import { IdesTable } from './IdesTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
@@ -216,6 +217,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
           />
 
           <CliToolsTable />
+
+          <IdesTable selectedPath={selectedPath} />
         </div>
       </main>
 
