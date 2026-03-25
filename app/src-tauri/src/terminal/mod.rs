@@ -152,10 +152,17 @@ impl TerminalManager {
         Ok(())
     }
 
-    pub fn resize_session(&self, session_id: &str, cols: u16, rows: u16) -> Result<()> {
+    pub fn resize_session(
+        &self,
+        session_id: &str,
+        cols: u16,
+        rows: u16,
+        pixel_width: u16,
+        pixel_height: u16,
+    ) -> Result<()> {
         let sessions = self.sessions.lock().unwrap();
         if let Some(session) = sessions.get(session_id) {
-            session.resize(cols, rows)?;
+            session.resize(cols, rows, pixel_width, pixel_height)?;
         }
         Ok(())
     }

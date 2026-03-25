@@ -98,6 +98,7 @@ pub fn run() {
             commands::check_all_cli_auth,
             commands::get_auth_instructions,
             commands::get_cli_binary_name,
+            commands::open_url,
             commands::minimize_window,
             commands::maximize_window,
             commands::close_window,

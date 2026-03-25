@@ -81,8 +81,7 @@ impl CliLauncher {
         let mut state_clone = state.clone();
 
         std::thread::spawn(move || {
-            // Increased delay to ensure the shell is ready to capture input
-            std::thread::sleep(std::time::Duration::from_millis(2500));
+            std::thread::sleep(std::time::Duration::from_millis(1500));
             if tm.write_to_session(&sid, &launch_command).is_ok() {
                 state_clone.status = CliLaunchStatus::Running;
                 {

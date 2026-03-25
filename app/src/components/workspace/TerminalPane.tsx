@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { SearchAddon } from '@xterm/addon-search';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { AgentType, TerminalSession, AgentCliInfo, CliLaunchState, AuthInfo } from '../../types';
@@ -20,7 +23,6 @@ interface TerminalPaneProps {
   onResize?: (cols: number, rows: number) => void;
 }
 
-
 const AGENT_LOGOS: Record<AgentType, string> = {
   claude: claudeLogo,
   codex: codexLogo,
@@ -35,13 +37,42 @@ const STATUS_COLORS = {
   error: 'bg-rose-500',
 };
 
+const TERMINAL_THEME = {
+  background: '#09090b',
+  foreground: '#e4e4e7',
+  cursor: '#a1a1aa',
+  cursorAccent: '#09090b',
+  selectionBackground: '#27272a',
+  selectionForeground: '#e4e4e7',
+  black: '#000000',
+  red: '#cd3131',
+  green: '#0dbc79',
+  yellow: '#e5e510',
+  blue: '#2472c8',
+  magenta: '#bc3fbc',
+  cyan: '#11a8cd',
+  white: '#e5e5e5',
+  brightBlack: '#666666',
+  brightRed: '#f14c4c',
+  brightGreen: '#23d18b',
+  brightYellow: '#f5f543',
+  brightBlue: '#3b8eea',
+  brightMagenta: '#d670d6',
+  brightCyan: '#29b8db',
+  brightWhite: '#e5e5e5',
+};
 
 export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const searchAddonRef = useRef<SearchAddon | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const cliLaunchedRef = useRef(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cliLaunched, setCliLaunched] = useState(false);
+  const terminalReadyRef = useRef(false);
+  const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { listenToTaskUpdates } = useAgent();
   const { cliStatuses, installCli, installProgress, detectCli } = useAgentCli();
@@ -53,47 +84,109 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
   const launchState: CliLaunchState | undefined = session.agent ? getLaunchStateSync(session.id) : undefined;
   const authInfo: AuthInfo | undefined = session.agent ? getAuthInfoSync(session.agent) : undefined;
 
+  const handleFitAndResize = useCallback(() => {
+    if (!fitAddonRef.current || !xtermRef.current) return;
+    
+    try {
+      fitAddonRef.current.fit();
+      const dims = xtermRef.current.rows !== undefined ? {
+        cols: xtermRef.current.cols,
+        rows: xtermRef.current.rows,
+      } : null;
+      
+      if (dims) {
+        const fontSize = xtermRef.current.options.fontSize || 13;
+        const charWidth = Math.round(fontSize * 0.6);
+        const charHeight = Math.round(fontSize * 1.2);
+        
+        invoke('resize_terminal', { 
+          sessionId: session.id, 
+          cols: dims.cols, 
+          rows: dims.rows,
+          pixelWidth: Math.round(dims.cols * charWidth),
+          pixelHeight: Math.round(dims.rows * charHeight)
+        }).catch(console.error);
+        
+        onResize?.(dims.cols, dims.rows);
+      }
+    } catch (e) {
+      console.error('Error fitting terminal:', e);
+    }
+  }, [session.id, onResize]);
+
+  const handleSearch = useCallback((direction: 'next' | 'prev') => {
+    if (!searchAddonRef.current || !searchQuery) return;
+    
+    const options = {
+      regex: false,
+      wholeWord: false,
+      caseSensitive: false,
+      decorations: {
+        matchBackground: '#3b8eea',
+        activeMatchBackground: '#f5f543',
+        matchOverviewRuler: '#3b8eea',
+        activeMatchColorOverviewRuler: '#f5f543',
+      },
+    };
+    
+    if (direction === 'next') {
+      searchAddonRef.current.findNext(searchQuery, options);
+    } else {
+      searchAddonRef.current.findPrevious(searchQuery, options);
+    }
+  }, [searchQuery]);
+
+  const handleClearSearch = useCallback(() => {
+    if (searchAddonRef.current) {
+      searchAddonRef.current.clearDecorations();
+    }
+    setSearchQuery('');
+    setShowSearch(false);
+  }, []);
+
   useEffect(() => {
     if (!terminalRef.current || xtermRef.current) return;
 
     const xterm = new XTerm({
-      theme: {
-        background: '#09090b',
-        foreground: '#e4e4e7',
-        cursor: '#a1a1aa',
-        cursorAccent: '#09090b',
-        selectionBackground: '#27272a',
-        black: '#000000',
-        red: '#cd3131',
-        green: '#0dbc79',
-        yellow: '#e5e510',
-        blue: '#2472c8',
-        magenta: '#bc3fbc',
-        cyan: '#11a8cd',
-        white: '#e5e5e5',
-        brightBlack: '#666666',
-        brightRed: '#f14c4c',
-        brightGreen: '#23d18b',
-        brightYellow: '#f5f543',
-        brightBlue: '#3b8eea',
-        brightMagenta: '#d670d6',
-        brightCyan: '#29b8db',
-        brightWhite: '#e5e5e5',
-      },
+      theme: TERMINAL_THEME,
       fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
       fontSize: 13,
       cursorBlink: true,
       cursorStyle: 'block',
+      allowProposedApi: true,
+      scrollback: 10000,
     });
 
     const fitAddon = new FitAddon();
-    xterm.loadAddon(fitAddon);
-    xterm.open(terminalRef.current);
+    const searchAddon = new SearchAddon();
+    const unicodeAddon = new Unicode11Addon();
+    const webLinksAddon = new WebLinksAddon(async (event, uri) => {
+      event.preventDefault();
+      try {
+        await invoke('open_url', { url: uri });
+      } catch (e) {
+        console.error('Failed to open URL:', e);
+        window.open(uri, '_blank', 'noopener,noreferrer');
+      }
+    });
 
-    setTimeout(() => fitAddon.fit(), 100);
+    xterm.loadAddon(fitAddon);
+    xterm.loadAddon(searchAddon);
+    xterm.loadAddon(unicodeAddon);
+    xterm.loadAddon(webLinksAddon);
+    
+    xterm.unicode.activeVersion = '11';
+    
+    xterm.open(terminalRef.current);
 
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
+    searchAddonRef.current = searchAddon;
+    terminalReadyRef.current = true;
+
+    setTimeout(() => {
+      handleFitAndResize();
+    }, 50);
 
     xterm.onData(async (data) => {
       try {
@@ -103,17 +196,54 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
       }
     });
 
-    xterm.onResize(({ cols, rows }) => {
-      invoke('resize_terminal', { sessionId: session.id, cols, rows }).catch(console.error);
-      onResize?.(cols, rows);
+    xterm.attachCustomKeyEventHandler((event) => {
+      const isCtrl = event.ctrlKey || event.metaKey;
+      
+      if (isCtrl && event.key === 'c' && xterm.hasSelection()) {
+        const selection = xterm.getSelection();
+        if (selection) {
+          navigator.clipboard.writeText(selection).catch(console.error);
+        }
+        return false;
+      }
+      
+      if (isCtrl && event.key === 'v') {
+        navigator.clipboard.readText().then((text) => {
+          if (text) {
+            invoke('write_to_terminal', { sessionId: session.id, input: text }).catch(console.error);
+          }
+        }).catch(console.error);
+        return false;
+      }
+      
+      if (isCtrl && event.key === 'f') {
+        setShowSearch(prev => !prev);
+        return false;
+      }
+      
+      if (isCtrl && event.key === 'l') {
+        xterm.clear();
+        return false;
+      }
+      
+      if (isCtrl && event.shiftKey && event.key === 'C') {
+        const selection = xterm.getSelection();
+        if (selection) {
+          navigator.clipboard.writeText(selection).catch(console.error);
+        }
+        return false;
+      }
+      
+      return true;
     });
 
     return () => {
       xterm.dispose();
       xtermRef.current = null;
       fitAddonRef.current = null;
+      searchAddonRef.current = null;
     };
-  }, [session.id, onResize]);
+  }, [session.id, handleFitAndResize]);
 
   useEffect(() => {
     let mounted = true;
@@ -142,36 +272,70 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
   }, [session.id]);
 
   useEffect(() => {
-    const isAlreadyLaunched = launchState?.status === 'Starting' || launchState?.status === 'Running';
-    if (!session.agent || !isCliInstalled || cliLaunchedRef.current || isAlreadyLaunched) return;
-
-    const timeout = setTimeout(() => {
-      if (cliLaunchedRef.current) return;
-      cliLaunchedRef.current = true;
-      launchCli(session.id, session.agent!);
-      checkAuth(session.agent!);
-    }, 1000);
-
-    return () => clearTimeout(timeout);
-  }, [session.id, session.agent, isCliInstalled, launchCli, checkAuth]);
+    setCliLaunched(false);
+    terminalReadyRef.current = false;
+  }, [session.id]);
 
   useEffect(() => {
-    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
-    const handleResize = () => {
-      if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        if (fitAddonRef.current && terminalRef.current) {
-          fitAddonRef.current.fit();
+    if (!session.agent || cliLaunched) return;
+    
+    const isAlreadyLaunched = launchState?.status === 'Starting' || launchState?.status === 'Running';
+    if (isAlreadyLaunched) {
+      setCliLaunched(true);
+      return;
+    }
+    
+    if (!isCliInstalled || !terminalReadyRef.current) {
+      const interval = setInterval(() => {
+        if (isCliInstalled && terminalReadyRef.current && !cliLaunched) {
+          clearInterval(interval);
+          setCliLaunched(true);
+          launchCli(session.id, session.agent!);
+          checkAuth(session.agent!);
         }
+      }, 500);
+      
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 10000);
+      
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+    
+    setCliLaunched(true);
+    launchCli(session.id, session.agent!);
+    checkAuth(session.agent!);
+  }, [session.id, session.agent, isCliInstalled, launchState, cliLaunched, launchCli, checkAuth]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(() => {
+        handleFitAndResize();
       }, 100);
     };
+
     const resizeObserver = new ResizeObserver(handleResize);
-    if (terminalRef.current) resizeObserver.observe(terminalRef.current);
+    if (terminalRef.current) {
+      resizeObserver.observe(terminalRef.current);
+    }
+    
+    const handleWindowResize = () => handleResize();
+    window.addEventListener('resize', handleWindowResize);
+    
     return () => {
-      if (resizeTimeout) clearTimeout(resizeTimeout);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
     };
-  }, []);
+  }, [handleFitAndResize]);
 
   useEffect(() => {
     if (!session.agent) return;
@@ -206,14 +370,10 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
     setShowAuthModal(true);
   };
 
-
-
   const getCliStatusBadge = () => {
     if (!session.agent) return null;
 
-    // If CLI detection hasn't completed yet, check if the process is already running
     if (!cliInfo || cliInfo.status === 'Checking') {
-      // If the process is already launched, show launch/auth badges
       if (launchState) {
         const launchBadge = getLaunchStatusBadge();
         const authBadge = getAuthStatusBadge();
@@ -224,11 +384,9 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
           </div>
         );
       }
-      // No launch state and no CLI info — detection in progress
       return null;
     }
 
-    // If we have a running/starting launch state, prefer showing that
     if (launchState?.status === 'Running' || launchState?.status === 'Starting') {
       return (
         <div className="flex items-center gap-1">
@@ -341,14 +499,6 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
     }
   };
 
-  // Re-fit terminal when size changes
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      fitAddonRef.current?.fit();
-    }, 100);
-    return () => clearTimeout(timeout);
-  }, []);
-
   return (
     <div className={`h-full flex flex-col border border-zinc-800 rounded-sm overflow-hidden bg-zinc-950 shadow-none transition-all duration-300 font-mono`}>
       <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-950 border-b border-zinc-800 select-none">
@@ -382,6 +532,56 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize })
           )}
         </div>
       </div>
+
+      {showSearch && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border-b border-zinc-800">
+          <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch(e.shiftKey ? 'prev' : 'next');
+              } else if (e.key === 'Escape') {
+                handleClearSearch();
+              }
+            }}
+            placeholder="Search... (Enter to find, Shift+Enter for previous, Esc to close)"
+            className="flex-1 bg-transparent text-xs text-zinc-300 placeholder-zinc-600 outline-none"
+            autoFocus
+          />
+          <button
+            onClick={() => handleSearch('prev')}
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-zinc-300"
+            title="Previous match"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <button
+            onClick={() => handleSearch('next')}
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-zinc-300"
+            title="Next match"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={handleClearSearch}
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-zinc-300"
+            title="Close search"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <div ref={terminalRef} className="flex-1 overflow-hidden min-h-0 bg-[#09090b] p-0.5" />
 
