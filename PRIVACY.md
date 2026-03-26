@@ -42,7 +42,7 @@ We may update this privacy policy from time to time. Any changes will be posted 
 
 ## Contact
 
-If you have questions about this privacy policy, please open an issue on our [GitHub repository](https://github.com/[YOUR_USERNAME]/yzpzcode/issues).
+If you have questions about this privacy policy, please open an issue on our [GitHub repository](https://github.com/wolfenazz/YzPzCode/issues).
 
 ## License
 
