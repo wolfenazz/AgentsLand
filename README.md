@@ -1,158 +1,164 @@
+<div align="center">
+
+<img src="app/src/assets/YzPzCodeLogo.png" alt="YzPzCode Logo" width="180"/>
+
 # YzPzCode
 
-A cross-platform desktop application for managing multiple AI coding agent CLIs in a unified workspace. Built with Tauri v2, React, and Rust.
+**Your AI Coding Squad, One Window Away.**
 
-## Features
+Stop juggling 5 different terminals. YzPzCode brings Claude, Gemini, Codex, Opencode, and Cursor together in one clean interface.
 
-- **Multi-Agent Support**: Manage Claude, Codex, Gemini, Opencode, and Cursor CLI tools
-- **Workspace Management**: Create and organize workspaces with custom configurations
-- **Terminal Grid**: Run multiple agent sessions side-by-side in a grid layout
-- **CLI Detection & Installation**: Automatic detection of installed AI CLIs with guided installation
-- **Agent Fleet Configuration**: Allocate different agents to terminal slots in your workspace
-- **Cross-Platform**: Works on Windows, macOS, and Linux
+[![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri%20v2-blue?logo=tauri)](https://tauri.app)
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react)](https://react.dev)
+[![Backend](https://img.shields.io/badge/Backend-Rust-orange?logo=rust)](https://rust-lang.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## Supported AI Agents
+[Get Started](#-quick-start) · [Screenshots](#-screenshots) · [Docs](docs/userguid.md)
 
-| Agent | CLI Tool | Description |
-|-------|----------|-------------|
-| Claude | `claude` | Anthropic's Claude CLI |
-| Codex | `codex` | OpenAI's Codex CLI |
-| Gemini | `gemini` | Google's Gemini CLI |
-| Opencode | `opencode` | Opencode CLI |
-| Cursor | `cursor` | Cursor AI CLI |
+</div>
 
-## Tech Stack
+---
 
-**Frontend**
-- React 19
-- TypeScript
-- Vite
-- Tailwind CSS v4
-- Zustand (state management)
-- xterm.js (terminal emulation)
+## The Problem
 
-**Backend**
-- Tauri v2
-- Rust
-- portable-pty (pseudo-terminal)
-- Tokio (async runtime)
+You're a developer. You use AI coding assistants. Great choice.
 
-## Prerequisites
+But here's the thing — each one lives in its own world. Claude here, Gemini there, Codex somewhere else. Before you know it, you've got 7 terminal windows open, your screen is chaos, and you're copy-pasting between them like it's 2010.
 
-- [Node.js](https://nodejs.org/) (v18+)
-- [Rust](https://www.rust-lang.org/) (latest stable)
-- [pnpm](https://pnpm.io/) or npm
+**YzPzCode fixes this.**
 
-## Installation
+One app. Multiple AI agents. Side-by-side terminals. Done.
+
+## Screenshots
+
+<div align="center">
+
+<img src="docs/capture/Capture1.PNG" width="45%"/>
+<img src="docs/capture/Capture2.PNG" width="45%"/>
+<img src="docs/capture/Capture3.PNG" width="45%"/>
+<img src="docs/capture/Capture4.PNG" width="45%"/>
+
+</div>
+
+## What You Get
+
+| Feature | Why It Matters |
+|---------|----------------|
+| Multi-Agent Grid | Run Claude, Gemini, and Codex side-by-side. Compare outputs. Pick the best. |
+| One-Click Setup | Detects what's installed, guides you through what's missing |
+| Workspace Presets | Save your favorite agent combinations and layouts |
+| Real Terminals | Not a simulation — actual PTY sessions with full interactivity |
+| Cross-Platform | Windows, Mac, Linux. We don't discriminate. |
+
+## Supported Agents
+
+We play nice with the major players:
+
+| Agent | Status | What It's Good At |
+|-------|--------|-------------------|
+| **Claude** (Anthropic) | Ready | Long-context reasoning, code explanation |
+| **Gemini** (Google) | Ready | Fast responses, multimodal |
+| **Codex** (OpenAI) | Ready | Code generation, completions |
+| **Opencode** | Ready | Open-source flexibility |
+| **Cursor** | Ready | IDE-style AI assistance |
+
+## Quick Start
+
+Got Node.js and Rust? You're 90% there.
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone https://github.com/wolfenazz/YzPzCode.git
 cd YzPzCode/app
-
-# Install dependencies
 npm install
-
-# Run in development mode
 npm run tauri dev
 ```
 
-## Development
+That's it. The app will guide you through detecting and installing any missing AI CLIs.
 
-### Development Server
+### Prerequisites
+
+- **Node.js** 18+ — [Download here](https://nodejs.org)
+- **Rust** (latest stable) — [Get it here](https://rust-lang.org)
+- **pnpm** or npm — Your choice
+
+## Building for Production
 
 ```bash
-# Start frontend dev server + Tauri
-npm run tauri dev
-```
-
-### Build
-
-```bash
-# Build production release
 npm run tauri build
 ```
 
-### Type Checking
+Outputs a native installer for your platform. No Electron bloat — Tauri keeps it lean.
 
-```bash
-# Frontend TypeScript check
-npx tsc --noEmit
+## Under the Hood
 
-# Rust check
-cargo check
-```
+Built with tools we actually like using:
 
-### Linting & Formatting
+**Frontend**
+- React 19 + TypeScript (type-safe, modern)
+- Vite (fast builds)
+- Tailwind CSS v4 (utility-first styling)
+- Zustand (state management that stays out of your way)
+- xterm.js (terminal rendering)
 
-```bash
-# Rust linting
-cargo clippy
-cargo clippy --fix
+**Backend**
+- Tauri v2 (Rust-powered desktop)
+- portable-pty (real pseudo-terminals)
+- Tokio (async that scales)
 
-# Rust formatting
-cargo fmt
-```
-
-### Testing
-
-```bash
-# Run Rust tests
-cd src-tauri
-cargo test
-
-# Run single test
-cargo test test_name
-```
-
-## Project Structure
+## Project Layout
 
 ```
 app/
-├── src-tauri/              # Rust backend
-│   ├── src/
-│   │   ├── agent/          # Agent execution logic
-│   │   ├── agent_cli/      # CLI detection & installation
-│   │   │   ├── providers/  # Individual CLI provider implementations
-│   │   │   ├── auth_detector.rs
-│   │   │   ├── cli_launcher.rs
-│   │   │   ├── detector.rs
-│   │   │   ├── installer.rs
-│   │   │   ├── prerequisites.rs
-│   │   │   └── provider.rs
-│   │   ├── commands/       # Tauri command handlers
-│   │   ├── terminal/       # PTY terminal session management
-│   │   ├── types.rs        # Shared type definitions
-│   │   └── lib.rs          # Main app entry point
-│   ├── capabilities/       # Tauri permissions
-│   └── Cargo.toml
-├── src/                    # React frontend
-│   ├── components/
-│   │   ├── setup/          # Setup screen components
-│   │   ├── workspace/      # Workspace components
-│   │   └── common/         # Shared UI components
-│   ├── hooks/              # Custom React hooks
-│   ├── stores/             # Zustand state stores
-│   ├── types/              # TypeScript definitions
-│   └── utils/              # Utility functions
-└── package.json
+├── src-tauri/          # Rust backend
+│   └── src/
+│       ├── agent/      # Agent orchestration
+│       ├── agent_cli/  # CLI detection, installation, launching
+│       ├── commands/   # Tauri IPC handlers
+│       └── terminal/   # PTY session management
+├── src/                # React frontend
+│   ├── components/     # UI components
+│   ├── hooks/          # Custom React hooks
+│   ├── stores/         # Zustand stores
+│   └── types/          # TypeScript definitions
+└── docs/               # Documentation
 ```
 
-## Configuration
+## For Contributors
 
-Workspaces are configured with:
-- **Layout**: Grid arrangement (rows/columns) for terminal panes
-- **Agent Fleet**: Allocation of specific AI agents to terminal slots
-- **Working Directory**: Project path for the workspace
+We welcome PRs. Here's how to stay sane while developing:
 
-## Recommended IDE Setup
+```bash
+# Type checking
+npx tsc --noEmit        # Frontend
+cargo check             # Backend
 
-- [VS Code](https://code.visualvisualstudio.com/)
-- [Tauri Extension](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
-- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+# Linting
+cargo clippy            # Rust linter
+cargo fmt               # Format Rust code
+
+# Testing
+cd src-tauri && cargo test
+```
+
+Check [docs/plane.md](docs/plane.md) for the full plan.
+
+## Recommended Setup
+
+- [VS Code](https://code.visualstudio.com) + [Tauri Extension](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- Or whatever IDE makes you happy. We're not picky.
 
 ## License
 
-MIT
+MIT. Use it, fork it, improve it. Just give credit where it's due.
 
-Made with <3 by Naseem - Noor - Khalid , to all the Devs around the World !
+---
+
+<div align="center">
+
+**Made with caffeine and late nights by Naseem, Noor & Khalid**
+
+*For developers who'd rather code than manage terminals.*
+
+[Report a Bug](https://github.com/wolfenazz/YzPzCode/issues) · [Request a Feature](https://github.com/wolfenazz/YzPzCode/issues)
+
+</div>
