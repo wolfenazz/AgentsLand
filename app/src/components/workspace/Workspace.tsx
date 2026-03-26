@@ -9,11 +9,10 @@ import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window'
 
 interface WorkspaceProps {
   isWindows: boolean;
-  isMac: boolean;
   onDocsClick: () => void;
 }
 
-export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, isMac, onDocsClick }) => {
+export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) => {
   const {
     currentWorkspace,
     openWorkspaces,
@@ -142,7 +141,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, isMac, onDocsCl
         onNewWorkspace={handleNewWorkspace}
         onDocsClick={onDocsClick}
         isWindows={isWindows}
-        isMac={isMac}
         onThemeToggle={toggleTheme}
         theme={theme}
         onTerminate={handleTerminate}
