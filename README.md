@@ -148,6 +148,84 @@ We picked tools that don't suck:
 - portable-pty (real pseudo-terminals)
 - Tokio (async that scales)
 
+### Architecture
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + TypeScript)"]
+        UI[User Interface]
+        Grid[Terminal Grid]
+        Setup[Setup Screen]
+        Store[Zustand Store]
+    end
+
+    subgraph Backend["Backend (Rust + Tauri v2)"]
+        Commands[Tauri Commands]
+        PTY[PTY Manager]
+        Detector[CLI Detector]
+        Installer[CLI Installer]
+    end
+
+    subgraph CLIs["AI CLI Tools"]
+        Claude[Claude CLI]
+        Gemini[Gemini CLI]
+        Codex[Codex CLI]
+        Opencode[Opencode CLI]
+        Cursor[Cursor CLI]
+    end
+
+    UI --> Grid
+    UI --> Setup
+    Grid --> Store
+    Setup --> Store
+    
+    Store <-->|Tauri IPC| Commands
+    Commands --> PTY
+    Commands --> Detector
+    Commands --> Installer
+    
+    PTY -->|Spawns| Claude
+    PTY -->|Spawns| Gemini
+    PTY -->|Spawns| Codex
+    PTY -->|Spawns| Opencode
+    PTY -->|Spawns| Cursor
+    
+    Detector -->|Checks| Claude
+    Detector -->|Checks| Gemini
+    Detector -->|Checks| Codex
+    Detector -->|Checks| Opencode
+    Detector -->|Checks| Cursor
+```
+
+### Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Frontend (React)
+    participant Tauri as Tauri IPC
+    participant PTY as PTY Manager
+    participant CLI as AI CLI Tool
+
+    User->>UI: Create Workspace
+    UI->>Tauri: detect_agent_cli()
+    Tauri->>CLI: Check if installed
+    CLI-->>Tauri: Installation status
+    Tauri-->>UI: CLI statuses
+    
+    User->>UI: Launch Workspace
+    UI->>Tauri: create_terminal_sessions()
+    Tauri->>PTY: Spawn PTY sessions
+    PTY->>CLI: Start CLI process
+    
+    loop Real-time Communication
+        CLI-->>PTY: Output stream
+        PTY-->>Tauri: Terminal events
+        Tauri-->>UI: Update terminal
+        UI-->>User: Display output
+    end
+```
+
 ## For the Curious
 
 ```
@@ -184,16 +262,6 @@ cd src-tauri && cargo test
 ```
 
 Found a bug? Have an idea? [Open an issue](https://github.com/wolfenazz/YzPzCode/issues) or [submit a PR](https://github.com/wolfenazz/YzPzCode/pulls).
-
-## What's Next?
-
-We're just getting started:
-
-- [ ] Compare mode — see agent outputs side-by-side
-- [ ] Shared context between agents
-- [ ] Custom agent configurations
-- [ ] More workspace templates
-- [ ] Themes (dark mode enthusiasts, we see you)
 
 Check out the [full roadmap](docs/plane.md).
 
