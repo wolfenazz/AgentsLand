@@ -4,7 +4,7 @@ import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
-import { useUpdater } from '../../hooks/useUpdater';
+import { useUpdaterStore } from '../../stores/updaterStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
 import { WorkspaceTab } from '../workspace/WorkspaceTab';
 import { FeedbackModal } from '../feedback/FeedbackModal';
@@ -41,7 +41,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     upToDate,
     checkForUpdates,
     downloadAndInstall,
-  } = useUpdater();
+    resetUpToDate,
+  } = useUpdaterStore();
 
     const [isLaunching, setIsLaunching] = React.useState(false);
     const [openPopover, setOpenPopover] = React.useState<string | null>(null);
@@ -75,6 +76,15 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
         };
         checkWindowsVersion();
     }, [isWindows]);
+
+    React.useEffect(() => {
+        if (upToDate) {
+            const timer = setTimeout(() => {
+                resetUpToDate();
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [upToDate, resetUpToDate]);
 
   const authors = [
     { name: 'Naseem', discord: '@ws.', instagram: null },
@@ -409,7 +419,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             )}
 
             {!checking && upToDate && (
-              <div className="flex items-center gap-1 px-2">
+              <div className="flex items-center gap-1 px-2 animate-fade-in">
                 <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>

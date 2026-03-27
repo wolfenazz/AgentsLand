@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUpdater } from '../../hooks/useUpdater';
+import { useUpdaterStore } from '../../stores/updaterStore';
 
 export const UpdateNotification: React.FC = () => {
   const {
@@ -11,7 +11,7 @@ export const UpdateNotification: React.FC = () => {
     checkForUpdates,
     downloadAndInstall,
     dismissUpdate,
-  } = useUpdater();
+  } = useUpdaterStore();
 
   const [dismissed, setDismissed] = React.useState(false);
 

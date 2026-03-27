@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUpdater } from '../../hooks/useUpdater';
+import { useUpdaterStore } from '../../stores/updaterStore';
 
 export const AppFooter: React.FC = () => {
   const {
@@ -11,7 +11,9 @@ export const AppFooter: React.FC = () => {
     error,
     checkForUpdates,
     downloadAndInstall,
-  } = useUpdater();
+    resetUpToDate,
+    clearError,
+  } = useUpdaterStore();
 
   const [version, setVersion] = useState<string>('');
 
@@ -24,6 +26,24 @@ export const AppFooter: React.FC = () => {
       setVersion('dev');
     }
   }, []);
+
+  useEffect(() => {
+    if (upToDate) {
+      const timer = setTimeout(() => {
+        resetUpToDate();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [upToDate, resetUpToDate]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        clearError();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
 
   const handleCheck = () => {
     checkForUpdates(true);
@@ -40,10 +60,6 @@ export const AppFooter: React.FC = () => {
       </span>
 
       <div className="flex items-center gap-2">
-        {error && (
-          <span className="text-[10px] text-red-400 font-mono">{error}</span>
-        )}
-
         {checking && (
           <div className="flex items-center gap-1.5">
             <svg className="w-3 h-3 text-theme-secondary animate-spin-slow" fill="none" viewBox="0 0 24 24">
@@ -54,8 +70,19 @@ export const AppFooter: React.FC = () => {
           </div>
         )}
 
+        {!checking && error && (
+          <div className="flex items-center gap-1 animate-fade-in">
+            <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[10px] text-red-400 font-mono max-w-[200px] truncate" title={error}>
+              {error}
+            </span>
+          </div>
+        )}
+
         {!checking && upToDate && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 animate-fade-in">
             <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -89,7 +116,7 @@ export const AppFooter: React.FC = () => {
           </div>
         )}
 
-        {!checking && !downloading && !updateAvailable && !upToDate && (
+        {!checking && !downloading && !updateAvailable && !upToDate && !error && (
           <button
             onClick={handleCheck}
             className="px-1.5 py-0.5 text-[10px] text-theme-secondary hover:text-theme-main hover:bg-theme-hover border border-theme hover:border-theme-main/30 rounded transition-colors font-mono uppercase tracking-wider"
