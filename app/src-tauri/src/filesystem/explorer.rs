@@ -1,0 +1,79 @@
+use std::fs;
+use std::path::Path;
+use std::time::UNIX_EPOCH;
+
+use ignore::WalkBuilder;
+
+use crate::types::FileEntry;
+
+pub fn list_directory_entries(dir_path: &str) -> Result<Vec<FileEntry>, String> {
+    let root = Path::new(dir_path);
+    if !root.exists() || !root.is_dir() {
+        return Err(format!("Directory does not exist: {}", dir_path));
+    }
+
+    let mut entries: Vec<FileEntry> = Vec::new();
+
+    let mut builder = WalkBuilder::new(root);
+    builder
+        .max_depth(Some(1))
+        .hidden(false)
+        .git_ignore(true)
+        .git_global(true)
+        .git_exclude(true)
+        .filter_entry(|e| {
+            let name = e.file_name().to_string_lossy().to_string();
+            if name == ".git" {
+                return false;
+            }
+            true
+        });
+
+    for result in builder.build().flatten() {
+        let path = result.path();
+        if path == root {
+            continue;
+        }
+
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+
+        let is_dir = path.is_dir();
+
+        let metadata = fs::metadata(path).ok();
+        let size = metadata.as_ref().map(|m| m.len()).unwrap_or(0);
+
+        let modified_at = metadata
+            .as_ref()
+            .and_then(|m| m.modified().ok())
+            .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+
+        let extension = if is_dir {
+            None
+        } else {
+            path.extension()
+                .map(|ext| ext.to_string_lossy().to_string())
+        };
+
+        entries.push(FileEntry {
+            name,
+            path: path.to_string_lossy().to_string(),
+            is_dir,
+            size,
+            modified_at,
+            extension,
+        });
+    }
+
+    entries.sort_by(|a, b| match (a.is_dir, b.is_dir) {
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+        _ => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
+    });
+
+    Ok(entries)
+}

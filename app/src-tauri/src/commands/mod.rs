@@ -6,9 +6,13 @@ use crate::agent_cli::{
     AgentCliDetector, AgentCliInfo, AgentCliInstaller, AuthDetector, AuthInfo, CliLaunchState,
     CliLauncher, PrerequisiteStatus, PrerequisitesChecker,
 };
+use crate::filesystem;
 use crate::ide::{launch_ide, IdeDetector};
 use crate::terminal::TerminalManager;
-use crate::types::{AgentType, CreateSessionsRequest, IdeInfo, IdeType, LaunchExternalRequest, TerminalSession};
+use crate::types::{
+    AgentType, CreateSessionsRequest, FileContent, FileEntry, GitFileStatus, IdeInfo, IdeType,
+    LaunchExternalRequest, TerminalSession,
+};
 
 #[tauri::command]
 pub async fn create_terminal_sessions(
@@ -180,7 +184,7 @@ pub async fn open_install_terminal(agent: AgentType) -> Result<(), String> {
     let provider = get_provider(agent);
     let platform = Platform::current();
     let install_cmd = provider.get_install_command(platform);
-    
+
     if install_cmd.is_empty() {
         return Err("No installation command available".to_string());
     }
@@ -214,7 +218,10 @@ pub async fn open_install_terminal(agent: AgentType) -> Result<(), String> {
         let full_cmd = install_cmd.join(" ");
         std::process::Command::new("osascript")
             .arg("-e")
-            .arg(format!("tell application \"Terminal\" to do script \"{}\"", full_cmd))
+            .arg(format!(
+                "tell application \"Terminal\" to do script \"{}\"",
+                full_cmd
+            ))
             .spawn()
             .map_err(|e| e.to_string())?;
     }
@@ -362,7 +369,9 @@ pub async fn detect_ide(detector: State<'_, IdeDetector>, ide: IdeType) -> Resul
 }
 
 #[tauri::command]
-pub async fn detect_all_ides_cmd(detector: State<'_, IdeDetector>) -> Result<std::collections::HashMap<IdeType, IdeInfo>, String> {
+pub async fn detect_all_ides_cmd(
+    detector: State<'_, IdeDetector>,
+) -> Result<std::collections::HashMap<IdeType, IdeInfo>, String> {
     let mut det = detector.inner().clone();
     Ok(det.detect_all())
 }
@@ -450,7 +459,7 @@ pub async fn get_os_version() -> Result<OsVersionInfo, String> {
     {
         let version = get_windows_version();
         let is_windows_10 = version.starts_with("10.") && !version.contains("10.0.22");
-        
+
         Ok(OsVersionInfo {
             os_type: "windows".to_string(),
             version: version.clone(),
@@ -500,46 +509,43 @@ fn get_windows_version() -> String {
             if let Some(version_part) = ver_output.split("Version ").nth(1) {
                 if let Some(_version_num) = version_part.split('.').next() {
                     let build = version_part.split('.').nth(2).unwrap_or("0");
-                    let build_num: u32 = build.chars().filter(|c| c.is_digit(10)).collect::<String>().parse().unwrap_or(0);
+                    let build_num: u32 = build
+                        .chars()
+                        .filter(|c| c.is_digit(10))
+                        .collect::<String>()
+                        .parse()
+                        .unwrap_or(0);
                     let minor = version_part.split('.').nth(1).unwrap_or("0");
                     return format!("10.{}.{}", minor, build_num);
                 }
             }
             "unknown".to_string()
         }
-        _ => "unknown".to_string()
+        _ => "unknown".to_string(),
     }
 }
 
 #[cfg(target_os = "macos")]
 fn get_macos_version() -> String {
     use std::process::Command;
-    
-    let output = Command::new("sw_vers")
-        .arg("-productVersion")
-        .output();
-    
+
+    let output = Command::new("sw_vers").arg("-productVersion").output();
+
     match output {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout).trim().to_string()
-        }
-        _ => "unknown".to_string()
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).trim().to_string(),
+        _ => "unknown".to_string(),
     }
 }
 
 #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
 fn get_linux_version() -> String {
     use std::process::Command;
-    
-    let output = Command::new("uname")
-        .arg("-r")
-        .output();
-    
+
+    let output = Command::new("uname").arg("-r").output();
+
     match output {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout).trim().to_string()
-        }
-        _ => "unknown".to_string()
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).trim().to_string(),
+        _ => "unknown".to_string(),
     }
 }
 
@@ -550,7 +556,8 @@ fn chrono_lite_timestamp() -> String {
         .unwrap_or_default();
     let secs = duration.as_secs();
     let datetime = secs as i64;
-    format!("{}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+    format!(
+        "{}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
         1970 + datetime / 31536000,
         (datetime % 31536000) / 2592000 + 1,
         (datetime % 2592000) / 86400 + 1,
@@ -571,7 +578,10 @@ fn get_grid_dimensions(count: usize) -> (usize, usize) {
     }
 }
 
-fn build_agent_queue(allocation: &std::collections::HashMap<AgentType, usize>, count: usize) -> Vec<Option<AgentType>> {
+fn build_agent_queue(
+    allocation: &std::collections::HashMap<AgentType, usize>,
+    count: usize,
+) -> Vec<Option<AgentType>> {
     let mut queue: Vec<Option<AgentType>> = Vec::new();
     for (agent_type, agent_count) in allocation.iter() {
         for _ in 0..*agent_count {
@@ -585,26 +595,33 @@ fn build_agent_queue(allocation: &std::collections::HashMap<AgentType, usize>, c
 }
 
 #[tauri::command]
-pub async fn launch_external_terminals(
-    request: LaunchExternalRequest,
-) -> Result<(), String> {
+pub async fn launch_external_terminals(request: LaunchExternalRequest) -> Result<(), String> {
     if request.count == 0 {
         return Err("Terminal count must be at least 1".to_string());
     }
 
     let path = std::path::Path::new(&request.workspace_path);
     if !path.exists() {
-        return Err(format!("Workspace path does not exist: {}", request.workspace_path));
+        return Err(format!(
+            "Workspace path does not exist: {}",
+            request.workspace_path
+        ));
     }
     if !path.is_dir() {
-        return Err(format!("Workspace path is not a directory: {}", request.workspace_path));
+        return Err(format!(
+            "Workspace path is not a directory: {}",
+            request.workspace_path
+        ));
     }
 
     let agent_queue = build_agent_queue(&request.agent_allocation, request.count);
     let (cols, rows) = get_grid_dimensions(request.count);
 
     println!("DEBUG: agent_queue = {:?}", agent_queue);
-    println!("DEBUG: count = {}, cols = {}, rows = {}", request.count, cols, rows);
+    println!(
+        "DEBUG: count = {}, cols = {}, rows = {}",
+        request.count, cols, rows
+    );
 
     #[cfg(target_os = "windows")]
     {
@@ -641,7 +658,10 @@ fn launch_external_windows_separate(
     for (index, agent) in agent_queue.iter().enumerate() {
         let command_str = if let Some(a) = agent {
             let binary = crate::agent_cli::CliLauncher::get_binary_name(*a);
-            format!("/k \"cd /d {} && timeout /t 2 /nobreak >nul && {}\"", workspace_path, binary)
+            format!(
+                "/k \"cd /d {} && timeout /t 2 /nobreak >nul && {}\"",
+                workspace_path, binary
+            )
         } else {
             format!("/k \"cd /d {}\"", workspace_path)
         };
@@ -724,7 +744,9 @@ fn tile_console_windows(count: usize, cols: usize, rows: usize) {
     let our_console_hwnd = unsafe { GetConsoleWindow() };
     let mut our_pid: DWORD = 0;
     if our_console_hwnd != 0 {
-        unsafe { GetWindowThreadProcessId(our_console_hwnd, &mut our_pid); }
+        unsafe {
+            GetWindowThreadProcessId(our_console_hwnd, &mut our_pid);
+        }
     }
 
     let mut found_hwnds: Vec<HWND> = Vec::with_capacity(count);
@@ -736,7 +758,9 @@ fn tile_console_windows(count: usize, cols: usize, rows: usize) {
         }
 
         let mut pid: DWORD = 0;
-        unsafe { GetWindowThreadProcessId(hwnd, &mut pid); }
+        unsafe {
+            GetWindowThreadProcessId(hwnd, &mut pid);
+        }
 
         let is_visible = unsafe { IsWindowVisible(hwnd) } != 0;
         let is_not_ours = pid != 0 && pid != our_pid;
@@ -782,14 +806,19 @@ fn launch_external_macos(
 
         let result = Command::new("osascript")
             .arg("-e")
-            .arg(format!("tell application \"Terminal\" to do script \"{}\"", escaped_script))
+            .arg(format!(
+                "tell application \"Terminal\" to do script \"{}\"",
+                escaped_script
+            ))
             .spawn()
             .map_err(|e| format!("Failed to spawn terminal {}: {}", index, e));
 
         match result {
             Ok(mut child) => {
                 pids.push(child.id());
-                std::thread::spawn(move || { let _ = child.wait(); });
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
             }
             Err(e) => return Err(e),
         }
@@ -843,13 +872,14 @@ fn tile_terminal_macos(count: usize, cols: usize, rows: usize) {
 
         let script = format!(
             "tell application \"Terminal\" to set bounds of window {} to {{{}, {}, {}, {}}}",
-            window_index, x, y, x + tile_w, y + tile_h
+            window_index,
+            x,
+            y,
+            x + tile_w,
+            y + tile_h
         );
 
-        let _ = Command::new("osascript")
-            .arg("-e")
-            .arg(&script)
-            .spawn();
+        let _ = Command::new("osascript").arg("-e").arg(&script).spawn();
     }
 }
 
@@ -932,7 +962,9 @@ fn launch_external_linux(
 
         match result {
             Ok(mut child) => {
-                std::thread::spawn(move || { let _ = child.wait(); });
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
             }
             Err(e) => return Err(format!("Failed to spawn terminal {}: {}", index, e)),
         }
@@ -953,9 +985,18 @@ fn launch_external_linux(
 fn detect_linux_terminal() -> String {
     use std::process::Command;
 
-    let candidates = ["gnome-terminal", "konsole", "xfce4-terminal", "x-terminal-emulator"];
+    let candidates = [
+        "gnome-terminal",
+        "konsole",
+        "xfce4-terminal",
+        "x-terminal-emulator",
+    ];
     for term in &candidates {
-        if Command::new("which").arg(term).output().map_or(false, |o| o.status.success()) {
+        if Command::new("which")
+            .arg(term)
+            .output()
+            .map_or(false, |o| o.status.success())
+        {
             return term.to_string();
         }
     }
@@ -976,7 +1017,11 @@ fn tile_terminal_linux(count: usize, cols: usize, rows: usize) {
     let tile_w = (screen_w - total_gap_x) / cols as i32;
     let tile_h = (usable_h - total_gap_y) / rows as i32;
 
-    if Command::new("which").arg("wmctrl").output().map_or(false, |o| o.status.success()) {
+    if Command::new("which")
+        .arg("wmctrl")
+        .output()
+        .map_or(false, |o| o.status.success())
+    {
         let wmctrl_list = Command::new("wmctrl").arg("-l").output();
 
         if let Ok(output) = wmctrl_list {
@@ -998,7 +1043,12 @@ fn tile_terminal_linux(count: usize, cols: usize, rows: usize) {
                     let y = panel_height + gap + (row as i32 * (tile_h + gap));
 
                     let _ = Command::new("wmctrl")
-                        .args(["-i", "-e", &format!("0,{},{},{},{}", x, y, tile_w, tile_h), window_id])
+                        .args([
+                            "-i",
+                            "-e",
+                            &format!("0,{},{},{},{}", x, y, tile_w, tile_h),
+                            window_id,
+                        ])
                         .spawn();
                 }
             }
@@ -1020,7 +1070,9 @@ fn get_linux_screen_size() -> (i32, i32) {
                         if parts.len() >= 1 {
                             let size_parts: Vec<&str> = parts[0].split('x').collect();
                             if size_parts.len() == 2 {
-                                if let (Ok(w), Ok(h)) = (size_parts[0].parse::<i32>(), size_parts[1].parse::<i32>()) {
+                                if let (Ok(w), Ok(h)) =
+                                    (size_parts[0].parse::<i32>(), size_parts[1].parse::<i32>())
+                                {
                                     return (w, h);
                                 }
                             }
@@ -1037,7 +1089,8 @@ fn get_linux_screen_size() -> (i32, i32) {
             if let Some(first_line) = stdout.lines().next() {
                 if first_line.contains(" connected") {
                     if let Some(star_part) = first_line.split('*').next() {
-                        let nums: Vec<i32> = star_part.split_whitespace()
+                        let nums: Vec<i32> = star_part
+                            .split_whitespace()
                             .filter_map(|s| s.parse::<i32>().ok())
                             .collect();
                         if nums.len() >= 2 {
@@ -1050,4 +1103,39 @@ fn get_linux_screen_size() -> (i32, i32) {
     }
 
     (1920, 1080)
+}
+
+#[tauri::command]
+pub async fn list_directory_entries(path: String) -> Result<Vec<FileEntry>, String> {
+    filesystem::explorer::list_directory_entries(&path)
+}
+
+#[tauri::command]
+pub async fn read_file_content(path: String) -> Result<FileContent, String> {
+    filesystem::reader::read_file_content(&path)
+}
+
+#[tauri::command]
+pub async fn write_file_content(path: String, content: String) -> Result<(), String> {
+    filesystem::reader::write_file_content(&path, &content)
+}
+
+#[tauri::command]
+pub async fn get_git_status(workspace_path: String) -> Result<Vec<GitFileStatus>, String> {
+    filesystem::git_status::get_git_status(&workspace_path)
+}
+
+#[tauri::command]
+pub async fn start_fs_watcher(app: tauri::AppHandle, workspace_path: String) -> Result<(), String> {
+    filesystem::watcher::start_fs_watcher(app, workspace_path)
+}
+
+#[tauri::command]
+pub async fn stop_fs_watcher() -> Result<(), String> {
+    filesystem::watcher::stop_fs_watcher()
+}
+
+#[tauri::command]
+pub async fn read_file_as_base64(path: String) -> Result<String, String> {
+    filesystem::reader::read_file_as_base64(&path)
 }

@@ -120,3 +120,33 @@ export interface IdeInfo {
   installed: boolean;
   path: string | null;
 }
+
+export interface FileEntry {
+  name: string;
+  path: string;
+  isDir: boolean;
+  size: number;
+  modifiedAt: number;
+  extension: string | null;
+}
+
+export type GitFileChange = "added" | "modified" | "deleted" | "untracked";
+
+export interface GitFileStatus {
+  path: string;
+  change: GitFileChange;
+}
+
+export interface FileContent {
+  content: string;
+  language: string;
+}
+
+export interface FileTab {
+  path: string;
+  name: string;
+  language: string;
+  content: string;
+  originalContent: string;
+  isDirty: boolean;
+}

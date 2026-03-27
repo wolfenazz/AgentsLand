@@ -198,3 +198,303 @@ body {
   pointer-events: auto;
   transition: opacity 0.15s ease-out, transform 0.15s ease-out, visibility 0s 0s;
 }
+
+/* Markdown Preview — Dark */
+.markdown-dark {
+  color: #d4d4d8;
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.markdown-dark h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #fafafa;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.3em;
+  margin: 1.2em 0 0.6em;
+}
+
+.markdown-dark h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #fafafa;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.25em;
+  margin: 1em 0 0.5em;
+}
+
+.markdown-dark h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #e4e4e7;
+  margin: 1em 0 0.4em;
+}
+
+.markdown-dark h4, .markdown-dark h5, .markdown-dark h6 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #a1a1aa;
+  margin: 0.8em 0 0.3em;
+}
+
+.markdown-dark p {
+  margin: 0.6em 0;
+}
+
+.markdown-dark a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.markdown-dark a:hover {
+  text-decoration: underline;
+}
+
+.markdown-dark strong {
+  color: #fafafa;
+  font-weight: 600;
+}
+
+.markdown-dark blockquote {
+  border-left: 3px solid #3f3f46;
+  padding-left: 1em;
+  margin: 0.6em 0;
+  color: #a1a1aa;
+}
+
+.markdown-dark ul, .markdown-dark ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.markdown-dark li {
+  margin: 0.2em 0;
+}
+
+.markdown-dark li input[type="checkbox"] {
+  margin-right: 0.4em;
+  accent-color: #22c55e;
+}
+
+.markdown-dark .md-code-block {
+  background: #0c0c0e;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  margin: 0.6em 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.markdown-dark code:not(.hljs) {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  color: #f97316;
+}
+
+.markdown-dark table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+}
+
+.markdown-dark th, .markdown-dark td {
+  border: 1px solid #27272a;
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
+.markdown-dark th {
+  background: #18181b;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.markdown-dark hr {
+  border: none;
+  border-top: 1px solid #27272a;
+  margin: 1.2em 0;
+}
+
+.markdown-dark img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* Markdown Preview — Light */
+.markdown-light {
+  color: #3f3f46;
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.markdown-light h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #18181b;
+  border-bottom: 1px solid #e4e4e7;
+  padding-bottom: 0.3em;
+  margin: 1.2em 0 0.6em;
+}
+
+.markdown-light h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #18181b;
+  border-bottom: 1px solid #e4e4e7;
+  padding-bottom: 0.25em;
+  margin: 1em 0 0.5em;
+}
+
+.markdown-light h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #27272a;
+  margin: 1em 0 0.4em;
+}
+
+.markdown-light h4, .markdown-light h5, .markdown-light h6 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #52525b;
+  margin: 0.8em 0 0.3em;
+}
+
+.markdown-light p {
+  margin: 0.6em 0;
+}
+
+.markdown-light a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.markdown-light a:hover {
+  text-decoration: underline;
+}
+
+.markdown-light strong {
+  color: #18181b;
+  font-weight: 600;
+}
+
+.markdown-light blockquote {
+  border-left: 3px solid #d4d4d8;
+  padding-left: 1em;
+  margin: 0.6em 0;
+  color: #71717a;
+}
+
+.markdown-light ul, .markdown-light ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.markdown-light li {
+  margin: 0.2em 0;
+}
+
+.markdown-light li input[type="checkbox"] {
+  margin-right: 0.4em;
+  accent-color: #22c55e;
+}
+
+.markdown-light .md-code-block {
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  margin: 0.6em 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.markdown-light code:not(.hljs) {
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  color: #c2410c;
+}
+
+.markdown-light table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+}
+
+.markdown-light th, .markdown-light td {
+  border: 1px solid #e4e4e7;
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
+.markdown-light th {
+  background: #f4f4f5;
+  font-weight: 600;
+  color: #27272a;
+}
+
+.markdown-light hr {
+  border: none;
+  border-top: 1px solid #e4e4e7;
+  margin: 1.2em 0;
+}
+
+.markdown-light img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* Highlight.js dark overrides for markdown code blocks */
+.markdown-dark .hljs {
+  background: transparent;
+  color: #d4d4d8;
+}
+
+.markdown-dark .hljs-keyword { color: #c084fc; }
+.markdown-dark .hljs-string { color: #34d399; }
+.markdown-dark .hljs-number { color: #fbbf24; }
+.markdown-dark .hljs-comment { color: #6b7280; font-style: italic; }
+.markdown-dark .hljs-function { color: #60a5fa; }
+.markdown-dark .hljs-title { color: #60a5fa; }
+.markdown-dark .hljs-params { color: #d4d4d8; }
+.markdown-dark .hljs-built_in { color: #f97316; }
+.markdown-dark .hljs-literal { color: #fb923c; }
+.markdown-dark .hljs-type { color: #22d3ee; }
+.markdown-dark .hljs-attr { color: #a78bfa; }
+.markdown-dark .hljs-selector-tag { color: #c084fc; }
+.markdown-dark .hljs-selector-class { color: #fbbf24; }
+.markdown-dark .hljs-selector-id { color: #60a5fa; }
+.markdown-dark .hljs-variable { color: #d4d4d8; }
+.markdown-dark .hljs-meta { color: #6b7280; }
+
+/* Highlight.js light overrides for markdown code blocks */
+.markdown-light .hljs {
+  background: transparent;
+  color: #3f3f46;
+}
+
+.markdown-light .hljs-keyword { color: #7c3aed; }
+.markdown-light .hljs-string { color: #059669; }
+.markdown-light .hljs-number { color: #d97706; }
+.markdown-light .hljs-comment { color: #9ca3af; font-style: italic; }
+.markdown-light .hljs-function { color: #2563eb; }
+.markdown-light .hljs-title { color: #2563eb; }
+.markdown-light .hljs-params { color: #3f3f46; }
+.markdown-light .hljs-built_in { color: #ea580c; }
+.markdown-light .hljs-literal { color: #ea580c; }
+.markdown-light .hljs-type { color: #0891b2; }
+.markdown-light .hljs-attr { color: #7c3aed; }
+.markdown-light .hljs-selector-tag { color: #7c3aed; }
+.markdown-light .hljs-selector-class { color: #d97706; }
+.markdown-light .hljs-selector-id { color: #2563eb; }
+.markdown-light .hljs-variable { color: #3f3f46; }
+.markdown-light .hljs-meta { color: #9ca3af; }

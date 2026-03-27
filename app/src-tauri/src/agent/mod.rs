@@ -1,7 +1,7 @@
 mod executor;
 
-pub use executor::AgentExecutor;
 pub use crate::types::AgentType;
+pub use executor::AgentExecutor;
 
 use serde::{Deserialize, Serialize};
 

@@ -1,0 +1,120 @@
+use std::fs;
+use std::path::Path;
+
+use base64::Engine;
+
+use crate::types::FileContent;
+
+pub fn read_file_content(file_path: &str) -> Result<FileContent, String> {
+    let path = Path::new(file_path);
+    if !path.exists() {
+        return Err(format!("File does not exist: {}", file_path));
+    }
+    if path.is_dir() {
+        return Err(format!("Path is a directory: {}", file_path));
+    }
+
+    let content = fs::read_to_string(path).map_err(|e| format!("Failed to read file: {}", e))?;
+    let language = detect_language(path).to_string();
+
+    Ok(FileContent { content, language })
+}
+
+pub fn write_file_content(file_path: &str, content: &str) -> Result<(), String> {
+    let path = Path::new(file_path);
+    if !path.exists() {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create parent directory: {}", e))?;
+        }
+    }
+
+    fs::write(path, content).map_err(|e| format!("Failed to write file: {}", e))
+}
+
+fn detect_language(path: &Path) -> &'static str {
+    match path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("")
+        .to_lowercase()
+        .as_str()
+    {
+        "ts" | "tsx" => "typescript",
+        "js" | "jsx" | "mjs" | "cjs" => "javascript",
+        "rs" => "rust",
+        "py" => "python",
+        "html" | "htm" => "html",
+        "css" | "scss" | "sass" | "less" => "css",
+        "json" => "json",
+        "md" | "markdown" => "markdown",
+        "toml" => "toml",
+        "yaml" | "yml" => "yaml",
+        "xml" => "xml",
+        "sql" => "sql",
+        "sh" | "bash" => "shell",
+        "go" => "go",
+        "java" => "java",
+        "c" | "h" => "c",
+        "cpp" | "cc" | "cxx" | "hpp" => "cpp",
+        "rb" => "ruby",
+        "php" => "php",
+        "swift" => "swift",
+        "kt" => "kotlin",
+        "lua" => "lua",
+        "dockerfile" => "dockerfile",
+        "zig" => "zig",
+        _ => {
+            let filename = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("")
+                .to_lowercase();
+            match filename.as_str() {
+                "dockerfile" => "dockerfile",
+                "makefile" => "makefile",
+                "cargo.toml" => "toml",
+                "cargo.lock" => "toml",
+                ".gitignore" | ".eslintignore" | ".prettierignore" => "plaintext",
+                ".env" | ".env.local" | ".env.production" | ".env.development" => "plaintext",
+                _ => "plaintext",
+            }
+        }
+    }
+}
+
+pub fn read_file_as_base64(file_path: &str) -> Result<String, String> {
+    let path = Path::new(file_path);
+    if !path.exists() {
+        return Err(format!("File does not exist: {}", file_path));
+    }
+    if path.is_dir() {
+        return Err(format!("Path is a directory: {}", file_path));
+    }
+
+    let bytes = fs::read(path).map_err(|e| format!("Failed to read file: {}", e))?;
+    let mime_type = detect_mime_type(path);
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:{};base64,{}", mime_type, encoded))
+}
+
+fn detect_mime_type(path: &Path) -> &'static str {
+    match path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("")
+        .to_lowercase()
+        .as_str()
+    {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "svg" => "image/svg+xml",
+        "webp" => "image/webp",
+        "bmp" => "image/bmp",
+        "ico" => "image/x-icon",
+        "avif" => "image/avif",
+        "tiff" | "tif" => "image/tiff",
+        _ => "application/octet-stream",
+    }
+}

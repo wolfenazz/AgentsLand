@@ -19,6 +19,9 @@ interface WorkspaceHeaderProps {
   onMinimizeWindow: () => void;
   onMaximizeWindow: () => void;
   onCloseWindow: () => void;
+  onSidebarToggle: () => void;
+  onViewToggle: () => void;
+  activeView: "terminal" | "editor";
 }
 
 const SHORTCUTS = [
@@ -144,6 +147,9 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   onMinimizeWindow,
   onMaximizeWindow,
   onCloseWindow,
+  onSidebarToggle,
+  onViewToggle,
+  activeView,
 }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-main border-b border-theme select-none transition-colors titlebar-drag">
@@ -158,6 +164,17 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </button>
+
+      <button
+        onClick={onSidebarToggle}
+        className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main titlebar-nodrag"
+        title="Toggle Explorer (Ctrl+B)"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
+          <path strokeWidth="1.5" d="M9 3v18" />
         </svg>
       </button>
 
@@ -193,6 +210,22 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       <div className="flex items-center h-full gap-0 titlebar-nodrag">
         <ShortcutHelp />
         <ThemeToggleButton theme={theme} onToggle={onThemeToggle} />
+
+        <button
+          onClick={onViewToggle}
+          className="flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main cursor-pointer"
+          title={activeView === "terminal" ? "Open Editor (Ctrl+E)" : "Open Terminals (Ctrl+E)"}
+        >
+          {activeView === "terminal" ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
 
         <button
           onClick={onTerminate}

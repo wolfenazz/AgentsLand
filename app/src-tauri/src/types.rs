@@ -110,6 +110,40 @@ pub struct IdeInfo {
     pub path: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileEntry {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+    pub size: u64,
+    pub modified_at: u64,
+    pub extension: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum GitFileChange {
+    Added,
+    Modified,
+    Deleted,
+    Untracked,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitFileStatus {
+    pub path: String,
+    pub change: GitFileChange,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileContent {
+    pub content: String,
+    pub language: String,
+}
+
 pub fn get_default_shell() -> String {
     #[cfg(target_os = "windows")]
     {

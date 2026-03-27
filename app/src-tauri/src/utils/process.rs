@@ -178,7 +178,10 @@ impl ProcessRunner {
             paths.push(format!("{}/.npm-global/bin", home));
             paths.push(format!("{}/.npm/bin", home));
             paths.push(format!("{}/.cargo/bin", home));
-            paths.push(format!("{}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin", home));
+            paths.push(format!(
+                "{}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin",
+                home
+            ));
             paths.push(format!("{}/.bun/bin", home));
             paths.push(format!("{}/.deno/bin", home));
             paths.push(format!("{}/.nvm/versions/node/default/bin", home));
@@ -210,6 +213,8 @@ impl ProcessRunner {
 
     pub async fn find_binary_async(binary: &str) -> Option<String> {
         let binary = binary.to_string();
-        tokio::task::spawn_blocking(move || Self::find_binary(&binary)).await.ok()?
+        tokio::task::spawn_blocking(move || Self::find_binary(&binary))
+            .await
+            .ok()?
     }
 }

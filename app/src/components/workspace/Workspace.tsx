@@ -1,12 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TerminalGrid } from './TerminalGrid';
 import { WorkspaceHeader } from './WorkspaceHeader';
 import { AppFooter } from '../common/AppFooter';
+import { FileExplorer } from '../explorer/FileExplorer';
+import { FileEditor } from '../editor/FileEditor';
+import { useFileEditor } from '../../hooks/useFileEditor';
+import { useFileWatcher } from '../../hooks/useFileWatcher';
 import { useTerminal } from '../../hooks/useTerminal';
 import { useAgentCli } from '../../hooks/useAgentCli';
 import { useCliLauncher } from '../../hooks/useCliLauncher';
 import { useAppStore } from '../../stores/appStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
+import { FileEntry } from '../../types';
 
 interface WorkspaceProps {
   isWindows: boolean;
@@ -28,11 +33,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
     switchWorkspace,
     setView,
     setSessionsForWorkspace,
+    explorerOpen,
+    activeView,
+    toggleExplorer,
+    setActiveView,
+    closeFileTab,
   } = useAppStore();
   const { createSessions, killAllSessions, killWorkspaceSessions, isLoading, error } = useTerminal();
   const { detectAllClis } = useAgentCli();
   const { checkAllAuth } = useCliLauncher();
+  const { openFile } = useFileEditor();
+  useFileWatcher(currentWorkspace?.path ?? null);
   const hasInitialized = useRef<Record<string, boolean>>({});
+  const sidebarWidthRef = useRef(250);
+  const [sidebarWidth, setSidebarWidth] = useState(250);
+  const isDragging = useRef(false);
 
   useEffect(() => {
     if (currentWorkspace && !hasInitialized.current[currentWorkspace.id]) {
@@ -55,13 +70,67 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
           hasInitialized.current[currentWorkspace!.id] = false;
         });
       } else if (existingSessions.length > 0) {
-        // Already initialized from another mount or session restore
         hasInitialized.current[currentWorkspace.id] = true;
       }
 
       markWorkspaceOpened(currentWorkspace.id);
     }
   }, [currentWorkspace?.id, sessionsByWorkspace, isLoading, error, detectAllClis, checkAllAuth, createSessions, setSessionsForWorkspace, markWorkspaceOpened]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const newWidth = Math.max(180, Math.min(500, e.clientX));
+      sidebarWidthRef.current = newWidth;
+      setSidebarWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const handleSidebarResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b') {
+          e.preventDefault();
+          toggleExplorer();
+        } else if (e.key === 'e') {
+          e.preventDefault();
+          setActiveView(activeView === 'terminal' ? 'editor' : 'terminal');
+        } else if (e.key === 'w') {
+          e.preventDefault();
+          const path = useAppStore.getState().activeFilePath;
+          if (path) {
+            closeFileTab(path);
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleExplorer, activeView, closeFileTab]);
+
+  const handleFileClick = (entry: FileEntry) => {
+    if (!entry.isDir) {
+      openFile(entry);
+    }
+  };
 
   const handleBackToSetup = async () => {
     try {
@@ -122,7 +191,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
           <p className="text-xs opacity-80 leading-relaxed">{error}</p>
           <button
             onClick={handleBackToSetup}
-            className="px-6 py-2 bg-rose-950/30 border border-rose-900/50 text-rose-500 hover:bg-rose-900/40 transition-all text-[10px] font-bold uppercase tracking-widest"
+            className="px-6 py-2 bg-rose-950/30 border border-rose-900/50 text-rose-500 hover:bg-rose-900/40 transition-all text-[10px] font-bold uppercase tracking-widest cursor-pointer"
           >
             [ Return to Shell ]
           </button>
@@ -148,18 +217,44 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
         onMinimizeWindow={minimizeWindow}
         onMaximizeWindow={maximizeWindow}
         onCloseWindow={closeWindow}
+        onSidebarToggle={toggleExplorer}
+        onViewToggle={() => setActiveView(activeView === "terminal" ? "editor" : "terminal")}
+        activeView={activeView}
       />
 
       <main className="flex-1 overflow-hidden p-1.5 pt-11.5 bg-theme-main">
         {currentWorkspace ? (
-          <TerminalGrid sessions={sessions} isLoading={isLoading} />
+          <div className="h-full flex gap-1">
+            {explorerOpen && (
+              <>
+                <div style={{ width: `${sidebarWidth}px`, minWidth: '180px' }} className="shrink-0 overflow-hidden">
+                  <FileExplorer
+                    workspacePath={currentWorkspace.path}
+                    workspaceName={currentWorkspace.name}
+                    onFileClick={handleFileClick}
+                  />
+                </div>
+                <div
+                  className="w-1 cursor-col-resize hover:bg-zinc-600 active:bg-emerald-600 transition-colors shrink-0"
+                  onMouseDown={handleSidebarResizeStart}
+                />
+              </>
+            )}
+            <div className="flex-1 min-w-0">
+              {activeView === "terminal" ? (
+                <TerminalGrid sessions={sessions} isLoading={isLoading} />
+              ) : (
+                <FileEditor />
+              )}
+            </div>
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-zinc-500">
             <div className="text-center space-y-4">
               <div className="text-[10px] uppercase tracking-widest opacity-60">No Active Workspace</div>
               <button
                 onClick={handleNewWorkspace}
-                className="px-6 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 transition-all text-[10px] font-bold uppercase tracking-widest"
+                className="px-6 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 transition-all text-[10px] font-bold uppercase tracking-widest cursor-pointer"
               >
                 [ Create Workspace ]
               </button>

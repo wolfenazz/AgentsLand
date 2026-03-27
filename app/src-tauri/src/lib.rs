@@ -1,6 +1,7 @@
 mod agent;
 mod agent_cli;
 mod commands;
+mod filesystem;
 mod ide;
 mod terminal;
 mod types;
@@ -9,7 +10,7 @@ mod utils;
 use agent::AgentExecutor;
 use agent_cli::{AgentCliDetector, AgentCliInstaller, CliLauncher};
 use ide::IdeDetector;
-use tauri::{Listener, Manager};
+use tauri::Listener;
 use terminal::TerminalManager;
 
 fn setup_panic_hooks() {
@@ -22,12 +23,16 @@ fn setup_panic_hooks() {
             "Unknown panic occurred".to_string()
         };
 
-        let location = panic_info.location().map(|loc| {
-            format!("{}:{}:{}", loc.file(), loc.line(), loc.column())
-        }).unwrap_or_else(|| "unknown location".to_string());
+        let location = panic_info
+            .location()
+            .map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column()))
+            .unwrap_or_else(|| "unknown location".to_string());
 
         eprintln!("[PANIC] {} at {}", message, location);
-        eprintln!("[PANIC] Backtrace: {:?}", std::backtrace::Backtrace::capture());
+        eprintln!(
+            "[PANIC] Backtrace: {:?}",
+            std::backtrace::Backtrace::capture()
+        );
     }));
 }
 
@@ -35,7 +40,7 @@ fn setup_panic_hooks() {
 pub fn run() {
     setup_panic_hooks();
     utils::env::init_user_environment();
-    
+
     let terminal_manager = TerminalManager::new();
     let default_provider = agent_cli::get_provider(crate::types::AgentType::Claude);
     let agent_executor = AgentExecutor::new(default_provider);
@@ -70,7 +75,7 @@ pub fn run() {
 
             {
                 let terminal_manager_clone = terminal_manager.clone();
-                
+
                 app.listen("tauri://close-requested", move |_event| {
                     println!("Window close requested, cleaning up sessions...");
                     let _ = terminal_manager_clone.kill_all_sessions();
@@ -115,6 +120,13 @@ pub fn run() {
             commands::send_feedback,
             commands::get_os_version,
             commands::launch_external_terminals,
+            commands::list_directory_entries,
+            commands::read_file_content,
+            commands::write_file_content,
+            commands::get_git_status,
+            commands::start_fs_watcher,
+            commands::stop_fs_watcher,
+            commands::read_file_as_base64,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

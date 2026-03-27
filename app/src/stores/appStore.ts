@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -56,6 +56,27 @@ interface AppState {
   toggleIde: (ide: IdeType) => void;
   setSelectedIdes: (ides: IdeType[]) => void;
   setIdeStatuses: (statuses: Record<IdeType, IdeInfo | null>) => void;
+
+  explorerOpen: boolean;
+  activeView: "terminal" | "editor";
+  openFiles: FileTab[];
+  activeFilePath: string | null;
+  gitStatuses: GitFileStatus[];
+  filesByWorkspace: Record<string, FileTab[]>;
+  activeFileByWorkspace: Record<string, string | null>;
+  activeViewByWorkspace: Record<string, "terminal" | "editor">;
+  toggleExplorer: () => void;
+  setActiveView: (view: "terminal" | "editor") => void;
+  openFileTab: (tab: FileTab) => void;
+  closeFileTab: (path: string) => void;
+  setActiveFile: (path: string | null) => void;
+  updateFileContent: (path: string, content: string) => void;
+  markFileSaved: (path: string) => void;
+  setGitStatuses: (statuses: GitFileStatus[]) => void;
+  closeAllFiles: () => void;
+  closeOtherFiles: (exceptPath: string) => void;
+  closeFilesToRight: (path: string) => void;
+  closeSavedFiles: () => void;
 }
 
 const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
@@ -171,6 +192,9 @@ export const useAppStore = create<AppState>()(
             activeWorkspaceId: workspace.id,
             sessions: state.sessionsByWorkspace[workspace.id] || [],
             activeSessionId: state.activeSessionByWorkspace[workspace.id] ?? null,
+            openFiles: state.filesByWorkspace[workspace.id] || [],
+            activeFilePath: state.activeFileByWorkspace[workspace.id] ?? null,
+            activeView: state.activeViewByWorkspace[workspace.id] || "terminal",
           };
         }),
 
@@ -178,13 +202,17 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const remainingWorkspaces = state.openWorkspaces.filter(w => w.id !== workspaceId);
           const nextWorkspace = remainingWorkspaces.length > 0 ? remainingWorkspaces[0] : null;
+          const nextId = nextWorkspace?.id ?? null;
           return {
             openWorkspaces: remainingWorkspaces,
-            activeWorkspaceId: nextWorkspace?.id ?? null,
+            activeWorkspaceId: nextId,
             currentWorkspace: nextWorkspace,
             sessions: nextWorkspace ? (state.sessionsByWorkspace[nextWorkspace.id] || []) : [],
             activeSessionId: nextWorkspace ? (state.activeSessionByWorkspace[nextWorkspace.id] ?? null) : null,
             view: remainingWorkspaces.length > 0 ? state.view : "setup",
+            openFiles: nextId ? (state.filesByWorkspace[nextId] || []) : [],
+            activeFilePath: nextId ? (state.activeFileByWorkspace[nextId] ?? null) : null,
+            activeView: nextId ? (state.activeViewByWorkspace[nextId] || "terminal") : "terminal",
           };
         }),
 
@@ -197,6 +225,9 @@ export const useAppStore = create<AppState>()(
             currentWorkspace: workspace,
             sessions: state.sessionsByWorkspace[workspaceId] || [],
             activeSessionId: state.activeSessionByWorkspace[workspaceId] ?? null,
+            openFiles: state.filesByWorkspace[workspaceId] || [],
+            activeFilePath: state.activeFileByWorkspace[workspaceId] ?? null,
+            activeView: state.activeViewByWorkspace[workspaceId] || "terminal",
           };
         }),
 
@@ -234,6 +265,12 @@ export const useAppStore = create<AppState>()(
           activeSessionByWorkspace: {},
           activeSessionId: null,
           view: "setup",
+          openFiles: [],
+          activeFilePath: null,
+          activeView: "terminal",
+          filesByWorkspace: {},
+          activeFileByWorkspace: {},
+          activeViewByWorkspace: {},
         }),
 
       setCliStatus: (agent, info) =>
@@ -268,6 +305,241 @@ export const useAppStore = create<AppState>()(
         })),
       setSelectedIdes: (ides) => set({ selectedIdes: ides }),
       setIdeStatuses: (statuses) => set({ ideStatuses: statuses }),
+
+      explorerOpen: true,
+      activeView: "terminal",
+      openFiles: [],
+      activeFilePath: null,
+      gitStatuses: [],
+      filesByWorkspace: {} as Record<string, FileTab[]>,
+      activeFileByWorkspace: {} as Record<string, string | null>,
+      activeViewByWorkspace: {} as Record<string, "terminal" | "editor">,
+
+      toggleExplorer: () => set((state) => ({ explorerOpen: !state.explorerOpen })),
+
+      setActiveView: (view) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return { activeView: view };
+          return {
+            activeView: view,
+            activeViewByWorkspace: {
+              ...state.activeViewByWorkspace,
+              [wsId]: view,
+            },
+          };
+        }),
+
+      openFileTab: (tab) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const existing = currentFiles.find((f) => f.path === tab.path);
+          const newFiles = existing ? currentFiles : [...currentFiles, tab];
+          return {
+            openFiles: newFiles,
+            activeFilePath: tab.path,
+            activeView: "editor" as const,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: tab.path,
+            },
+            activeViewByWorkspace: {
+              ...state.activeViewByWorkspace,
+              [wsId]: "editor" as const,
+            },
+          };
+        }),
+
+      closeFileTab: (path) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const idx = currentFiles.findIndex((f) => f.path === path);
+          const newFiles = currentFiles.filter((f) => f.path !== path);
+          let newActive: string | null = state.activeFileByWorkspace[wsId] ?? null;
+          if (newActive === path) {
+            if (newFiles.length === 0) {
+              newActive = null;
+            } else if (idx > 0) {
+              newActive = newFiles[idx - 1].path;
+            } else {
+              newActive = newFiles[0].path;
+            }
+          }
+          const newView = newFiles.length === 0 ? "terminal" as const : (state.activeViewByWorkspace[wsId] || "editor") as "terminal" | "editor";
+          return {
+            openFiles: newFiles,
+            activeFilePath: newActive,
+            activeView: newView,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: newActive,
+            },
+            activeViewByWorkspace: {
+              ...state.activeViewByWorkspace,
+              [wsId]: newView,
+            },
+          };
+        }),
+
+      setActiveFile: (path) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return { activeFilePath: path };
+          return {
+            activeFilePath: path,
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: path,
+            },
+          };
+        }),
+
+      updateFileContent: (path, content) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const newFiles = currentFiles.map((f) =>
+            f.path === path
+              ? { ...f, content, isDirty: content !== f.originalContent }
+              : f
+          );
+          return {
+            openFiles: newFiles,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+          };
+        }),
+
+      markFileSaved: (path) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const newFiles = currentFiles.map((f) =>
+            f.path === path
+              ? { ...f, originalContent: f.content, isDirty: false }
+              : f
+          );
+          return {
+            openFiles: newFiles,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+          };
+        }),
+
+      setGitStatuses: (statuses) => set({ gitStatuses: statuses }),
+
+      closeAllFiles: () =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return { openFiles: [], activeFilePath: null };
+          return {
+            openFiles: [],
+            activeFilePath: null,
+            activeView: "terminal" as const,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: [],
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: null,
+            },
+            activeViewByWorkspace: {
+              ...state.activeViewByWorkspace,
+              [wsId]: "terminal" as const,
+            },
+          };
+        }),
+
+      closeOtherFiles: (exceptPath) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const newFiles = currentFiles.filter((f) => f.path === exceptPath);
+          return {
+            openFiles: newFiles,
+            activeFilePath: exceptPath,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: exceptPath,
+            },
+          };
+        }),
+
+      closeFilesToRight: (path) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const idx = currentFiles.findIndex((f) => f.path === path);
+          if (idx < 0) return state;
+          const newFiles = currentFiles.slice(0, idx + 1);
+          const currentActive = state.activeFileByWorkspace[wsId];
+          let newActive = currentActive ?? null;
+          if (currentActive && !newFiles.find((f) => f.path === currentActive)) {
+            newActive = newFiles[newFiles.length - 1]?.path ?? null;
+          }
+          return {
+            openFiles: newFiles,
+            activeFilePath: newActive,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: newActive,
+            },
+          };
+        }),
+
+      closeSavedFiles: () =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          const newFiles = currentFiles.filter((f) => f.isDirty);
+          const currentActive = state.activeFileByWorkspace[wsId];
+          let newActive = currentActive ?? null;
+          if (currentActive && !newFiles.find((f) => f.path === currentActive)) {
+            newActive = newFiles[newFiles.length - 1]?.path ?? null;
+          }
+          return {
+            openFiles: newFiles,
+            activeFilePath: newActive,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+            activeFileByWorkspace: {
+              ...state.activeFileByWorkspace,
+              [wsId]: newActive,
+            },
+          };
+        }),
     }),
     {
       name: 'yzpzcode-storage',
