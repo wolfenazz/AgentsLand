@@ -787,7 +787,7 @@ fn launch_external_macos(
             .map_err(|e| format!("Failed to spawn terminal {}: {}", index, e));
 
         match result {
-            Ok(child) => {
+            Ok(mut child) => {
                 pids.push(child.id());
                 std::thread::spawn(move || { let _ = child.wait(); });
             }
@@ -857,7 +857,6 @@ fn tile_terminal_macos(count: usize, cols: usize, rows: usize) {
 fn parse_macos_screen_size(json: &str) -> (i32, i32) {
     let default = (1920, 1080);
     let width_key = "\"_spdisplays_resolution\"";
-    let height_key = "\"_spdisplays_main\"";
 
     for line in json.lines() {
         if line.contains("\"spdisplays_ndrvs\"") {
@@ -932,7 +931,7 @@ fn launch_external_linux(
         };
 
         match result {
-            Ok(child) => {
+            Ok(mut child) => {
                 std::thread::spawn(move || { let _ = child.wait(); });
             }
             Err(e) => return Err(format!("Failed to spawn terminal {}: {}", index, e)),
@@ -986,7 +985,7 @@ fn tile_terminal_linux(count: usize, cols: usize, rows: usize) {
                     .lines()
                     .collect();
 
-                let active_windows: Vec<&str> = lines.iter().rev().take(count).collect();
+                let active_windows: Vec<&&str> = lines.iter().rev().take(count).collect();
 
                 for (i, line) in active_windows.iter().enumerate() {
                     let window_id = line.split_whitespace().next().unwrap_or("");
@@ -1039,7 +1038,7 @@ fn get_linux_screen_size() -> (i32, i32) {
             if let Some(first_line) = stdout.lines().next() {
                 if first_line.contains(" connected") {
                     if let Some(star_part) = first_line.split('*').next() {
-                        let nums: Vec<&str> = star_part.split_whitespace()
+                        let nums: Vec<i32> = star_part.split_whitespace()
                             .filter_map(|s| s.parse::<i32>().ok())
                             .collect();
                         if nums.len() >= 2 {
