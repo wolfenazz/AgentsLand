@@ -16,6 +16,8 @@
 
 **[Install Now](#-quick-start)** · **[See Screenshots](#-see-it-in-action)** · **[Read the Docs](docs/userguid.md)**
 
+**Readme in other languages:** [العربية](README.ar.md) · [Español](README.es.md) · [Français](README.fr.md) · [中文](README.zh.md) · [日本語](README.ja.md)
+
 ---
 
 </div>
@@ -86,6 +88,33 @@ npm run tauri dev
 
 Boom. The app will detect what AI CLIs you have installed and help you set up the rest.
 
+### macOS Users
+
+**Install Rust first:**
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+Then restart your terminal before running `npm run tauri dev`.
+
+**Installing from .dmg?** Since the app isn't code-signed with an Apple Developer certificate, you'll see a security warning. Here's how to bypass it:
+
+**Option 1: Right-click open**
+1. Right-click (or Control-click) the app
+2. Select "Open" → Click "Open" in the dialog
+
+**Option 2: System Settings**
+1. Go to **System Settings → Privacy & Security**
+2. Click "Open Anyway" next to the security warning
+
+**Option 3: Terminal**
+```bash
+xattr -cr /Applications/YzPzCode.app
+```
+
+The app is safe — it's built from this open-source repository. The warning is just macOS protecting you from unsigned apps.
+
+> **Note:** We're working on getting the app properly code-signed with an Apple Developer certificate. This process takes a few weeks, but once complete, the security warning will no longer appear.
+
 <details>
 <summary>Need more details?</summary>
 
@@ -120,6 +149,84 @@ We picked tools that don't suck:
 - Tauri v2 (Rust-powered, lightweight)
 - portable-pty (real pseudo-terminals)
 - Tokio (async that scales)
+
+### Architecture
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + TypeScript)"]
+        UI[User Interface]
+        Grid[Terminal Grid]
+        Setup[Setup Screen]
+        Store[Zustand Store]
+    end
+
+    subgraph Backend["Backend (Rust + Tauri v2)"]
+        Commands[Tauri Commands]
+        PTY[PTY Manager]
+        Detector[CLI Detector]
+        Installer[CLI Installer]
+    end
+
+    subgraph CLIs["AI CLI Tools"]
+        Claude[Claude CLI]
+        Gemini[Gemini CLI]
+        Codex[Codex CLI]
+        Opencode[Opencode CLI]
+        Cursor[Cursor CLI]
+    end
+
+    UI --> Grid
+    UI --> Setup
+    Grid --> Store
+    Setup --> Store
+    
+    Store <-->|Tauri IPC| Commands
+    Commands --> PTY
+    Commands --> Detector
+    Commands --> Installer
+    
+    PTY -->|Spawns| Claude
+    PTY -->|Spawns| Gemini
+    PTY -->|Spawns| Codex
+    PTY -->|Spawns| Opencode
+    PTY -->|Spawns| Cursor
+    
+    Detector -->|Checks| Claude
+    Detector -->|Checks| Gemini
+    Detector -->|Checks| Codex
+    Detector -->|Checks| Opencode
+    Detector -->|Checks| Cursor
+```
+
+### Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Frontend (React)
+    participant Tauri as Tauri IPC
+    participant PTY as PTY Manager
+    participant CLI as AI CLI Tool
+
+    User->>UI: Create Workspace
+    UI->>Tauri: detect_agent_cli()
+    Tauri->>CLI: Check if installed
+    CLI-->>Tauri: Installation status
+    Tauri-->>UI: CLI statuses
+    
+    User->>UI: Launch Workspace
+    UI->>Tauri: create_terminal_sessions()
+    Tauri->>PTY: Spawn PTY sessions
+    PTY->>CLI: Start CLI process
+    
+    loop Real-time Communication
+        CLI-->>PTY: Output stream
+        PTY-->>Tauri: Terminal events
+        Tauri-->>UI: Update terminal
+        UI-->>User: Display output
+    end
+```
 
 ## For the Curious
 
@@ -157,16 +264,6 @@ cd src-tauri && cargo test
 ```
 
 Found a bug? Have an idea? [Open an issue](https://github.com/wolfenazz/YzPzCode/issues) or [submit a PR](https://github.com/wolfenazz/YzPzCode/pulls).
-
-## What's Next?
-
-We're just getting started:
-
-- [ ] Compare mode — see agent outputs side-by-side
-- [ ] Shared context between agents
-- [ ] Custom agent configurations
-- [ ] More workspace templates
-- [ ] Themes (dark mode enthusiasts, we see you)
 
 Check out the [full roadmap](docs/plane.md).
 
