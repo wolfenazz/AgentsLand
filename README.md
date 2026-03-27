@@ -113,7 +113,7 @@ xattr -cr /Applications/YzPzCode.app
 
 The app is safe — it's built from this open-source repository. The warning is just macOS protecting you from unsigned apps.
 
-> **Note:** We're working on getting the app properly code-signed with an Apple Developer certificate. This process takes a few weeks, but once complete, the security warning will no longer appear.
+> **Note:** We're working on getting the app properly code-signed with an Apple Developer and Microsoft certificate. This process takes a few weeks, but once complete, the security warning will no longer appear.
 
 <details>
 <summary>Need more details?</summary>
