@@ -41,7 +41,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENDQzQwNDQ0NkI0NDk2MTMKUldRVGxrUnJSQVRFek9ER0lpQlQ5UG1RVTdxaWNHQlQyNDFxMmdkNGpKTVFPOFE3b2NrWXlGcWwK",
       "endpoints": [
-        "https://github.com/wolfenazz/YzPzCode/releases/latest/download/{{target}}-{{arch}}.json"
+        "https://github.com/wolfenazz/YzPzCode/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
