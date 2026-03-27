@@ -981,9 +981,8 @@ fn tile_terminal_linux(count: usize, cols: usize, rows: usize) {
 
         if let Ok(output) = wmctrl_list {
             if output.status.success() {
-                let lines: Vec<&str> = String::from_utf8_lossy(&output.stdout)
-                    .lines()
-                    .collect();
+                let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+                let lines: Vec<&str> = stdout.lines().collect();
 
                 let active_windows: Vec<&&str> = lines.iter().rev().take(count).collect();
 

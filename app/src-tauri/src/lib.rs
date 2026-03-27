@@ -9,7 +9,7 @@ mod utils;
 use agent::AgentExecutor;
 use agent_cli::{AgentCliDetector, AgentCliInstaller, CliLauncher};
 use ide::IdeDetector;
-use tauri::Listener;
+use tauri::{Listener, Manager};
 use terminal::TerminalManager;
 
 fn setup_panic_hooks() {
