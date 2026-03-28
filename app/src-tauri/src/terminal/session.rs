@@ -70,21 +70,68 @@ impl PtySession {
             let local_appdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
             let appdata = std::env::var("APPDATA").unwrap_or_default();
             let userprofile = std::env::var("USERPROFILE").unwrap_or_default();
+            let program_files = std::env::var("ProgramFiles").unwrap_or_default();
+            let program_files_x86 = std::env::var("ProgramFiles(x86)").unwrap_or_default();
+
+            if !program_files.is_empty() {
+                path = format!("{};{}", path, program_files);
+            }
+            if !program_files_x86.is_empty() {
+                path = format!("{};{}", path, program_files_x86);
+            }
 
             if !local_appdata.is_empty() {
                 let npm_path = format!("{}\\npm", local_appdata);
                 let windows_apps = format!("{}\\Microsoft\\WindowsApps", local_appdata);
-                path = format!("{};{};{}", path, npm_path, windows_apps);
+                let programs_path = format!("{}\\Programs", local_appdata);
+                path = format!("{};{};{};{}", path, npm_path, windows_apps, programs_path);
             }
 
             if !appdata.is_empty() {
                 let pip_path = format!("{}\\Python\\Scripts", appdata);
-                path = format!("{};{}", path, pip_path);
+                let npm_global_path = format!("{}\\npm\\node_modules\\.bin", appdata);
+                path = format!("{};{};{}", path, pip_path, npm_global_path);
             }
 
             if !userprofile.is_empty() {
                 let cargo_path = format!("{}\\.cargo\\bin", userprofile);
-                path = format!("{};{}", path, cargo_path);
+                let nvm_path = format!("{}\\.nvm", userprofile);
+                let nvm_current = format!("{}\\.nvm\\current", userprofile);
+                path = format!("{};{};{};{}", path, cargo_path, nvm_path, nvm_current);
+
+                if let Ok(nvm_home) = std::env::var("NVM_HOME") {
+                    if !nvm_home.is_empty() {
+                        path = format!("{};{}", path, nvm_home);
+                    }
+                }
+                if let Ok(npm_config_prefix) = std::env::var("NPM_CONFIG_PREFIX") {
+                    if !npm_config_prefix.is_empty() {
+                        let npm_global_bin = format!("{}\\bin", npm_config_prefix);
+                        path = format!("{};{}", path, npm_global_bin);
+                    }
+                }
+            }
+
+            if let Ok(node_path) = std::env::var("NODE_PATH") {
+                if !node_path.is_empty() {
+                    cmd.env("NODE_PATH", node_path);
+                }
+            }
+
+            if let Ok(npm_config_prefix) = std::env::var("NPM_CONFIG_PREFIX") {
+                if !npm_config_prefix.is_empty() {
+                    cmd.env("NPM_CONFIG_PREFIX", npm_config_prefix);
+                }
+            }
+
+            if let Ok(system_root) = std::env::var("SystemRoot") {
+                let system32 = format!("{}\\System32", system_root);
+                path = format!("{};{}", path, system32);
+                cmd.env("SystemRoot", system_root);
+            }
+
+            if let Ok(comspec) = std::env::var("COMSPEC") {
+                cmd.env("COMSPEC", comspec);
             }
 
             cmd.env("PATH", path);
@@ -98,9 +145,6 @@ impl PtySession {
             if let Ok(home) = std::env::var("USERPROFILE") {
                 cmd.env("USERPROFILE", home.clone());
                 cmd.env("HOME", home);
-            }
-            if let Ok(comspec) = std::env::var("COMSPEC") {
-                cmd.env("COMSPEC", comspec);
             }
             cmd.env("TERM", "xterm-256color");
             cmd.env("COLORTERM", "truecolor");

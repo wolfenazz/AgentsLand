@@ -4,6 +4,34 @@ import remarkGfm from 'remark-gfm';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
 import docsContent from '../../assets/docs/userguid.md?raw';
 
+const DEFAULT_DOCS = `# YzPzCode User Guide
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Getting Started
+
+Welcome to YzPzCode! This app helps you work with AI coding assistants.
+
+## Installation
+
+Download and install the app for your platform.
+
+## Configuration
+
+Configure your AI tools and preferences.
+
+## Troubleshooting
+
+If you encounter issues, please check the documentation.
+`;
+
 interface TocItem {
   id: string;
   text: string;
@@ -67,8 +95,10 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const content = docsContent || DEFAULT_DOCS;
+
   const tocItems = useMemo<TocItem[]>(() => {
-    const lines = docsContent.split('\n');
+    const lines = content.split('\n');
     const items: TocItem[] = [];
     
     lines.forEach((line: string) => {
@@ -109,7 +139,7 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
 
     const normalizedQuery = query.toLowerCase();
     const results: TocItem[] = [];
-    const lines = docsContent.split('\n');
+    const lines = content.split('\n');
     
     let currentSection: TocItem | null = null;
 
@@ -252,7 +282,7 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [tocItems]);
+  }, [content, tocItems]);
 
   return (
     <div className={`h-screen bg-theme-main text-theme-main font-mono flex flex-col overflow-hidden ${theme === 'light' ? 'light-theme' : ''}`}>
@@ -567,7 +597,7 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
                 ),
               }}
             >
-              {docsContent}
+              {content}
             </ReactMarkdown>
           </article>
         </main>
