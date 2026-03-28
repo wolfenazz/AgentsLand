@@ -113,16 +113,70 @@ body {
 @keyframes popover-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(4px) scale(0.95);
+    transform: translateY(4px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
 .animate-popover-in {
   animation: popover-in 0.2s ease-out;
+  translate: -50% 0;
+}
+
+@keyframes border-spin {
+  to { --border-angle: 360deg; }
+}
+
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.btn-accent {
+  --border-angle: 0deg;
+  position: relative;
+  animation: border-spin 6s linear infinite;
+  border: none;
+  padding: 0;
+}
+
+.btn-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0%,
+    rgba(16, 185, 129, 0.6) 10%,
+    rgba(59, 130, 246, 0.6) 25%,
+    rgba(168, 85, 247, 0.6) 40%,
+    transparent 50%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.btn-accent:hover::before {
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0%,
+    rgba(16, 185, 129, 0.8) 8%,
+    rgba(59, 130, 246, 0.8) 20%,
+    rgba(168, 85, 247, 0.8) 32%,
+    rgba(251, 191, 36, 0.8) 44%,
+    transparent 52%,
+    transparent 100%
+  );
 }
 
 @keyframes cli-dot {
@@ -142,7 +196,7 @@ body {
 
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to { transform: rotate(-360deg); }
 }
 
 .animate-spin-slow {
@@ -498,3 +552,179 @@ body {
 .markdown-light .hljs-selector-id { color: #2563eb; }
 .markdown-light .hljs-variable { color: #3f3f46; }
 .markdown-light .hljs-meta { color: #9ca3af; }
+
+/* DOCX Preview — Dark */
+.docx-preview-dark {
+  color: #d4d4d8;
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.docx-content-dark h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #fafafa;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.3em;
+  margin: 1.2em 0 0.6em;
+}
+
+.docx-content-dark h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #fafafa;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.25em;
+  margin: 1em 0 0.5em;
+}
+
+.docx-content-dark h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #e4e4e7;
+  margin: 1em 0 0.4em;
+}
+
+.docx-content-dark h4, .docx-content-dark h5, .docx-content-dark h6 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #a1a1aa;
+  margin: 0.8em 0 0.3em;
+}
+
+.docx-content-dark p {
+  margin: 0.6em 0;
+}
+
+.docx-content-dark strong {
+  color: #fafafa;
+  font-weight: 600;
+}
+
+.docx-content-dark em {
+  color: #a1a1aa;
+}
+
+.docx-content-dark ul, .docx-content-dark ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.docx-content-dark li {
+  margin: 0.2em 0;
+}
+
+.docx-content-dark .docx-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  border: 1px solid #27272a;
+}
+
+.docx-content-dark .docx-table th,
+.docx-content-dark .docx-table td {
+  border: 1px solid #27272a;
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
+.docx-content-dark .docx-table th {
+  background: #18181b;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+/* DOCX Preview — Light */
+.docx-preview-light {
+  color: #3f3f46;
+  line-height: 1.7;
+  font-size: 13px;
+  background-color: #f4f4f5;
+}
+
+.docx-content-light h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #18181b;
+  border-bottom: 1px solid #e4e4e7;
+  padding-bottom: 0.3em;
+  margin: 1.2em 0 0.6em;
+}
+
+.docx-content-light h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #18181b;
+  border-bottom: 1px solid #e4e4e7;
+  padding-bottom: 0.25em;
+  margin: 1em 0 0.5em;
+}
+
+.docx-content-light h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #27272a;
+  margin: 1em 0 0.4em;
+}
+
+.docx-content-light h4, .docx-content-light h5, .docx-content-light h6 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #52525b;
+  margin: 0.8em 0 0.3em;
+}
+
+.docx-content-light p {
+  margin: 0.6em 0;
+}
+
+.docx-content-light strong {
+  color: #18181b;
+  font-weight: 600;
+}
+
+.docx-content-light em {
+  color: #71717a;
+}
+
+.docx-content-light ul, .docx-content-light ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.docx-content-light li {
+  margin: 0.2em 0;
+}
+
+.docx-content-light .docx-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  border: 1px solid #e4e4e7;
+}
+
+.docx-content-light .docx-table th,
+.docx-content-light .docx-table td {
+  border: 1px solid #e4e4e7;
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
+.docx-content-light .docx-table th {
+  background: #f4f4f5;
+  font-weight: 600;
+  color: #27272a;
+}
+
+/* Spreadsheet — Dark */
+.spreadsheet-dark td,
+.spreadsheet-dark th {
+  border-color: #27272a;
+}
+
+/* Spreadsheet — Light */
+.spreadsheet-light td,
+.spreadsheet-light th {
+  border-color: #e4e4e7;
+}
+

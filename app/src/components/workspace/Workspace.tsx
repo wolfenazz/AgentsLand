@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { TerminalGrid } from './TerminalGrid';
 import { WorkspaceHeader } from './WorkspaceHeader';
 import { AppFooter } from '../common/AppFooter';
@@ -48,6 +48,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
   const sidebarWidthRef = useRef(250);
   const [sidebarWidth, setSidebarWidth] = useState(250);
   const isDragging = useRef(false);
+  const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (currentWorkspace && !hasInitialized.current[currentWorkspace.id]) {
@@ -80,20 +81,33 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return;
-      const newWidth = Math.max(180, Math.min(500, e.clientX));
-      sidebarWidthRef.current = newWidth;
-      setSidebarWidth(newWidth);
+      if (rafIdRef.current) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        if (!isDragging.current) return;
+        const newWidth = Math.max(180, Math.min(500, e.clientX));
+        sidebarWidthRef.current = newWidth;
+        setSidebarWidth(newWidth);
+      });
     };
     const handleMouseUp = () => {
       isDragging.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, []);
 
@@ -126,26 +140,26 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleExplorer, activeView, closeFileTab]);
 
-  const handleFileClick = (entry: FileEntry) => {
+  const handleFileClick = useCallback((entry: FileEntry) => {
     if (!entry.isDir) {
       openFile(entry);
     }
-  };
+  }, [openFile]);
 
-  const handleBackToSetup = async () => {
+  const handleBackToSetup = useCallback(async () => {
     try {
       await killAllSessions();
     } catch (err) {
       console.error('Error killing sessions:', err);
     }
     clearCurrentWorkspace();
-  };
+  }, [killAllSessions, clearCurrentWorkspace]);
 
-  const handleWorkspaceClick = (workspaceId: string) => {
+  const handleWorkspaceClick = useCallback((workspaceId: string) => {
     switchWorkspace(workspaceId);
-  };
+  }, [switchWorkspace]);
 
-  const handleWorkspaceClose = async (workspaceId: string) => {
+  const handleWorkspaceClose = useCallback(async (workspaceId: string) => {
     try {
       await killWorkspaceSessions(workspaceId);
     } catch (err) {
@@ -153,23 +167,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
     }
     closeWorkspace(workspaceId);
     delete hasInitialized.current[workspaceId];
-  };
+  }, [killWorkspaceSessions, closeWorkspace]);
 
-  const handleNewWorkspace = () => {
+  const handleNewWorkspace = useCallback(() => {
     setView('setup');
-  };
+  }, [setView]);
 
-  const handleTerminate = async () => {
-    if (currentWorkspace) {
-      try {
-        await handleWorkspaceClose(currentWorkspace.id);
-      } catch (err) {
-        console.error('Error terminating workspace:', err);
-        closeWorkspace(currentWorkspace.id);
-        delete hasInitialized.current[currentWorkspace.id];
-      }
-    }
-  };
 
   const sessionsCountMap: Record<string, number> = {};
   Object.entries(sessionsByWorkspace).forEach(([workspaceId, sessions]) => {
@@ -213,12 +216,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
         isWindows={isWindows}
         onThemeToggle={toggleTheme}
         theme={theme}
-        onTerminate={handleTerminate}
+
         onMinimizeWindow={minimizeWindow}
         onMaximizeWindow={maximizeWindow}
         onCloseWindow={closeWindow}
         onSidebarToggle={toggleExplorer}
-        onViewToggle={() => setActiveView(activeView === "terminal" ? "editor" : "terminal")}
+        onViewToggle={useCallback(() => setActiveView(activeView === "terminal" ? "editor" : "terminal"), [setActiveView, activeView])}
         activeView={activeView}
       />
 
@@ -242,7 +245,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
             )}
             <div className="flex-1 min-w-0">
               {activeView === "terminal" ? (
-                <TerminalGrid sessions={sessions} isLoading={isLoading} />
+                <TerminalGrid sessions={sessions} isLoading={isLoading} theme={theme} />
               ) : (
                 <FileEditor />
               )}

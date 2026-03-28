@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { Marked } from 'marked';
 import hljs from 'highlight.js';
 
@@ -19,7 +19,7 @@ const marked = new Marked({
   },
 });
 
-export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, theme }) => {
+const MarkdownPreviewInner: React.FC<MarkdownPreviewProps> = ({ content, theme }) => {
   const html = useMemo(() => {
     try {
       return marked.parse(content) as string;
@@ -29,8 +29,10 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, theme
   }, [content]);
 
   return (
-    <div className={`markdown-preview flex-1 overflow-y-auto overflow-x-hidden p-6 ${theme === 'light' ? 'markdown-light' : 'markdown-dark'}`}>
+    <div className={`markdown-preview absolute inset-0 overflow-y-auto overflow-x-hidden p-6 ${theme === 'light' ? 'markdown-light' : 'markdown-dark'}`}>
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 };
+
+export const MarkdownPreview = memo(MarkdownPreviewInner);

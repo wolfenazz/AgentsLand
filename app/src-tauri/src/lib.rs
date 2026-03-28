@@ -86,6 +86,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::create_terminal_sessions,
+            commands::create_single_terminal_session,
             commands::write_to_terminal,
             commands::resize_terminal,
             commands::kill_session,
@@ -127,6 +128,13 @@ pub fn run() {
             commands::start_fs_watcher,
             commands::stop_fs_watcher,
             commands::read_file_as_base64,
+            commands::is_binary_file,
+            commands::rename_entry,
+            commands::move_entry,
+            commands::create_file,
+            commands::create_directory,
+            commands::delete_entry,
+            commands::reveal_in_file_manager,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

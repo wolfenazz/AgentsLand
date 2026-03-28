@@ -232,6 +232,77 @@ impl TerminalManager {
         Ok(())
     }
 
+    pub fn create_single_session(
+        &self,
+        workspace_id: String,
+        workspace_path: String,
+        index: usize,
+        agent: Option<AgentType>,
+    ) -> Result<TerminalSession> {
+        let app = self.app_handle.lock().unwrap();
+
+        let (pty_session, output_rx) =
+            PtySession::create(workspace_id.clone(), index, workspace_path.clone(), agent)?;
+
+        let session_id = pty_session.get_session().id.clone();
+        let sid = session_id.clone();
+
+        if let Some(app_handle) = app.as_ref() {
+            let app_clone = app_handle.clone();
+            thread::spawn(move || {
+                let mut buffer = Vec::with_capacity(MAX_BATCH_SIZE);
+                let mut last_emit = Instant::now();
+
+                loop {
+                    match output_rx.recv_timeout(Duration::from_millis(EMIT_BATCH_INTERVAL_MS)) {
+                        Ok(data) => {
+                            buffer.extend_from_slice(&data);
+
+                            if (buffer.len() >= MAX_BATCH_SIZE
+                                || last_emit.elapsed().as_millis()
+                                    >= EMIT_BATCH_INTERVAL_MS as u128)
+                                && !buffer.is_empty()
+                            {
+                                if let Ok(output) = String::from_utf8(buffer.clone()) {
+                                    let _ = app_clone
+                                        .emit(&format!("terminal-output:{}", sid), &output);
+                                }
+                                buffer.clear();
+                                last_emit = Instant::now();
+                            }
+                        }
+                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                            if !buffer.is_empty() {
+                                if let Ok(output) = String::from_utf8(buffer.clone()) {
+                                    let _ = app_clone
+                                        .emit(&format!("terminal-output:{}", sid), &output);
+                                }
+                                buffer.clear();
+                                last_emit = Instant::now();
+                            }
+                        }
+                        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                            if !buffer.is_empty() {
+                                if let Ok(output) = String::from_utf8(buffer.clone()) {
+                                    let _ = app_clone
+                                        .emit(&format!("terminal-output:{}", sid), &output);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        let terminal_session = pty_session.get_session().clone();
+
+        let mut sessions = self.sessions.lock().unwrap();
+        sessions.insert(session_id, pty_session);
+
+        Ok(terminal_session)
+    }
+
     pub fn get_all_sessions(&self) -> Vec<TerminalSession> {
         let sessions = self.sessions.lock().unwrap();
         sessions.values().map(|s| s.get_session().clone()).collect()

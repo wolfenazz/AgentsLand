@@ -30,4 +30,5 @@ which = "6"
 ignore = "0.4"
 notify = { version = "6", features = ["macos_kqueue"] }
 base64 = "0.22"
+regex = "1"
 

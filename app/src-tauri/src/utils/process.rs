@@ -6,6 +6,21 @@ use std::os::windows::process::CommandExt;
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
+#[cfg(target_os = "windows")]
+fn find_ps_script(dir: &std::path::Path) -> Option<std::path::PathBuf> {
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(ext) = path.extension() {
+                if ext == "ps1" {
+                    return Some(path);
+                }
+            }
+        }
+    }
+    None
+}
+
 pub struct ProcessRunner;
 
 impl ProcessRunner {
@@ -33,6 +48,28 @@ impl ProcessRunner {
         {
             let lower = binary_path.to_lowercase();
             if lower.ends_with(".cmd") || lower.ends_with(".bat") {
+                if let Ok(content) = std::fs::read_to_string(binary_path) {
+                    if content.contains("powershell.exe") || content.contains("PowerShell") {
+                        let dir = std::path::Path::new(binary_path)
+                            .parent()
+                            .unwrap_or(std::path::Path::new("."));
+                        if let Some(ps_script) = find_ps_script(dir) {
+                            let mut cmd = Command::new("powershell.exe");
+                            cmd.args([
+                                "-NoProfile",
+                                "-ExecutionPolicy",
+                                "Bypass",
+                                "-File",
+                            ])
+                            .arg(&ps_script)
+                            .args(args)
+                            .stdin(Stdio::null())
+                            .stdout(Stdio::piped())
+                            .stderr(Stdio::piped());
+                            return Self::add_no_window(&mut cmd).output();
+                        }
+                    }
+                }
                 let mut cmd = Command::new("cmd");
                 cmd.arg("/c")
                     .arg(binary_path)

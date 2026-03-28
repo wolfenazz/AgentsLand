@@ -1,0 +1,117 @@
+use anyhow::Result;
+use std::fs;
+use std::path::Path;
+
+pub fn rename_entry(old_path: &str, new_name: &str) -> Result<()> {
+    let old = Path::new(old_path);
+    if !old.exists() {
+        return Err(anyhow::anyhow!("Source path does not exist: {}", old_path));
+    }
+    let parent = old
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("No parent directory"))?;
+    let new_path = parent.join(new_name);
+
+    if new_path.exists() {
+        return Err(anyhow::anyhow!(
+            "A file or directory with that name already exists"
+        ));
+    }
+
+    fs::rename(old, &new_path)?;
+    Ok(())
+}
+
+pub fn move_entry(source_path: &str, destination_dir: &str) -> Result<()> {
+    let source = Path::new(source_path);
+    if !source.exists() {
+        return Err(anyhow::anyhow!(
+            "Source path does not exist: {}",
+            source_path
+        ));
+    }
+    let dest_dir = Path::new(destination_dir);
+    if !dest_dir.is_dir() {
+        return Err(anyhow::anyhow!(
+            "Destination is not a directory: {}",
+            destination_dir
+        ));
+    }
+    let file_name = source
+        .file_name()
+        .ok_or_else(|| anyhow::anyhow!("Invalid source path"))?;
+    let dest_path = dest_dir.join(file_name);
+
+    if dest_path.exists() {
+        return Err(anyhow::anyhow!(
+            "Destination already exists: {}",
+            dest_path.display()
+        ));
+    }
+
+    fs::rename(source, &dest_path)?;
+    Ok(())
+}
+
+pub fn create_file(path: &str) -> Result<()> {
+    let p = Path::new(path);
+    if p.exists() {
+        return Err(anyhow::anyhow!("File already exists: {}", path));
+    }
+    if let Some(parent) = p.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::File::create(p)?;
+    Ok(())
+}
+
+pub fn create_directory(path: &str) -> Result<()> {
+    let p = Path::new(path);
+    if p.exists() {
+        return Err(anyhow::anyhow!("Directory already exists: {}", path));
+    }
+    fs::create_dir_all(p)?;
+    Ok(())
+}
+
+pub fn delete_entry(path: &str) -> Result<()> {
+    let p = Path::new(path);
+    if !p.exists() {
+        return Err(anyhow::anyhow!("Path does not exist: {}", path));
+    }
+    if p.is_dir() {
+        fs::remove_dir_all(p)?;
+    } else {
+        fs::remove_file(p)?;
+    }
+    Ok(())
+}
+
+pub fn reveal_in_file_manager(path: &str) -> Result<()> {
+    let p = Path::new(path);
+    let target = if p.is_file() || !p.exists() {
+        p.parent().unwrap_or(p)
+    } else {
+        p
+    };
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer").arg(target).spawn()?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg("-R")
+            .arg(target)
+            .spawn()?;
+    }
+
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open").arg(target).spawn()?;
+    }
+
+    Ok(())
+}

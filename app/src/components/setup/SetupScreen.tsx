@@ -333,7 +333,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
                       {openPopover === author.name && (
                         <div
                           ref={popoverRef}
-                          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-theme-card border border-theme rounded-lg shadow-lg flex flex-col gap-2 whitespace-nowrap z-50 animate-popover-in"
+                          className="absolute bottom-full left-1/2 mb-2 px-3 py-2 bg-theme-card border border-theme rounded-lg shadow-lg flex flex-col gap-2 whitespace-nowrap z-50 animate-popover-in"
                         >
                           <div className="flex items-center gap-2">
                             <img 
@@ -393,7 +393,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
                               </button>
                             </div>
                           )}
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-theme-card border-r border-b border-theme transform rotate-45" />
+                          <div className="absolute top-full left-1/2 -mt-1 w-2 h-2 bg-theme-card border-r border-b border-theme transform rotate-45" style={{ translate: '-50% 0' }} />
                         </div>
                       )}
                     </>

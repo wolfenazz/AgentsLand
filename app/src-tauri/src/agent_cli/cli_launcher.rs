@@ -81,16 +81,35 @@ impl CliLauncher {
         let mut state_clone = state.clone();
 
         std::thread::spawn(move || {
-            std::thread::sleep(std::time::Duration::from_millis(1500));
-            if tm.write_to_session(&sid, &launch_command).is_ok() {
-                state_clone.status = CliLaunchStatus::Running;
-                {
-                    let mut states = launcher.launch_states.lock().unwrap();
-                    if let Some(s) = states.iter_mut().find(|s| s.session_id == sid) {
-                        *s = state_clone.clone();
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+            println!(
+                "[CLI] Attempting to launch '{}' in session {}",
+                binary_name, sid
+            );
+            match tm.write_to_session(&sid, &launch_command) {
+                Ok(()) => {
+                    println!("[CLI] Successfully wrote launch command to session {}", sid);
+                    state_clone.status = CliLaunchStatus::Running;
+                    {
+                        let mut states = launcher.launch_states.lock().unwrap();
+                        if let Some(s) = states.iter_mut().find(|s| s.session_id == sid) {
+                            *s = state_clone.clone();
+                        }
                     }
+                    launcher.emit_state_change(&state_clone);
                 }
-                launcher.emit_state_change(&state_clone);
+                Err(e) => {
+                    eprintln!("[CLI] Failed to write to session {}: {}", sid, e);
+                    state_clone.status = CliLaunchStatus::Error;
+                    state_clone.error = Some(e.to_string());
+                    {
+                        let mut states = launcher.launch_states.lock().unwrap();
+                        if let Some(s) = states.iter_mut().find(|s| s.session_id == sid) {
+                            *s = state_clone.clone();
+                        }
+                    }
+                    launcher.emit_state_change(&state_clone);
+                }
             }
         });
 

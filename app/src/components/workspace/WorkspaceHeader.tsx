@@ -15,7 +15,6 @@ interface WorkspaceHeaderProps {
   isWindows: boolean;
   onThemeToggle: () => void;
   theme: 'dark' | 'light';
-  onTerminate: () => void;
   onMinimizeWindow: () => void;
   onMaximizeWindow: () => void;
   onCloseWindow: () => void;
@@ -143,7 +142,6 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   isWindows,
   onThemeToggle,
   theme,
-  onTerminate,
   onMinimizeWindow,
   onMaximizeWindow,
   onCloseWindow,
@@ -213,7 +211,11 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         <button
           onClick={onViewToggle}
-          className="flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main cursor-pointer"
+          className={`flex items-center justify-center w-10 h-full border-l transition-colors cursor-pointer ${
+            activeView === "terminal"
+              ? "btn-accent text-zinc-300 hover:text-zinc-100"
+              : "border-theme hover:bg-theme-hover text-theme-secondary hover:text-theme-main"
+          }`}
           title={activeView === "terminal" ? "Open Editor (Ctrl+E)" : "Open Terminals (Ctrl+E)"}
         >
           {activeView === "terminal" ? (
@@ -225,14 +227,6 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           )}
-        </button>
-
-        <button
-          onClick={onTerminate}
-          className="flex items-center px-5 h-full border-l border-theme bg-zinc-900/50 hover:bg-rose-950/30 text-[10px] text-zinc-500 hover:text-rose-500 transition-all font-bold uppercase tracking-widest"
-          title="Terminate Session"
-        >
-          Terminate
         </button>
 
         {isWindows && (

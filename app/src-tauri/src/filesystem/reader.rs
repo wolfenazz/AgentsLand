@@ -64,6 +64,11 @@ fn detect_language(path: &Path) -> &'static str {
         "lua" => "lua",
         "dockerfile" => "dockerfile",
         "zig" => "zig",
+        "pdf" => "pdf",
+        "docx" => "docx",
+        "doc" => "doc",
+        "xlsx" => "xlsx",
+        "xls" => "xls",
         _ => {
             let filename = path
                 .file_name()
@@ -115,6 +120,54 @@ fn detect_mime_type(path: &Path) -> &'static str {
         "ico" => "image/x-icon",
         "avif" => "image/avif",
         "tiff" | "tif" => "image/tiff",
+        "pdf" => "application/pdf",
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "doc" => "application/msword",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xls" => "application/vnd.ms-excel",
         _ => "application/octet-stream",
     }
+}
+
+pub fn is_binary_file(file_path: &str) -> Result<bool, String> {
+    let path = Path::new(file_path);
+    if !path.exists() {
+        return Err(format!("File does not exist: {}", file_path));
+    }
+    if path.is_dir() {
+        return Err(format!("Path is a directory: {}", file_path));
+    }
+
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    let binary_extensions: &[&str] = &[
+        "png", "jpg", "jpeg", "gif", "webp", "bmp", "ico", "avif", "tiff", "tif", "pdf", "docx",
+        "doc", "xlsx", "xls",
+    ];
+
+    if binary_extensions.contains(&ext.as_str()) {
+        return Ok(true);
+    }
+
+    if ext == "svg" {
+        return Ok(false);
+    }
+
+    let bytes = match fs::read(path) {
+        Ok(b) => b,
+        Err(_) => return Ok(true),
+    };
+
+    let check_len = bytes.len().min(8192);
+    let sample = &bytes[..check_len];
+    let text_count = sample
+        .iter()
+        .filter(|&&b| b == b'\t' || b == b'\n' || b == b'\r' || (32..=126).contains(&b))
+        .count();
+
+    Ok((text_count as f64 / check_len as f64) < 0.85)
 }

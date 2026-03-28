@@ -30,6 +30,8 @@ interface AppState {
   setViewWithPrevious: (view: "docs") => void;
   setCurrentWorkspace: (workspace: WorkspaceConfig | null) => void;
   setSessions: (sessions: TerminalSession[]) => void;
+  addSession: (session: TerminalSession) => void;
+  removeSession: (sessionId: string) => void;
   setIsLoadingTerminals: (loading: boolean) => void;
   updateWorkspaceList: (workspaces: WorkspaceConfig[]) => void;
   addToWorkspaceList: (workspace: WorkspaceConfig) => void;
@@ -65,7 +67,9 @@ interface AppState {
   filesByWorkspace: Record<string, FileTab[]>;
   activeFileByWorkspace: Record<string, string | null>;
   activeViewByWorkspace: Record<string, "terminal" | "editor">;
+  explorerClipboard: { operation: 'copy' | 'cut'; path: string; name: string; isDir: boolean } | null;
   toggleExplorer: () => void;
+  setExplorerClipboard: (entry: { operation: 'copy' | 'cut'; path: string; name: string; isDir: boolean } | null) => void;
   setActiveView: (view: "terminal" | "editor") => void;
   openFileTab: (tab: FileTab) => void;
   closeFileTab: (path: string) => void;
@@ -133,6 +137,37 @@ export const useAppStore = create<AppState>()(
         lastOpenedWorkspaceId: workspace?.id ?? null,
       }),
       setSessions: (sessions) => set({ sessions }),
+      addSession: (session) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          const currentWs = wsId ? (state.sessionsByWorkspace[wsId] || []) : [];
+          const newWsSessions = [...currentWs, session];
+          return {
+            sessions: [...state.sessions, session],
+            sessionsByWorkspace: wsId
+              ? { ...state.sessionsByWorkspace, [wsId]: newWsSessions }
+              : state.sessionsByWorkspace,
+          };
+        }),
+      removeSession: (sessionId) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          const filtered = state.sessions.filter((s) => s.id !== sessionId);
+          let updatedByWorkspace = state.sessionsByWorkspace;
+          if (wsId) {
+            const currentWs = state.sessionsByWorkspace[wsId] || [];
+            updatedByWorkspace = {
+              ...state.sessionsByWorkspace,
+              [wsId]: currentWs.filter((s) => s.id !== sessionId),
+            };
+          }
+          return {
+            sessions: filtered,
+            sessionsByWorkspace: updatedByWorkspace,
+            activeSessionId:
+              state.activeSessionId === sessionId ? null : state.activeSessionId,
+          };
+        }),
       setIsLoadingTerminals: (loading) => set({ isLoadingTerminals: loading }),
       setTerminalError: (error) => set({ terminalError: error }),
       updateWorkspaceList: (workspaces) => set({ workspaceList: workspaces }),
@@ -314,8 +349,10 @@ export const useAppStore = create<AppState>()(
       filesByWorkspace: {} as Record<string, FileTab[]>,
       activeFileByWorkspace: {} as Record<string, string | null>,
       activeViewByWorkspace: {} as Record<string, "terminal" | "editor">,
+      explorerClipboard: null,
 
       toggleExplorer: () => set((state) => ({ explorerOpen: !state.explorerOpen })),
+      setExplorerClipboard: (entry) => set({ explorerClipboard: entry }),
 
       setActiveView: (view) =>
         set((state) => {

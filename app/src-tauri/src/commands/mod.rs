@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::State;
 
@@ -13,6 +14,37 @@ use crate::types::{
     AgentType, CreateSessionsRequest, FileContent, FileEntry, GitFileStatus, IdeInfo, IdeType,
     LaunchExternalRequest, TerminalSession,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateSingleSessionRequest {
+    pub workspace_id: String,
+    pub workspace_path: String,
+    pub index: usize,
+    pub agent: Option<AgentType>,
+}
+
+#[tauri::command]
+pub async fn create_single_terminal_session(
+    manager: State<'_, TerminalManager>,
+    launcher: State<'_, CliLauncher>,
+    request: CreateSingleSessionRequest,
+) -> Result<TerminalSession, String> {
+    let session = manager
+        .create_single_session(
+            request.workspace_id,
+            request.workspace_path,
+            request.index,
+            request.agent,
+        )
+        .map_err(|e| e.to_string())?;
+
+    if let Some(agent) = request.agent {
+        let _ = launcher.launch_cli(&session.id, agent);
+    }
+
+    Ok(session)
+}
 
 #[tauri::command]
 pub async fn create_terminal_sessions(
@@ -1138,4 +1170,39 @@ pub async fn stop_fs_watcher() -> Result<(), String> {
 #[tauri::command]
 pub async fn read_file_as_base64(path: String) -> Result<String, String> {
     filesystem::reader::read_file_as_base64(&path)
+}
+
+#[tauri::command]
+pub async fn is_binary_file(path: String) -> Result<bool, String> {
+    filesystem::reader::is_binary_file(&path)
+}
+
+#[tauri::command]
+pub async fn rename_entry(old_path: String, new_name: String) -> Result<(), String> {
+    filesystem::operations::rename_entry(&old_path, &new_name).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn move_entry(source_path: String, destination_dir: String) -> Result<(), String> {
+    filesystem::operations::move_entry(&source_path, &destination_dir).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn create_file(path: String) -> Result<(), String> {
+    filesystem::operations::create_file(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn create_directory(path: String) -> Result<(), String> {
+    filesystem::operations::create_directory(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn delete_entry(path: String) -> Result<(), String> {
+    filesystem::operations::delete_entry(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn reveal_in_file_manager(path: String) -> Result<(), String> {
+    filesystem::operations::reveal_in_file_manager(&path).map_err(|e| e.to_string())
 }

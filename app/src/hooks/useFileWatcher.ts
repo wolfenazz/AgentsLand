@@ -1,27 +1,11 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { useAppStore } from '../stores/appStore';
 
 export const useFileWatcher = (workspacePath: string | null) => {
   const setGitStatuses = useAppStore((s) => s.setGitStatuses);
-
-  const startWatcher = useCallback(async () => {
-    if (!workspacePath) return;
-    try {
-      await invoke('start_fs_watcher', { workspacePath });
-    } catch (err) {
-      console.error('Failed to start file watcher:', err);
-    }
-  }, [workspacePath]);
-
-  const stopWatcher = useCallback(async () => {
-    try {
-      await invoke('stop_fs_watcher');
-    } catch (err) {
-      console.error('Failed to stop file watcher:', err);
-    }
-  }, []);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshGitStatus = useCallback(async () => {
     if (!workspacePath) return;
@@ -33,23 +17,35 @@ export const useFileWatcher = (workspacePath: string | null) => {
     }
   }, [workspacePath, setGitStatuses]);
 
+  const debouncedRefresh = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      refreshGitStatus();
+    }, 300);
+  }, [refreshGitStatus]);
+
   useEffect(() => {
     if (!workspacePath) return;
 
-    startWatcher();
+    invoke('start_fs_watcher', { workspacePath }).catch((err) => {
+      console.error('Failed to start file watcher:', err);
+    });
 
     let unlisten: UnlistenFn | null = null;
 
     const setupListener = async () => {
-      unlisten = await listen('file-system-changed', async () => {
-        await refreshGitStatus();
-      });
+      unlisten = await listen('file-system-changed', debouncedRefresh);
     };
     setupListener();
 
     return () => {
-      stopWatcher();
+      invoke('stop_fs_watcher').catch(() => {});
       if (unlisten) unlisten();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
-  }, [workspacePath, startWatcher, stopWatcher, refreshGitStatus]);
+  }, [workspacePath, debouncedRefresh]);
 };

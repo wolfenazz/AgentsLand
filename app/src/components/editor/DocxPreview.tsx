@@ -1,0 +1,106 @@
+import React, { memo, useEffect, useState, useMemo } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import mammoth from 'mammoth';
+
+interface DocxPreviewProps {
+  filePath: string;
+  fileName: string;
+  theme: 'dark' | 'light';
+}
+
+const DocxPreviewInner: React.FC<DocxPreviewProps> = ({ filePath, fileName, theme }) => {
+  const [html, setHtml] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+
+    invoke<string>('read_file_as_base64', { path: filePath })
+      .then(async (dataUrl) => {
+        if (cancelled) return;
+        const rawBase64 = dataUrl.split(',')[1];
+        const binaryString = atob(rawBase64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const result = await mammoth.convertToHtml({ arrayBuffer: bytes.buffer });
+        if (cancelled) return;
+        setHtml(result.value);
+        const text = result.value.replace(/<[^>]*>/g, '').trim();
+        setWordCount(text ? text.split(/\s+/).length : 0);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true);
+          setLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [filePath]);
+
+  const processedHtml = useMemo(() => {
+    if (!html) return '';
+    return html
+      .replace(/<table/g, '<table class="docx-table"')
+      .replace(/<img /g, '<img style="max-width:100%;height:auto;border-radius:4px;" ');
+  }, [html]);
+
+  if (error) {
+    return (
+      <div className={`absolute inset-0 flex items-center justify-center ${theme === 'light' ? 'bg-zinc-100' : 'bg-zinc-950'}`}>
+        <div className="flex flex-col items-center gap-3 text-zinc-500">
+          <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <div className="text-[10px] uppercase tracking-widest opacity-50">Failed to load document</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`absolute inset-0 flex flex-col overflow-hidden ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}>
+      <div className={`flex items-center justify-between px-3 py-1.5 border-b shrink-0 ${theme === 'light' ? 'border-zinc-300 bg-zinc-200/60' : 'border-zinc-800/60 bg-zinc-950'}`}>
+        <div className="flex items-center gap-3">
+          <span className={`text-[10px] ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'} font-mono tracking-wider`}>
+            {fileName}
+          </span>
+          {loading && (
+            <svg className="w-3 h-3 animate-spin text-zinc-600" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          )}
+        </div>
+        {!loading && wordCount > 0 && (
+          <span className={`text-[9px] ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-700'} font-mono`}>
+            ~{wordCount} words
+          </span>
+        )}
+      </div>
+
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden p-8 ${theme === 'light' ? 'docx-preview-light' : 'docx-preview-dark'}`}>
+        {!loading && processedHtml && (
+          <div className={`max-w-3xl mx-auto ${theme === 'light' ? 'docx-content-light' : 'docx-content-dark'}`}>
+            <div dangerouslySetInnerHTML={{ __html: processedHtml }} />
+          </div>
+        )}
+        {!loading && !processedHtml && (
+          <div className="flex items-center justify-center py-12 text-zinc-500">
+            <div className="text-[10px] uppercase tracking-widest opacity-50">Empty document</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const DocxPreview = memo(DocxPreviewInner);

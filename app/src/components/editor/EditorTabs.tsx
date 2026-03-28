@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useMemo } from 'react';
 import { FileTab } from '../../types';
 import { FileIcon } from '../explorer/FileIcon';
 import { TabContextMenu } from './TabContextMenu';
@@ -21,7 +21,7 @@ const getExtension = (name: string): string | null => {
   return null;
 };
 
-export const EditorTabs: React.FC<EditorTabsProps> = ({
+const EditorTabsInner: React.FC<EditorTabsProps> = ({
   openFiles,
   activeFilePath,
   onTabClick,
@@ -32,16 +32,71 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
   onCloseSaved,
   theme,
 }) => {
-  const [contextMenu, setContextMenu] = useState<{
+  if (openFiles.length === 0) return null;
+
+  const hasDirty = openFiles.some((f) => f.isDirty);
+
+  return (
+    <TabBar
+      openFiles={openFiles}
+      activeFilePath={activeFilePath}
+      theme={theme}
+      hasDirty={hasDirty}
+      onTabClick={onTabClick}
+      onTabClose={onTabClose}
+      onCloseOthers={onCloseOthers}
+      onCloseToRight={onCloseToRight}
+      onCloseAll={onCloseAll}
+      onCloseSaved={onCloseSaved}
+    />
+  );
+};
+
+export const EditorTabs = memo(EditorTabsInner);
+
+interface TabBarProps {
+  openFiles: FileTab[];
+  activeFilePath: string | null;
+  theme: 'dark' | 'light';
+  hasDirty: boolean;
+  onTabClick: (path: string) => void;
+  onTabClose: (path: string) => void;
+  onCloseOthers: (path: string) => void;
+  onCloseToRight: (path: string) => void;
+  onCloseAll: () => void;
+  onCloseSaved: () => void;
+}
+
+const TabBar: React.FC<TabBarProps> = ({
+  openFiles,
+  activeFilePath,
+  theme,
+  hasDirty,
+  onTabClick,
+  onTabClose,
+  onCloseOthers,
+  onCloseToRight,
+  onCloseAll,
+  onCloseSaved,
+}) => {
+  const [contextMenu, setContextMenu] = React.useState<{
     x: number;
     y: number;
     path: string;
     index: number;
   } | null>(null);
 
-  if (openFiles.length === 0) return null;
-
-  const hasDirty = openFiles.some((f) => f.isDirty);
+  const menuItems = useMemo(() => {
+    if (!contextMenu) return null;
+    return [
+      { label: 'Close', action: () => onTabClose(contextMenu.path), shortcut: 'Ctrl+W' },
+      { label: 'Close Others', action: () => onCloseOthers(contextMenu.path) },
+      { label: 'Close to the Right', action: () => onCloseToRight(contextMenu.path), disabled: contextMenu.index >= openFiles.length - 1 },
+      { separator: true as const },
+      { label: 'Close All', action: onCloseAll },
+      { label: 'Close Saved', action: onCloseSaved, disabled: !hasDirty },
+    ];
+  }, [contextMenu, openFiles.length, hasDirty, onTabClose, onCloseOthers, onCloseToRight, onCloseAll, onCloseSaved]);
 
   const handleContextMenu = (e: React.MouseEvent, path: string, index: number) => {
     e.preventDefault();
@@ -73,10 +128,10 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
             className={`relative flex items-center gap-1.5 px-3 py-1.5 border-r cursor-pointer group min-w-0 max-w-[160px] transition-colors duration-100 ${
               isActive
                 ? theme === 'light'
-                  ? 'bg-white text-zinc-800 border-zinc-300'
+                  ? 'bg-zinc-100 text-zinc-800 border-zinc-300'
                   : 'bg-zinc-900 text-zinc-200 border-zinc-800/60'
                 : theme === 'light'
-                  ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 border-zinc-300'
+                  ? 'bg-zinc-200/60 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 border-zinc-300'
                   : 'bg-zinc-950 text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-400 border-zinc-800/60'
             }`}
             onClick={() => onTabClick(file.path)}
@@ -116,18 +171,11 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
         );
       })}
 
-      {contextMenu && (
+      {contextMenu && menuItems && (
         <TabContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          items={[
-            { label: 'Close', action: () => onTabClose(contextMenu.path), shortcut: 'Ctrl+W' },
-            { label: 'Close Others', action: () => onCloseOthers(contextMenu.path) },
-            { label: 'Close to the Right', action: () => onCloseToRight(contextMenu.path), disabled: contextMenu.index >= openFiles.length - 1 },
-            { separator: true },
-            { label: 'Close All', action: onCloseAll },
-            { label: 'Close Saved', action: onCloseSaved, disabled: !hasDirty },
-          ]}
+          items={menuItems}
           onClose={() => setContextMenu(null)}
         />
       )}

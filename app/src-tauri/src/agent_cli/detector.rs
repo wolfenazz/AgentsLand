@@ -111,21 +111,42 @@ impl AgentCliDetector {
 
     fn run_version_check(binary_path: &str, args: &[String]) -> Option<String> {
         let args_str: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
-        ProcessRunner::run_cmd_hidden(binary_path, &args_str)
-            .ok()
-            .filter(|o| o.status.success())
-            .map(|o| {
-                let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
-                let stderr = String::from_utf8_lossy(&o.stderr).trim().to_string();
-                let version = if !stdout.is_empty() { stdout } else { stderr };
-                let first_line = version.lines().next().unwrap_or("").trim();
-                if first_line.len() > 20 {
-                    first_line[..20].to_string()
+        let output = ProcessRunner::run_cmd_hidden(binary_path, &args_str).ok()?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let version = if !stdout.is_empty() { stdout } else { stderr };
+        let first_line = version.lines().next().unwrap_or("").trim();
+
+        if first_line.is_empty() {
+            return None;
+        }
+
+        let version_regex = regex::Regex::new(r"\d+\.\d+(?:\.\d+)?(?:[.\-][\w]+)*").ok()?;
+        if let Some(caps) = version_regex.find(first_line) {
+            let matched = caps.as_str();
+            let start = caps.start();
+            if start == 0 && output.status.success() {
+                let truncated = if first_line.len() > 50 {
+                    &first_line[..50]
                 } else {
-                    first_line.to_string()
-                }
-            })
-            .filter(|s| !s.is_empty())
+                    first_line
+                };
+                Some(truncated.to_string())
+            } else {
+                let end = matched.len().min(50);
+                Some(matched[..end].to_string())
+            }
+        } else if output.status.success() {
+            let truncated = if first_line.len() > 50 {
+                &first_line[..50]
+            } else {
+                first_line
+            };
+            Some(truncated.to_string())
+        } else {
+            None
+        }
     }
 }
 

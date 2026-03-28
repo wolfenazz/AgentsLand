@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface GitStatusBadgeProps {
   change: 'added' | 'modified' | 'deleted' | 'untracked';
@@ -11,7 +11,7 @@ const STATUS_STYLES: Record<string, string> = {
   untracked: 'bg-sky-500',
 };
 
-export const GitStatusBadge: React.FC<GitStatusBadgeProps> = ({ change }) => {
+const GitStatusBadgeInner: React.FC<GitStatusBadgeProps> = ({ change }) => {
   return (
     <span
       className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLES[change]} shrink-0`}
@@ -19,3 +19,5 @@ export const GitStatusBadge: React.FC<GitStatusBadgeProps> = ({ change }) => {
     />
   );
 };
+
+export const GitStatusBadge = memo(GitStatusBadgeInner);

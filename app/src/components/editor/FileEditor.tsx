@@ -19,6 +19,9 @@ import { useAppStore } from '../../stores/appStore';
 import { EditorTabs } from './EditorTabs';
 import { MarkdownPreview } from './MarkdownPreview';
 import { ImagePreview, isImageFile } from './ImagePreview';
+import { PdfPreview } from './PdfPreview';
+import { DocxPreview } from './DocxPreview';
+import { SpreadsheetPreview } from './SpreadsheetPreview';
 import { invoke } from '@tauri-apps/api/core';
 
 const languageExtensions: Record<string, () => any> = {
@@ -35,6 +38,7 @@ const languageExtensions: Record<string, () => any> = {
 };
 
 const languageCompartment = new Compartment();
+const themeCompartment = new Compartment();
 
 const darkEditorTheme = EditorView.theme({
   '&': {
@@ -43,9 +47,13 @@ const darkEditorTheme = EditorView.theme({
     color: '#e4e4e7',
     height: '100%',
   },
+  '.cm-scroller': {
+    backgroundColor: '#09090b',
+  },
   '.cm-content': {
     fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
     padding: '4px 0',
+    backgroundColor: '#09090b',
   },
   '.cm-gutters': {
     backgroundColor: '#0c0c0e',
@@ -72,27 +80,34 @@ const darkEditorTheme = EditorView.theme({
   '.cm-line': {
     padding: '0 4px',
   },
+  '.cm-foldGutter': {
+    backgroundColor: '#0c0c0e',
+  },
 }, { dark: true });
 
 const lightEditorTheme = EditorView.theme({
   '&': {
     fontSize: '13px',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f4f4f5',
     color: '#18181b',
     height: '100%',
+  },
+  '.cm-scroller': {
+    backgroundColor: '#f4f4f5',
   },
   '.cm-content': {
     fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
     padding: '4px 0',
+    backgroundColor: '#f4f4f5',
   },
   '.cm-gutters': {
-    backgroundColor: '#f4f4f5',
-    borderRight: '1px solid #e4e4e7',
+    backgroundColor: '#e4e4e7',
+    borderRight: '1px solid #d4d4d8',
     color: '#a1a1aa',
     minWidth: '40px',
   },
   '.cm-activeLineGutter': {
-    backgroundColor: '#f4f4f5',
+    backgroundColor: '#e4e4e7',
     color: '#52525b',
   },
   '.cm-activeLine': {
@@ -109,6 +124,9 @@ const lightEditorTheme = EditorView.theme({
   },
   '.cm-line': {
     padding: '0 4px',
+  },
+  '.cm-foldGutter': {
+    backgroundColor: '#e4e4e7',
   },
 }, { dark: false });
 
@@ -133,10 +151,19 @@ const getExtension = (name: string): string | null => {
   return null;
 };
 
+const getThemeExtensions = (t: string) =>
+  t === 'light'
+    ? [lightEditorTheme, lightHighlightStyle, syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
+    : [darkEditorTheme, oneDark];
+
 export const FileEditor: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const currentFileRef = useRef<string | null>(null);
+  const callbacksRef = useRef<{
+    updateFileContent: (path: string, content: string) => void;
+    handleSave: () => void;
+  }>({ updateFileContent: () => {}, handleSave: () => {} });
 
   const openFiles = useAppStore((s) => s.openFiles);
   const activeFilePath = useAppStore((s) => s.activeFilePath);
@@ -156,9 +183,14 @@ export const FileEditor: React.FC = () => {
   const fileExt = activeFile ? getExtension(activeFile.name) : null;
   const isMarkdown = activeFile?.language === 'markdown' || fileExt === 'md' || fileExt === 'markdown';
   const isImage = isImageFile(fileExt);
+  const isPdf = fileExt === 'pdf';
+  const isDocx = fileExt === 'docx' || fileExt === 'doc';
+  const isSpreadsheet = fileExt === 'xlsx' || fileExt === 'xls';
+  const isPreviewable = isImage || isPdf || isDocx || isSpreadsheet;
 
   const handleSave = useCallback(async () => {
-    const file = openFiles.find((f) => f.path === currentFileRef.current);
+    const { openFiles: files } = useAppStore.getState();
+    const file = files.find((f) => f.path === currentFileRef.current);
     if (!file || !file.isDirty) return;
     try {
       await invoke('write_file_content', { path: file.path, content: file.content });
@@ -166,10 +198,11 @@ export const FileEditor: React.FC = () => {
     } catch (err) {
       console.error('Failed to save file:', err);
     }
-  }, [openFiles, markFileSaved]);
+  }, [markFileSaved]);
+
+  callbacksRef.current = { updateFileContent, handleSave };
 
   useEffect(() => {
-    if (isImage) return;
     if (!editorRef.current) return;
 
     if (viewRef.current) {
@@ -177,21 +210,20 @@ export const FileEditor: React.FC = () => {
       viewRef.current = null;
     }
 
-    if (!activeFile || (isMarkdown && mdPreview)) {
+    if (!activeFile || isPreviewable) {
       currentFileRef.current = null;
       return;
     }
 
+    currentFileRef.current = activeFile.path;
+
     const langExt = languageExtensions[activeFile.language]?.() ?? [];
-    const editorTheme = theme === 'light' ? lightEditorTheme : darkEditorTheme;
-    const themeExtensions = theme === 'light'
-      ? [editorTheme, lightHighlightStyle, syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
-      : [editorTheme, oneDark];
 
     const state = EditorState.create({
       doc: activeFile.content,
       extensions: [
-        ...themeExtensions,
+        themeCompartment.of(getThemeExtensions(theme)),
+        languageCompartment.of(langExt),
         lineNumbers(),
         highlightActiveLine(),
         highlightActiveLineGutter(),
@@ -202,7 +234,6 @@ export const FileEditor: React.FC = () => {
         indentOnInput(),
         highlightSelectionMatches(),
         foldGutter(),
-        languageCompartment.of(langExt),
         keymap.of([
           ...closeBracketsKeymap,
           ...defaultKeymap,
@@ -212,15 +243,14 @@ export const FileEditor: React.FC = () => {
           {
             key: 'Mod-s',
             run: () => {
-              handleSave();
+              callbacksRef.current.handleSave();
               return true;
             },
           },
         ]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged && currentFileRef.current) {
-            const newContent = update.state.doc.toString();
-            updateFileContent(currentFileRef.current, newContent);
+            callbacksRef.current.updateFileContent(currentFileRef.current, update.state.doc.toString());
           }
         }),
         EditorView.lineWrapping,
@@ -233,56 +263,56 @@ export const FileEditor: React.FC = () => {
     });
 
     viewRef.current = view;
-    currentFileRef.current = activeFile.path;
 
     return () => {
-      view.destroy();
-      viewRef.current = null;
+      if (viewRef.current === view) {
+        view.destroy();
+        viewRef.current = null;
+      }
     };
-  }, [activeFilePath, theme, mdPreview]);
+  }, [activeFilePath]);
 
   useEffect(() => {
-    if (viewRef.current && activeFile) {
-      const currentContent = viewRef.current.state.doc.toString();
-      if (currentContent !== activeFile.content) {
-        viewRef.current.dispatch({
-          changes: {
-            from: 0,
-            to: currentContent.length,
-            insert: activeFile.content,
-          },
-        });
-      }
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({
+      effects: themeCompartment.reconfigure(getThemeExtensions(theme)),
+    });
+  }, [theme]);
+
+  useEffect(() => {
+    if (!viewRef.current || !activeFile) return;
+    if (currentFileRef.current !== activeFile.path) return;
+    const current = viewRef.current.state.doc.toString();
+    if (current !== activeFile.content) {
+      viewRef.current.dispatch({
+        changes: { from: 0, to: current.length, insert: activeFile.content },
+      });
     }
   }, [activeFile?.content]);
 
   useEffect(() => {
-    if (activeFile && !isMarkdown && !isImage) {
+    if (activeFile && !isMarkdown && !isPreviewable) {
       setMdPreview(false);
     }
   }, [activeFilePath, isMarkdown, isImage]);
 
-  const handleTabClick = (path: string) => {
+  const handleTabClick = useCallback((path: string) => {
     setActiveFile(path);
-  };
+  }, [setActiveFile]);
 
-  const handleTabClose = (path: string) => {
+  const handleTabClose = useCallback((path: string) => {
     closeFileTab(path);
-  };
+  }, [closeFileTab]);
 
   const getBreadcrumb = (filePath: string) => {
     const parts = filePath.replace(/\\/g, '/').split('/');
     return parts.slice(-3).join(' / ');
   };
 
-  const bgMain = theme === 'light' ? 'bg-white' : 'bg-[#09090b]';
-  const bgBreadcrumb = theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-950 border-zinc-800/60';
-  const textBreadcrumb = theme === 'light' ? 'text-zinc-400' : 'text-zinc-600';
-  const bgEmpty = theme === 'light' ? 'bg-white' : 'bg-[#09090b]';
-  const textEmpty = theme === 'light' ? 'text-zinc-400' : 'text-zinc-600';
+  const showEditor = activeFile && !isPreviewable && !(isMarkdown && mdPreview);
 
   return (
-    <div className={`h-full flex flex-col ${bgMain}`}>
+    <div className={`h-full flex flex-col ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}>
       <EditorTabs
         openFiles={openFiles}
         activeFilePath={activeFilePath}
@@ -296,9 +326,9 @@ export const FileEditor: React.FC = () => {
       />
 
       {activeFile && (
-        <div className={`flex items-center justify-between px-3 py-1 border-b shrink-0 ${bgBreadcrumb}`}>
+        <div className={`flex items-center justify-between px-3 py-1 border-b shrink-0 ${theme === 'light' ? 'bg-zinc-200/60 border-zinc-300' : 'bg-zinc-950 border-zinc-800/60'}`}>
           <div className="flex items-center gap-2">
-            <span className={`text-[10px] ${textBreadcrumb} font-mono tracking-wider`}>
+            <span className={`text-[10px] ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'} font-mono tracking-wider`}>
               {getBreadcrumb(activeFile.path)}
             </span>
             {activeFile.isDirty && (
@@ -333,33 +363,65 @@ export const FileEditor: React.FC = () => {
         </div>
       )}
 
-      {activeFile ? (
-        isImage ? (
+      <div className="flex-1 relative min-h-0 overflow-hidden">
+        <div
+          ref={editorRef}
+          className={`absolute inset-0 ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}
+          style={{ visibility: showEditor ? 'visible' : 'hidden' }}
+        />
+
+        {activeFile && isImage && (
           <ImagePreview
             filePath={activeFile.path}
             fileName={activeFile.name}
             theme={theme}
           />
-        ) : isMarkdown && mdPreview ? (
+        )}
+
+        {activeFile && isPdf && (
+          <PdfPreview
+            filePath={activeFile.path}
+            fileName={activeFile.name}
+            theme={theme}
+          />
+        )}
+
+        {activeFile && isDocx && (
+          <DocxPreview
+            filePath={activeFile.path}
+            fileName={activeFile.name}
+            theme={theme}
+          />
+        )}
+
+        {activeFile && isSpreadsheet && (
+          <SpreadsheetPreview
+            filePath={activeFile.path}
+            fileName={activeFile.name}
+            theme={theme}
+          />
+        )}
+
+        {activeFile && isMarkdown && mdPreview && (
           <MarkdownPreview content={activeFile.content} theme={theme} />
-        ) : (
-          <div ref={editorRef} className={`flex-1 overflow-hidden min-h-0 ${theme === 'light' ? 'bg-white' : ''}`} />
-        )
-      ) : (
-        <div className={`flex-1 flex items-center justify-center ${bgEmpty}`}>
-          <div className={`flex flex-col items-center gap-3 ${textEmpty}`}>
-            <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-            <div className="text-[10px] uppercase tracking-widest opacity-50">
-              Select a file to view
-            </div>
-            <div className="text-[9px] uppercase tracking-widest opacity-30">
-              Ctrl+S to save
+        )}
+
+        {!activeFile && (
+          <div className={`absolute inset-0 flex items-center justify-center ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}>
+            <div className={`flex flex-col items-center gap-3 ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <div className="text-[10px] uppercase tracking-widest opacity-50">
+                Select a file to view
+              </div>
+              <div className="text-[9px] uppercase tracking-widest opacity-30">
+                Ctrl+S to save
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

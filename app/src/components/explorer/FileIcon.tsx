@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { memo, useState, useCallback } from 'react';
+import { getIconForFilePath } from 'vscode-material-icons';
 
 interface FileIconProps {
   extension: string | null;
   isDir: boolean;
   isOpen?: boolean;
   className?: string;
+  name?: string;
 }
 
 const EXTENSION_COLORS: Record<string, string> = {
@@ -46,36 +48,121 @@ const EXTENSION_COLORS: Record<string, string> = {
   svg: '#f97316',
   gif: '#22c55e',
   webp: '#22c55e',
+  pdf: '#ef4444',
+  docx: '#3b82f6',
+  doc: '#3b82f6',
+  xlsx: '#22c55e',
+  xls: '#22c55e',
   env: '#eab308',
   lock: '#a1a1aa',
 };
 
-const FileSvgIcon: React.FC<{ color: string; className?: string }> = ({ color, className }) => (
-  <svg className={className} viewBox="0 0 16 16" fill="none">
-    <path d="M4 1.5h5L12 4.5v10a1 1 0 01-1 1H4a1 1 0 01-1-1v-13a1 1 0 011-1z" stroke={color} strokeWidth="1.2" />
-    <path d="M9 1.5v3h3" stroke={color} strokeWidth="1.2" />
-  </svg>
-);
-
-const FolderSvgIcon: React.FC<{ isOpen: boolean; className?: string }> = ({ isOpen, className }) => (
-  <svg className={className} viewBox="0 0 16 16" fill="none">
+const FOLDER_CLOSED_SVG = (
+  <svg viewBox="0 0 16 16" fill="none" className="w-full h-full">
     <path
-      d={isOpen
-        ? "M2 3.5h4l1.5 1.5H14a1 1 0 011 1V12a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1z"
-        : "M2 3.5h4l1.5 1.5H14a1 1 0 011 1V12a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1z"
-      }
+      d="M1.5 3.5C1.5 2.67 2.17 2 3 2h3.59a1 1 0 01.7.3l1.42 1.4a1 1 0 00.7.3H13a1.5 1.5 0 011.5 1.5V12.5a1.5 1.5 0 01-1.5 1.5H3A1.5 1.5 0 011.5 12.5v-9z"
+      fill="#eab308"
+      fillOpacity={0.15}
       stroke="#eab308"
-      strokeWidth="1.2"
+      strokeWidth={0.8}
+    />
+    <path
+      d="M1.5 5.5h13"
+      stroke="#eab308"
+      strokeWidth={0.5}
+      strokeOpacity={0.4}
     />
   </svg>
 );
 
-export const FileIcon: React.FC<FileIconProps> = ({ extension, isDir, isOpen, className = 'w-4 h-4' }) => {
-  if (isDir) {
-    return <FolderSvgIcon isOpen={isOpen ?? false} className={className} />;
+const FOLDER_OPEN_SVG = (
+  <svg viewBox="0 0 16 16" fill="none" className="w-full h-full">
+    <path
+      d="M1.5 3.5C1.5 2.67 2.17 2 3 2h3.59a1 1 0 01.7.3l1.42 1.4a1 1 0 00.7.3H13a1.5 1.5 0 011.5 1.5V6H3.5L1.5 12.5v-9z"
+      fill="#eab308"
+      fillOpacity={0.12}
+      stroke="#eab308"
+      strokeWidth={0.8}
+    />
+    <path
+      d="M3.5 6l-2 7h12a1 1 0 001-.75l1.2-5A1 1 0 0014.7 6H3.5z"
+      fill="#eab308"
+      fillOpacity={0.25}
+      stroke="#eab308"
+      strokeWidth={0.8}
+    />
+  </svg>
+);
+
+const FileSvgIcon: React.FC<{ color: string; className?: string }> = ({
+  color,
+  className,
+}) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none">
+    <path
+      d="M4 1.5h5L12 4.5v10a1 1 0 01-1 1H4a1 1 0 01-1-1v-13a1 1 0 011-1z"
+      stroke={color}
+      strokeWidth="1.2"
+    />
+    <path d="M9 1.5v3h3" stroke={color} strokeWidth="1.2" />
+  </svg>
+);
+
+const MaterialIcon: React.FC<{
+  iconName: string;
+  className?: string;
+}> = ({ iconName, className }) => {
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = useCallback(() => {
+    setHasError(true);
+  }, []);
+
+  if (hasError) {
+    return <FileSvgIcon color="#a1a1aa" className={className} />;
   }
 
-  const color = extension ? (EXTENSION_COLORS[extension.toLowerCase()] ?? '#a1a1aa') : '#a1a1aa';
+  return (
+    <img
+      src={`/material-icons/${iconName}.svg`}
+      alt=""
+      className={className}
+      onError={handleError}
+      draggable={false}
+    />
+  );
+};
 
+const FileIconInner: React.FC<FileIconProps> = ({
+  extension,
+  isDir,
+  isOpen,
+  className = 'w-4 h-4',
+  name,
+}) => {
+  if (isDir) {
+    return (
+      <div className={className}>
+        {isOpen ? FOLDER_OPEN_SVG : FOLDER_CLOSED_SVG}
+      </div>
+    );
+  }
+
+  if (name) {
+    try {
+      const icon = getIconForFilePath(name);
+      if (icon) {
+        return <MaterialIcon iconName={icon} className={className} />;
+      }
+    } catch {
+      // fall through to default
+    }
+  }
+
+  const color = extension
+    ? EXTENSION_COLORS[extension.toLowerCase()] ?? '#a1a1aa'
+    : '#a1a1aa';
   return <FileSvgIcon color={color} className={className} />;
 };
+
+export const FileIcon = memo(FileIconInner);

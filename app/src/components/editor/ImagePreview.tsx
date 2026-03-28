@@ -9,6 +9,9 @@ interface ImagePreviewProps {
 
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico', 'avif', 'tiff', 'tif']);
 
+const imageCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 20;
+
 export const isImageFile = (extension: string | null): boolean => {
   return extension ? IMAGE_EXTENSIONS.has(extension.toLowerCase()) : false;
 };
@@ -16,18 +19,31 @@ export const isImageFile = (extension: string | null): boolean => {
 export const ImagePreview: React.FC<ImagePreviewProps> = ({ filePath, fileName, theme }) => {
   const [zoom, setZoom] = useState(1);
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
-  const [src, setSrc] = useState<string | null>(null);
+  const [src, setSrc] = useState<string | null>(() => imageCache.get(filePath) ?? null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    const cached = imageCache.get(filePath);
+    if (cached) {
+      setSrc(cached);
+      setError(false);
+      setNaturalSize(null);
+      return;
+    }
+
     let cancelled = false;
     setError(false);
-    setSrc(null);
     setNaturalSize(null);
 
     invoke<string>('read_file_as_base64', { path: filePath })
       .then((dataUrl) => {
-        if (!cancelled) setSrc(dataUrl);
+        if (cancelled) return;
+        if (imageCache.size >= MAX_CACHE_SIZE) {
+          const firstKey = imageCache.keys().next().value;
+          if (firstKey) imageCache.delete(firstKey);
+        }
+        imageCache.set(filePath, dataUrl);
+        setSrc(dataUrl);
       })
       .catch(() => {
         if (!cancelled) setError(true);
@@ -41,13 +57,13 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ filePath, fileName, 
     setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
   }, []);
 
-  const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 5));
-  const zoomOut = () => setZoom((z) => Math.max(z - 0.25, 0.1));
-  const fitView = () => setZoom(1);
+  const zoomIn = useCallback(() => setZoom((z) => Math.min(z + 0.25, 5)), []);
+  const zoomOut = useCallback(() => setZoom((z) => Math.max(z - 0.25, 0.1)), []);
+  const fitView = useCallback(() => setZoom(1), []);
 
   if (error) {
     return (
-      <div className={`flex-1 flex items-center justify-center ${theme === 'light' ? 'bg-zinc-100' : 'bg-zinc-950'}`}>
+      <div className={`absolute inset-0 flex items-center justify-center ${theme === 'light' ? 'bg-zinc-100' : 'bg-zinc-950'}`}>
         <div className="flex flex-col items-center gap-3 text-zinc-500">
           <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -61,7 +77,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ filePath, fileName, 
   }
 
   return (
-    <div className={`flex-1 flex flex-col overflow-hidden ${theme === 'light' ? 'bg-zinc-100' : 'bg-zinc-950'}`}>
+    <div className={`absolute inset-0 flex flex-col overflow-hidden ${theme === 'light' ? 'bg-zinc-100' : 'bg-zinc-950'}`}>
       <div className={`flex items-center justify-between px-3 py-1.5 border-b shrink-0 ${theme === 'light' ? 'border-zinc-300' : 'border-theme'}`}>
         <div className="flex items-center gap-2">
           <span className={`text-[10px] ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'} font-mono tracking-wider`}>
