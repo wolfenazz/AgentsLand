@@ -150,108 +150,128 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   activeView,
 }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-main border-b border-theme select-none transition-colors titlebar-drag">
-      <div className="flex items-center px-3 h-full border-r border-theme bg-theme-card cursor-default titlebar-nodrag">
-        <img src={logo} alt="YzPzCode" className="h-6 w-auto" />
+    <header 
+      data-tauri-drag-region
+      className="fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-card/50 backdrop-blur-md border-b border-theme select-none transition-colors titlebar-drag overflow-hidden"
+    >
+      {/* Left: Branding & Core Navigation */}
+      <div className="flex items-center h-full titlebar-nodrag">
+        <div className="flex items-center gap-3 px-4 h-full border-r border-theme bg-theme-card/30 hover:bg-theme-card/50 transition-colors group cursor-default">
+          <img src={logo} alt="YzPzCode" className="h-5 w-auto grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300" />
+          <div className="flex flex-col -space-y-1">
+            <span className="text-[10px] font-mono font-bold tracking-tighter text-theme-main uppercase">YZPZ::CODE</span>
+            <span className="text-[8px] font-mono text-zinc-500 tracking-[0.2em] uppercase">workspace</span>
+          </div>
+        </div>
+
+        <div className="flex items-center h-full border-r border-theme">
+          <button
+            onClick={onDocsClick}
+            className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors text-zinc-500 hover:text-theme-main group"
+            title="Documentation"
+          >
+            <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </button>
+
+          <button
+            onClick={onSidebarToggle}
+            className="flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-zinc-500 hover:text-theme-main group"
+            title="Toggle Explorer (Ctrl+B)"
+          >
+            <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
+              <path strokeWidth="1.5" d="M9 3v18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <button
-        onClick={onDocsClick}
-        className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main titlebar-nodrag"
-        title="Documentation"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-      </button>
+      {/* Middle: Tabs Area */}
+      <div className="flex-1 flex items-center h-full overflow-hidden titlebar-nodrag">
+        <div className="flex items-center h-full overflow-x-auto overflow-y-hidden scrollbar-none">
+          {workspaces.map((workspace) => (
+            <WorkspaceTab
+              key={workspace.id}
+              workspace={workspace}
+              isActive={workspace.id === activeWorkspaceId}
+              sessionsCount={sessionsByWorkspace[workspace.id] || 0}
+              onClick={() => onWorkspaceClick(workspace.id)}
+              onClose={(e) => {
+                e.stopPropagation();
+                onWorkspaceClose(workspace.id);
+              }}
+            />
+          ))}
 
-      <button
-        onClick={onSidebarToggle}
-        className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main titlebar-nodrag"
-        title="Toggle Explorer (Ctrl+B)"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
-          <path strokeWidth="1.5" d="M9 3v18" />
-        </svg>
-      </button>
-
-      <div className="flex items-center h-full overflow-x-auto overflow-y-hidden titlebar-nodrag">
-        {workspaces.map((workspace) => (
-          <WorkspaceTab
-            key={workspace.id}
-            workspace={workspace}
-            isActive={workspace.id === activeWorkspaceId}
-            sessionsCount={sessionsByWorkspace[workspace.id] || 0}
-            onClick={() => onWorkspaceClick(workspace.id)}
-            onClose={(e) => {
-              e.stopPropagation();
-              onWorkspaceClose(workspace.id);
-            }}
-          />
-        ))}
-
-        <button
-          onClick={onNewWorkspace}
-          className="flex items-center gap-1 h-10 px-4 border-l border-theme bg-theme-card hover:bg-theme-card-hover transition-all duration-200 text-zinc-500 hover:text-zinc-300 titlebar-nodrag"
-          title="Create new workspace"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="text-xs font-bold tracking-wider uppercase">New</span>
-        </button>
+          <button
+            onClick={onNewWorkspace}
+            className="flex items-center gap-2 h-full px-4 border-l border-theme bg-theme-card/30 hover:bg-theme-hover transition-all duration-200 text-zinc-500 hover:text-theme-main group"
+            title="Create new workspace"
+          >
+            <svg className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase">New_Session</span>
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 h-full" />
+      {/* Right: Tools & Window Controls */}
+      <div className="flex items-center h-full titlebar-nodrag">
+        <div className="flex items-center h-full border-l border-theme px-1">
+          <ShortcutHelp />
+          <ThemeToggleButton theme={theme} onToggle={onThemeToggle} />
 
-      <div className="flex items-center h-full gap-0 titlebar-nodrag">
-        <ShortcutHelp />
-        <ThemeToggleButton theme={theme} onToggle={onThemeToggle} />
-
-        <button
-          onClick={onViewToggle}
-          className={`flex items-center justify-center w-10 h-full border-l transition-colors cursor-pointer ${
-            activeView === "terminal"
-              ? "btn-accent text-zinc-300 hover:text-zinc-100"
-              : "border-theme hover:bg-theme-hover text-theme-secondary hover:text-theme-main"
-          }`}
-          title={activeView === "terminal" ? "Open Editor (Ctrl+E)" : "Open Terminals (Ctrl+E)"}
-        >
-          {activeView === "terminal" ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          )}
-        </button>
+          <button
+            onClick={onViewToggle}
+            className={`flex items-center justify-center w-10 h-full transition-all duration-300 group ${
+              activeView === "terminal"
+                ? "bg-theme-main/10 text-theme-main"
+                : "text-zinc-500 hover:text-theme-main hover:bg-theme-hover"
+            }`}
+            title={activeView === "terminal" ? "Open Editor (Ctrl+E)" : "Open Terminals (Ctrl+E)"}
+          >
+            {activeView === "terminal" ? (
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
+        </div>
 
         {isWindows && (
-          <div className="flex h-full border-l border-theme">
+          <div className="flex h-full border-l border-theme bg-theme-card/20">
             <button
               onClick={onMinimizeWindow}
-              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors"
+              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors group"
               title="Minimize"
             >
-              <svg className="w-3 h-3" viewBox="0 0 12 12"><rect fill="currentColor" width="10" height="1" x="1" y="6" /></svg>
+              <svg className="w-2.5 h-2.5 group-hover:scale-110 transition-transform" viewBox="0 0 12 12">
+                <rect fill="currentColor" width="10" height="1.2" x="1" y="6" />
+              </svg>
             </button>
             <button
               onClick={onMaximizeWindow}
-              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors"
+              className="w-10 h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors group"
               title="Maximize"
             >
-              <svg className="w-3 h-3" viewBox="0 0 12 12"><rect fill="none" stroke="currentColor" width="9" height="9" x="1.5" y="1.5" strokeWidth="1" /></svg>
+              <svg className="w-2.5 h-2.5 group-hover:scale-110 transition-transform" viewBox="0 0 12 12">
+                <rect fill="none" stroke="currentColor" width="8" height="8" x="2" y="2" strokeWidth="1.2" />
+              </svg>
             </button>
             <button
               onClick={onCloseWindow}
-              className="w-12 h-full flex items-center justify-center hover:bg-rose-600 text-zinc-500 hover:text-white transition-colors"
+              className="w-12 h-full flex items-center justify-center hover:bg-rose-600/90 text-zinc-500 hover:text-white transition-colors group"
               title="Close"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 12 12">
-                <path fill="none" stroke="currentColor" strokeWidth="1.2" d="M1,1 L11,11 M1,11 L11,1" />
+              <svg className="w-2.5 h-2.5 group-hover:rotate-90 transition-transform duration-300" viewBox="0 0 12 12">
+                <path fill="none" stroke="currentColor" strokeWidth="1.5" d="M2,2 L10,10 M2,10 L10,2" />
               </svg>
             </button>
           </div>

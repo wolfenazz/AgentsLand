@@ -79,7 +79,7 @@ export const CliToolsTable: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="mt-3 overflow-hidden border border-theme rounded-sm">
+        <div className="mt-3 overflow-hidden border border-theme rounded-sm gemini-aura-subtle gemini-depth">
           <table className="w-full">
             <thead className="bg-theme-card border-b border-theme">
               <tr>

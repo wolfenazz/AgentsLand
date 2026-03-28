@@ -257,7 +257,8 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
   return (
     <div className={`h-screen bg-theme-main text-theme-main font-mono flex flex-col overflow-hidden ${theme === 'light' ? 'light-theme' : ''}`}>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-main border-b border-theme select-none transition-colors ${isWindows ? 'titlebar-drag active:cursor-grabbing' : ''}`}
+        data-tauri-drag-region
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center h-10 bg-theme-card/50 backdrop-blur-md border-b border-theme select-none transition-colors ${isWindows ? 'titlebar-drag active:cursor-grabbing' : ''}`}
       >
         <div className="flex items-center h-full titlebar-nodrag">
           <button
