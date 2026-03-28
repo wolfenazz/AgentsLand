@@ -551,10 +551,10 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
   };
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden transition-all duration-200 font-mono ${
+    <div className={`h-full flex flex-col overflow-hidden transition-all duration-200 font-mono accent-pane ${
       isLight
-        ? 'bg-zinc-100 border border-zinc-300'
-        : 'bg-zinc-950 border border-zinc-800'
+        ? 'bg-zinc-100 border border-zinc-300/50'
+        : 'bg-zinc-950 border border-zinc-800/50'
     }`}>
       <div className={`flex items-center justify-between px-2 py-1 select-none shrink-0 ${
         isLight

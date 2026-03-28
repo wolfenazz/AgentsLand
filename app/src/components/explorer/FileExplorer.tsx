@@ -170,7 +170,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   return (
     <div
-      className="h-full flex flex-col bg-theme-card border-r border-theme select-none overflow-hidden"
+      className="h-full flex flex-col bg-theme-card border-r border-theme/50 select-none overflow-hidden accent-line-right"
       onContextMenu={handleContainerContextMenu}
     >
       <div className="flex items-center justify-between px-3 py-2 border-b border-theme shrink-0">

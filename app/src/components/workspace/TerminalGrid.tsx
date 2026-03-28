@@ -310,8 +310,8 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
         })}
       </div>
 
-      <div className={`flex items-center justify-between px-3 py-1.5 shrink-0 border-t ${
-        isLight ? 'border-zinc-300 bg-zinc-200/60' : 'border-zinc-800 bg-zinc-900/50'
+      <div className={`flex items-center justify-between px-3 py-1.5 shrink-0 border-t accent-line-top ${
+        isLight ? 'border-zinc-300/50 bg-zinc-200/60' : 'border-zinc-800/50 bg-zinc-900/50'
       }`}>
         <div className="flex items-center gap-3">
           <span className={`text-[9px] uppercase tracking-widest font-bold ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`}>

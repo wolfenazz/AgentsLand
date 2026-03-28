@@ -22,7 +22,7 @@ export const WorkspaceTab: React.FC<WorkspaceTabProps> = ({
         group relative flex items-center gap-2 h-10 px-4 cursor-pointer select-none
         transition-all duration-200 border-r border-theme
         ${isActive
-          ? 'bg-theme-card border-l-2 border-l-blue-600 bg-theme-card-active'
+          ? 'bg-theme-card border-l-2 border-l-transparent accent-tab bg-theme-card-active'
           : 'bg-theme-card hover:bg-theme-card-hover border-l-2 border-l-transparent'
         }
       `}
