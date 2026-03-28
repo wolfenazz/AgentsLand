@@ -462,7 +462,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               )}
 
               {!checking && upToDate && (
-                <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border-r border-theme">
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-500">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -473,7 +473,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               {!checking && !downloading && updateAvailable && (
                 <button
                   onClick={downloadAndInstall}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border-r border-theme"
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors"
                 >
                   <span className="animate-pulse">●</span>
                   <span>UPDATE V{updateAvailable.version}</span>
@@ -481,7 +481,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               )}
 
               {downloading && (
-                <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border-r border-theme">
+                <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500">
                   <div className="w-12 h-1 bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 transition-all duration-200"
@@ -495,7 +495,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               {!checking && !downloading && !updateAvailable && !upToDate && (
                 <button
                   onClick={() => checkForUpdates(true)}
-                  className="px-2 py-0.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors border-r border-theme"
+                  className="px-2 py-0.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
                 >
                   [ CHECK_UPDATES ]
                 </button>

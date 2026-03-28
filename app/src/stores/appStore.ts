@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus, GitDiffStat } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -64,6 +64,7 @@ interface AppState {
   openFiles: FileTab[];
   activeFilePath: string | null;
   gitStatuses: GitFileStatus[];
+  gitDiffStats: GitDiffStat[];
   filesByWorkspace: Record<string, FileTab[]>;
   activeFileByWorkspace: Record<string, string | null>;
   activeViewByWorkspace: Record<string, "terminal" | "editor">;
@@ -77,6 +78,7 @@ interface AppState {
   updateFileContent: (path: string, content: string) => void;
   markFileSaved: (path: string) => void;
   setGitStatuses: (statuses: GitFileStatus[]) => void;
+  setGitDiffStats: (stats: GitDiffStat[]) => void;
   closeAllFiles: () => void;
   closeOtherFiles: (exceptPath: string) => void;
   closeFilesToRight: (path: string) => void;
@@ -346,6 +348,7 @@ export const useAppStore = create<AppState>()(
       openFiles: [],
       activeFilePath: null,
       gitStatuses: [],
+      gitDiffStats: [],
       filesByWorkspace: {} as Record<string, FileTab[]>,
       activeFileByWorkspace: {} as Record<string, string | null>,
       activeViewByWorkspace: {} as Record<string, "terminal" | "editor">,
@@ -482,6 +485,7 @@ export const useAppStore = create<AppState>()(
         }),
 
       setGitStatuses: (statuses) => set({ gitStatuses: statuses }),
+      setGitDiffStats: (stats: GitDiffStat[]) => set({ gitDiffStats: stats }),
 
       closeAllFiles: () =>
         set((state) => {

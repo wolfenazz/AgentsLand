@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Tree } from 'react-arborist';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FileEntry } from '../../types';
 import { useFileTree, type TreeNodeData } from '../../hooks/useFileTree';
 import { TreeNode, ExplorerContext } from './TreeNode';
-import { GitStatusBadge } from './GitStatusBadge';
+import { GitChangesPanel } from './GitChangesPanel';
 import { ExplorerContextMenu } from './ExplorerContextMenu';
 import { useAppStore } from '../../stores/appStore';
 
@@ -20,6 +19,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   onFileClick,
 }) => {
   const gitStatuses = useAppStore((s) => s.gitStatuses);
+  const gitDiffStats = useAppStore((s) => s.gitDiffStats);
   const activeFilePath = useAppStore((s) => s.activeFilePath);
   const setExplorerClipboard = useAppStore((s) => s.setExplorerClipboard);
 
@@ -61,20 +61,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-
-  const changeSummary = useMemo(
-    () => ({
-      added: gitStatuses.filter(
-        (g) => g.change === 'added' || g.change === 'untracked'
-      ).length,
-      modified: gitStatuses.filter((g) => g.change === 'modified').length,
-      deleted: gitStatuses.filter((g) => g.change === 'deleted').length,
-    }),
-    [gitStatuses]
-  );
-
-  const hasChanges =
-    changeSummary.added + changeSummary.modified + changeSummary.deleted > 0;
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, nodeData: TreeNodeData | null) => {
@@ -366,44 +352,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         />
       </div>
 
-      <AnimatePresence>
-        {hasChanges && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.15 }}
-            className="px-3 py-1.5 border-t border-theme shrink-0 overflow-hidden"
-          >
-            <div className="flex items-center gap-3 text-[9px] uppercase tracking-widest">
-              {changeSummary.added > 0 && (
-                <div className="flex items-center gap-1">
-                  <GitStatusBadge change="added" />
-                  <span className="text-emerald-500">
-                    {changeSummary.added} new
-                  </span>
-                </div>
-              )}
-              {changeSummary.modified > 0 && (
-                <div className="flex items-center gap-1">
-                  <GitStatusBadge change="modified" />
-                  <span className="text-amber-500">
-                    {changeSummary.modified} mod
-                  </span>
-                </div>
-              )}
-              {changeSummary.deleted > 0 && (
-                <div className="flex items-center gap-1">
-                  <GitStatusBadge change="deleted" />
-                  <span className="text-rose-500">
-                    {changeSummary.deleted} del
-                  </span>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GitChangesPanel
+        gitStatuses={gitStatuses}
+        gitDiffStats={gitDiffStats}
+        workspacePath={workspacePath}
+        onFileClick={onFileClick}
+      />
     </div>
   );
 };

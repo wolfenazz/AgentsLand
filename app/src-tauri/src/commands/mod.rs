@@ -11,8 +11,8 @@ use crate::filesystem;
 use crate::ide::{launch_ide, IdeDetector};
 use crate::terminal::TerminalManager;
 use crate::types::{
-    AgentType, CreateSessionsRequest, FileContent, FileEntry, GitFileStatus, IdeInfo, IdeType,
-    LaunchExternalRequest, TerminalSession,
+    AgentType, CreateSessionsRequest, FileContent, FileEntry, GitDiffStat, GitFileStatus, IdeInfo,
+    IdeType, LaunchExternalRequest, TerminalSession,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1164,6 +1164,11 @@ pub async fn write_file_content(path: String, content: String) -> Result<(), Str
 #[tauri::command]
 pub async fn get_git_status(workspace_path: String) -> Result<Vec<GitFileStatus>, String> {
     filesystem::git_status::get_git_status(&workspace_path)
+}
+
+#[tauri::command]
+pub async fn get_git_diff_stats(workspace_path: String) -> Result<Vec<GitDiffStat>, String> {
+    filesystem::git_diff_stats::get_git_diff_stats(&workspace_path)
 }
 
 #[tauri::command]

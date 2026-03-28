@@ -210,6 +210,11 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
 
     xterm.open(terminalRef.current);
 
+    terminalRef.current.addEventListener('paste', (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { capture: true });
+
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
     searchAddonRef.current = searchAddon;
@@ -235,6 +240,17 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
         if (selection) {
           navigator.clipboard.writeText(selection).catch(console.error);
         }
+        return false;
+      }
+
+      if (isCtrl && event.key === 'v' && event.type === 'keydown') {
+        navigator.clipboard.readText().then((text) => {
+          if (!text) return;
+          invoke('write_to_terminal', {
+            sessionId: session.id,
+            input: `\x1b[200~${text}\x1b[201~`,
+          }).catch(console.error);
+        }).catch(console.error);
         return false;
       }
 

@@ -126,6 +126,7 @@ pub fn run() {
             commands::read_file_content,
             commands::write_file_content,
             commands::get_git_status,
+            commands::get_git_diff_stats,
             commands::start_fs_watcher,
             commands::stop_fs_watcher,
             commands::read_file_as_base64,

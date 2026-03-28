@@ -69,7 +69,7 @@ export const AppFooter: React.FC = () => {
 
         {/* Right: Update Status & Actions */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center border border-theme/50 rounded overflow-hidden h-5">
+          <div className="flex items-center h-5">
             {checking && (
               <div className="flex items-center gap-1.5 px-2 bg-zinc-800/30">
                 <svg className="w-2.5 h-2.5 text-zinc-500 animate-spin-slow" fill="none" viewBox="0 0 24 24">

@@ -137,6 +137,12 @@ export interface GitFileStatus {
   change: GitFileChange;
 }
 
+export interface GitDiffStat {
+  path: string;
+  linesAdded: number;
+  linesDeleted: number;
+}
+
 export interface FileContent {
   content: string;
   language: string;

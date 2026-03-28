@@ -139,6 +139,14 @@ pub struct GitFileStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct GitDiffStat {
+    pub path: String,
+    pub lines_added: u32,
+    pub lines_deleted: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FileContent {
     pub content: String,
     pub language: String,
