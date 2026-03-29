@@ -2,35 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
-import docsContent from '../../assets/docs/userguid.md?raw';
-
-const DEFAULT_DOCS = `# YzPzCode User Guide
-
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
-
----
-
-## Getting Started
-
-Welcome to YzPzCode! This app helps you work with AI coding assistants.
-
-## Installation
-
-Download and install the app for your platform.
-
-## Configuration
-
-Configure your AI tools and preferences.
-
-## Troubleshooting
-
-If you encounter issues, please check the documentation.
-`;
+import { userGuideContent } from '../../assets/docs/userguide';
 
 interface TocItem {
   id: string;
@@ -95,29 +67,29 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const content = docsContent || DEFAULT_DOCS;
+  const content = userGuideContent;
 
   const tocItems = useMemo<TocItem[]>(() => {
-    const lines = content.split('\n');
+    const lines = content.split(/\r?\n/);
     const items: TocItem[] = [];
     
     lines.forEach((line: string) => {
-      const h2Match = line.match(/^## (.+)$/);
-      const h3Match = line.match(/^### (.+)$/);
+      const h2Match = line.match(/^##\s+(.+)$/);
+      const h3Match = line.match(/^###\s+(.+)$/);
       
       if (h2Match) {
-        const text = h2Match[1];
+        const text = h2Match[1].trim();
         const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         items.push({ id, text, level: 2 });
       } else if (h3Match) {
-        const text = h3Match[1];
+        const text = h3Match[1].trim();
         const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         items.push({ id, text, level: 3 });
       }
     });
     
     return items;
-  }, []);
+  }, [content]);
 
   const scrollToSection = useCallback((id: string) => {
     const element = document.getElementById(id);
@@ -139,23 +111,23 @@ export const DocsScreen: React.FC<DocsScreenProps> = ({
 
     const normalizedQuery = query.toLowerCase();
     const results: TocItem[] = [];
-    const lines = content.split('\n');
+    const lines = content.split(/\r?\n/);
     
     let currentSection: TocItem | null = null;
 
     lines.forEach((line: string) => {
-      const h2Match = line.match(/^## (.+)$/);
-      const h3Match = line.match(/^### (.+)$/);
+      const h2Match = line.match(/^##\s+(.+)$/);
+      const h3Match = line.match(/^###\s+(.+)$/);
       
       if (h2Match) {
-        const text = h2Match[1];
+        const text = h2Match[1].trim();
         const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         currentSection = { id, text, level: 2 };
         if (text.toLowerCase().includes(normalizedQuery)) {
           results.push({ ...currentSection });
         }
       } else if (h3Match) {
-        const text = h3Match[1];
+        const text = h3Match[1].trim();
         const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         if (text.toLowerCase().includes(normalizedQuery)) {
           results.push({ id, text, level: 3 });

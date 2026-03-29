@@ -434,8 +434,8 @@ jobs:
 ```bash
 # Update version in package.json and tauri.conf.json first
 # Then create and push a tag:
-git tag v1.0.1
-git push origin v1.0.1
+git tag v1.0.2
+git push origin v1.0.2
 ```
 
 This will trigger the GitHub Actions workflow automatically.
@@ -444,7 +444,7 @@ This will trigger the GitHub Actions workflow automatically.
 
 1. Go to your repository on GitHub
 2. Click "Releases" → "Draft a new release"
-3. Click "Choose a tag" and create a new tag (e.g., `v1.0.1`)
+3. Click "Choose a tag" and create a new tag (e.g., `v1.0.2`)
 4. Fill in the release title and notes
 5. Upload the built installers manually
 6. Click "Publish release"
@@ -475,13 +475,13 @@ It should look like:
 
 ```json
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "notes": "Release notes here",
   "pub_date": "2024-01-15T12:00:00Z",
   "platforms": {
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkK...",
-      "url": "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0.1/YzPzCode_1.0.1_x64-setup.exe"
+      "url": "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0.2/YzPzCode_1.0.2_x64-setup.exe"
     }
   }
 }
