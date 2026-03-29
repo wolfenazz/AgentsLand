@@ -51,6 +51,14 @@ Bunu hayal edin: Kod yazıyorsunuz. Claude'dan eski bir kodu açıklamasını, G
 | **Gerçek Terminaller** | Bir simülasyon değil — tam etkileşimli gerçek PTY oturumları. |
 | **Çapraz Platform** | Windows, macOS, Linux. İşletim sisteminiz, seçiminiz. |
 | **Hafif** | Electron değil, Tauri ile yapıldı. RAM'iniz size teşekkür edecek. |
+| **Yerleşik Dosya Gezgini** | Projenizde gezinin, oluşturun, yeniden adlandırın, dosyaları uygulamadan çıkmadan silin. |
+| **Git Entegrasyonu** | Dosya değişikliklerini, diff istatistiklerini ve git durumunu bir bakışta görün. |
+| **Çoklu Sekme Düzenleyicisi** | Sözdizimi vurgulama, Markdown, PDF, resim önizlemeleri ve daha fazlasıyla dosya düzenleyin. |
+| **IDE Başlatıcı** | VS Code, Cursor, Zed, IntelliJ ve 6+ diğer IDE'leri doğrudan uygulamadan başlatın. |
+| **Kimlik Doğrulama Algılama** | AI CLI araçlarınızın kimlik doğrulanıp doğrulanmadığını otomatik algılar ve yapılandırma konusunda size rehberlik eder. |
+| **Harici Terminaller** | İhtiyacınız olduğunda uygulama dışında döşenmiş terminal pencereleri açın. |
+| **Canlı Dosya İzleme** | Çalışırken dosya değişikliklerini gerçek zamanlı görün. |
+| **Otomatik Güncellemeler** | Entegre güncelleme kontrolü ile uygulamanızı güncel tutun. |
 
 ## Ajanlar
 
@@ -67,6 +75,23 @@ Ağır sıkletleri destekliyoruz:
 | **Cursor** | `cursor` | IDE seviyesinde yapay zeka desteği |
 
 </div>
+
+## IDE Desteği
+
+Favori IDE'nizi doğrudan YzPzCode'dan başlatın:
+
+| IDE | İkili | Platform |
+|-----|-------|----------|
+| **VS Code** | `code` | Tümü |
+| **Cursor** | `cursor` | Tümü |
+| **Zed** | `zed` | Tümü |
+| **Visual Studio** | `devenv` | Windows |
+| **WebStorm** | `webstorm` | Tümü |
+| **IntelliJ** | `idea` | Tümü |
+| **Sublime Text** | `subl` | Tümü |
+| **Windsurf** | `windsurf` | Tümü |
+| **Perplexity** | `perplexity` | Tümü |
+| **Antigravity** | `antigravity` | Tümü |
 
 ## Hızlı Başlangıç
 
@@ -157,6 +182,8 @@ graph TB
         Grid[Terminal Izgarası]
         Setup[Kurulum Ekranı]
         Store[Zustand Deposu]
+        Explorer[Dosya Gezgini]
+        Editor[Dosya Düzenleyici]
     end
 
     subgraph Backend["Backend (Rust + Tauri v2)"]
@@ -164,6 +191,11 @@ graph TB
         PTY[PTY Yöneticisi]
         Detector[CLI Dedektörü]
         Installer[CLI Yükleyici]
+        Auth[Kimlik Doğrulama Dedektörü]
+        Ide[IDE Dedektörü]
+        Fs[Dosya Sistemi]
+        Git[Git İşlemleri]
+        Watcher[Dosya İzleyici]
     end
 
     subgraph CLIs["Yapay Zeka CLI Araçları"]
@@ -176,13 +208,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> Detector
     Commands --> Installer
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|Başlatır| Claude
     PTY -->|Başlatır| Gemini

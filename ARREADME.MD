@@ -51,6 +51,14 @@
 | **أطرافية حقيقية** | ليست محاكاة — هذه جلسات PTY فعلية مع تفاعل كامل. |
 | **عبر المنصات** | ويندوز، ماك أو إس، لينكس. نظامك، خيارك. |
 | **خفيف الوزن** | مبني بـ Tauri، وليس Electron. ذاكرتك العشوائية ستشكرك. |
+| **مستكشف ملفات مدمج** | تصفح مشروعك، أنشئ، أعد التسمية، احذف الملفات دون مغادرة التطبيق. |
+| **تكامل Git** | رُ تغييرات الملفات، إحصائيات الفروقات، وحالة git بنظرة واحدة. |
+| **محرر متعدد علامات التبويب** | حرر ملفات مع تمييز الصيغة، معاينة Markdown و PDF والصور والمزيد. |
+| **مطلق IDE** | أطلق VS Code أو Cursor أو Zed أو IntelliJ أو أكثر من 6 IDEs أخرى مباشرة من التطبيق. |
+| **اكتشاف المصادقة** | يكتشف تلقائيًا إذا كانت أدوات CLI الخاصة بك مصادقة ويرشدك خلال الإعداد. |
+| **أطراف خارجية** | أطلق نوافذ طرفية خارجية على شكل مربعات عندما تحتاجها. |
+| **مراقبة الملفات المباشرة** | رُ تغييرات الملفات في الوقت الفعلي أثناء عملك. |
+| **تحديثات تلقائية** | حافظ على تحديث تطبيقاتك مع فحص التحديثات المدمج. |
 
 ## الوكلاء
 
@@ -67,6 +75,23 @@
 | **Cursor** | `cursor` | مساعدة ذكاء اصطناعي بمستوى بيئة التطوير |
 
 </div>
+
+## دعم IDE
+
+أطلق بيئة التطوير المفضلة لديك مباشرة من YzPzCode:
+
+| IDE | الملف التنفيذي | المنصة |
+|-----|----------------|--------|
+| **VS Code** | `code` | الكل |
+| **Cursor** | `cursor` | الكل |
+| **Zed** | `zed` | الكل |
+| **Visual Studio** | `devenv` | ويندوز |
+| **WebStorm** | `webstorm` | الكل |
+| **IntelliJ** | `idea` | الكل |
+| **Sublime Text** | `subl` | الكل |
+| **Windsurf** | `windsurf` | الكل |
+| **Perplexity** | `perplexity` | الكل |
+| **Antigravity** | `antigravity` | الكل |
 
 ## بداية سريعة
 
@@ -157,6 +182,8 @@ graph TB
         Grid[شبكة الطرفيات]
         Setup[شاشة الإعداد]
         Store[مخزن Zustand]
+        Explorer[مستكشف الملفات]
+        Editor[محرر الملفات]
     end
 
     subgraph Backend["الواجهة الخلفية (Rust + Tauri v2)"]
@@ -164,6 +191,11 @@ graph TB
         PTY[مدير PTY]
         Detector[كاشف CLI]
         Installer[مثبّت CLI]
+        Auth[كاشف المصادقة]
+        Ide[كاشف IDE]
+        Fs[نظام الملفات]
+        Git[عمليات Git]
+        Watcher[مراقب الملفات]
     end
 
     subgraph CLIs["أدوات CLI للذكاء الاصطناعي"]
@@ -176,13 +208,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> Detector
     Commands --> Installer
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|يُطلق| Claude
     PTY -->|يُطلق| Gemini
@@ -232,15 +273,25 @@ sequenceDiagram
 app/
 ├── src-tauri/          # الواجهة الخلفية (Rust)
 │   └── src/
-│       ├── agent/      # تنسيق الوكلاء
-│       ├── agent_cli/  # كشف CLI والتثبيت
-│       ├── commands/   # معالجات Tauri IPC
-│       └── terminal/   # إدارة PTY
-├── src/                # الواجهة الأمامية (React)
-│   ├── components/     # مكونات واجهة المستخدم
-│   ├── hooks/          # خطافات مخصصة
-│   ├── stores/         # مخازن Zustand
-│   └── types/          # تعريفات TypeScript
+│       ├── agent/           # تنفيذ وتنسيق الوكلاء
+│       ├── agent_cli/       # كشف CLI والتثبيت والإطلاق
+│       │   └── providers/   # تنفيذات خاصة بكل مزود
+│       ├── commands/        # معالجات Tauri IPC
+│       ├── terminal/        # إدارة جلسات PTY
+│       ├── filesystem/      # عمليات الملفات و Git والمراقب
+│       ├── ide/             # كشف IDE والإطلاق
+│       └── utils/           # أدوات مساعدة
+├── src/                     # الواجهة الأمامية (React)
+│   ├── components/
+│   │   ├── setup/          # شاشات الإعداد والتكوين
+│   │   ├── workspace/      # شبكة الطرفيات والجلسات
+│   │   ├── explorer/       # مستكشف الملفات ولوحات Git
+│   │   ├── editor/         # محرر ملفات متعدد علامات التبويب
+│   │   ├── common/        # مكونات مشتركة
+│   │   └── feedback/       # نافذة الملاحظات
+│   ├── hooks/              # خطافات React مخصصة
+│   ├── stores/             # إدارة الحالة بـ Zustand
+│   └── types/              # تعريفات TypeScript
 └── docs/               # التوثيق
 ```
 

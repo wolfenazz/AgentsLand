@@ -48,9 +48,17 @@ Imaginez ça : vous êtes en train de coder. Vous voulez que Claude vous expliqu
 | **Grille multi-agents** | Claude à gauche, Gemini à droite. Comparez les résultats instantanément. Choisissez le meilleur. |
 | **Configuration en un clic** | Vous ne savez pas ce qui est installé ? On va le découvrir et vous guider pour le reste. |
 | **Préréglages d'espace de travail** | Enregistrez vos combinaisons d'agents préférées. Grille 3x2 avec Claude + Gemini ? Un seul clic. |
-| **Terminaux réels** | Pas une simulation — ce sont de véritables sessions PTY avec une interactivité complète. |
+| **Terminaux réels** | Pas une simulation — ce sont de véritable sessions PTY avec une interactivité complète. |
 | **Multiplateforme** | Windows, macOS, Linux. Votre OS, votre choix. |
 | **Léger** | Construit avec Tauri, pas Electron. Votre RAM vous remerciera. |
+| **Explorateur de fichiers intégré** | Naviguez dans votre projet, créez, renommez, supprimez des fichiers sans quitter l'app. |
+| **Intégration Git** | Voyez les changements de fichiers, les statistiques de diff et le statut git en un coup d'œil. |
+| **Éditeur multi-onglets** | Modifiez des fichiers avec coloration syntaxique, prévisualisez Markdown, PDF, images et plus. |
+| **Lanceur d'IDE** | Lancez VS Code, Cursor, Zed, IntelliJ et plus de 6 autres IDEs directement depuis l'app. |
+| **Détection d'authentification** | Détecte automatiquement si vos CLIs IA sont authentifiés et vous guide pour la configuration. |
+| **Terminaux externes** | Lancez des fenêtres de terminal externes en mosaïque quand vous en avez besoin. |
+| **Surveillance des fichiers en direct** | Voyez les changements de fichiers en temps réel pendant que vous travaillez. |
+| **Mises à jour automatiques** | Gardez votre app à jour avec la vérification des mises à jour intégrée. |
 
 ## Les Agents
 
@@ -67,6 +75,23 @@ Nous prenons en charge les poids lourds :
 | **Cursor** | `cursor` | Assistance IA au niveau d'un IDE |
 
 </div>
+
+## Support IDE
+
+Lancez votre IDE préféré directement depuis YzPzCode:
+
+| IDE | Binaire | Plateforme |
+|-----|---------|------------|
+| **VS Code** | `code` | Toutes |
+| **Cursor** | `cursor` | Toutes |
+| **Zed** | `zed` | Toutes |
+| **Visual Studio** | `devenv` | Windows |
+| **WebStorm** | `webstorm` | Toutes |
+| **IntelliJ** | `idea` | Toutes |
+| **Sublime Text** | `subl` | Toutes |
+| **Windsurf** | `windsurf` | Toutes |
+| **Perplexity** | `perplexity` | Toutes |
+| **Antigravity** | `antigravity` | Toutes |
 
 ## Démarrage rapide
 
@@ -157,6 +182,8 @@ graph TB
         Grid[Grille de Terminaux]
         Setup[Écran de Configuration]
         Store[Store Zustand]
+        Explorer[Explorateur de Fichiers]
+        Editor[Éditeur de Fichiers]
     end
 
     subgraph Backend["Backend (Rust + Tauri v2)"]
@@ -164,6 +191,11 @@ graph TB
         PTY[Gestionnaire PTY]
         DTecteur[Détecteur CLI]
         Installateur[Installateur CLI]
+        Auth[Détecteur d'Auth]
+        Ide[Détecteur IDE]
+        Fs[Système de Fichiers]
+        Git[Opérations Git]
+        Watcher[Surveillant de Fichiers]
     end
 
     subgraph CLIs["Outils CLI IA"]
@@ -176,13 +208,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> DTecteur
     Commands --> Installateur
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|Lance| Claude
     PTY -->|Lance| Gemini
@@ -232,15 +273,25 @@ sequenceDiagram
 app/
 ├── src-tauri/          # Backend Rust
 │   └── src/
-│       ├── agent/      # Orchestration des agents
-│       ├── agent_cli/  # Détection et installation CLI
-│       ├── commands/   # Gestionnaires Tauri IPC
-│       └── terminal/   # Gestion PTY
-├── src/                # Frontend React
-│   ├── components/     # Composants UI
-│   ├── hooks/          # Hooks personnalisés
-│   ├── stores/         # Stores Zustand
-│   └── types/          # Définitions TypeScript
+│       ├── agent/           # Exécution et orchestration des agents
+│       ├── agent_cli/      # Détection, installation et lancement de CLI
+│       │   └── providers/  # Implémentations spécifiques aux fournisseurs
+│       ├── commands/       # Gestionnaires Tauri IPC
+│       ├── terminal/       # Gestion des sessions PTY
+│       ├── filesystem/     # Opérations fichiers, git, surveillant
+│       ├── ide/            # Détection et lancement d'IDE
+│       └── utils/          # Utilitaires
+├── src/                     # Frontend React
+│   ├── components/
+│   │   ├── setup/          # Écrans de configuration
+│   │   ├── workspace/      # Grille de terminaux et sessions
+│   │   ├── explorer/       # Explorateur de fichiers et panneaux git
+│   │   ├── editor/         # Éditeur de fichiers multi-onglets
+│   │   ├── common/        # Composants partagés
+│   │   └── feedback/      # Modal de commentaires
+│   ├── hooks/              # Hooks personnalisés React
+│   ├── stores/             # Gestion d'état Zustand
+│   └── types/              # Définitions TypeScript
 └── docs/               # Documentation
 ```
 

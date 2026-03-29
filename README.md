@@ -53,6 +53,14 @@ Picture this: You're coding. You want Claude to explain some legacy code, Gemini
 | **Real Terminals** | Not a simulation — these are actual PTY sessions with full interactivity. |
 | **Cross-Platform** | Windows, macOS, Linux. Your OS, your choice. |
 | **Lightweight** | Built with Tauri, not Electron. Your RAM will thank you. |
+| **Built-in File Explorer** | Navigate your project, create, rename, delete files - all without leaving the app. |
+| **Git Integration** | See file changes, diff stats, and git status at a glance. |
+| **Multi-Tab Editor** | Edit files with syntax highlighting, preview Markdown, PDF, images, and more. |
+| **IDE Launcher** | Launch VS Code, Cursor, Zed, IntelliJ, or 6+ other IDEs directly from the app. |
+| **Auth Detection** | Automatically detects if your AI CLIs are authenticated and guides you through setup. |
+| **External Terminals** | Launch tiled terminal windows outside the app when you need them. |
+| **Live File Watching** | See file changes in real-time as you work. |
+| **Auto-Updates** | Keep your app up-to-date with built-in update checking. |
 
 ## The Agents
 
@@ -69,6 +77,23 @@ We support the heavy hitters:
 | **Cursor** | `cursor` | IDE-level AI assistance |
 
 </div>
+
+## IDE Support
+
+Launch your favorite IDE directly from YzPzCode:
+
+| IDE | Binary | Platform |
+|-----|--------|----------|
+| **VS Code** | `code` | All |
+| **Cursor** | `cursor` | All |
+| **Zed** | `zed` | All |
+| **Visual Studio** | `devenv` | Windows |
+| **WebStorm** | `webstorm` | All |
+| **IntelliJ** | `idea` | All |
+| **Sublime Text** | `subl` | All |
+| **Windsurf** | `windsurf` | All |
+| **Perplexity** | `perplexity` | All |
+| **Antigravity** | `antigravity` | All |
 
 ## Quick Start
 
@@ -159,6 +184,8 @@ graph TB
         Grid[Terminal Grid]
         Setup[Setup Screen]
         Store[Zustand Store]
+        Explorer[File Explorer]
+        Editor[File Editor]
     end
 
     subgraph Backend["Backend (Rust + Tauri v2)"]
@@ -166,6 +193,11 @@ graph TB
         PTY[PTY Manager]
         Detector[CLI Detector]
         Installer[CLI Installer]
+        Auth[Auth Detector]
+        Ide[IDE Detector]
+        Fs[File System]
+        Git[Git Operations]
+        Watcher[File Watcher]
     end
 
     subgraph CLIs["AI CLI Tools"]
@@ -178,13 +210,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> Detector
     Commands --> Installer
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|Spawns| Claude
     PTY -->|Spawns| Gemini
@@ -234,16 +275,26 @@ sequenceDiagram
 app/
 ├── src-tauri/          # Rust backend
 │   └── src/
-│       ├── agent/      # Agent orchestration
-│       ├── agent_cli/  # CLI detection & installation
-│       ├── commands/   # Tauri IPC handlers
-│       └── terminal/   # PTY management
-├── src/                # React frontend
-│   ├── components/     # UI components
-│   ├── hooks/          # Custom hooks
-│   ├── stores/         # Zustand stores
-│   └── types/          # TypeScript definitions
-└── docs/               # Documentation
+│       ├── agent/           # Agent task execution & orchestration
+│       ├── agent_cli/       # CLI detection, installation & launching
+│       │   └── providers/   # Provider-specific implementations
+│       ├── commands/        # Tauri IPC handlers
+│       ├── terminal/        # PTY session management
+│       ├── filesystem/      # File operations, git, watcher
+│       ├── ide/             # IDE detection & launching
+│       └── utils/           # Utilities
+├── src/                     # React frontend
+│   ├── components/
+│   │   ├── setup/          # Setup & configuration screens
+│   │   ├── workspace/       # Terminal grid & sessions
+│   │   ├── explorer/       # File explorer & git panels
+│   │   ├── editor/         # Multi-tab file editor
+│   │   ├── common/         # Shared components
+│   │   └── feedback/       # Feedback modal
+│   ├── hooks/              # Custom React hooks
+│   ├── stores/             # Zustand state management
+│   └── types/              # TypeScript definitions
+└── docs/                   # Documentation
 ```
 
 ## Contributing

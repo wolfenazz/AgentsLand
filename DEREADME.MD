@@ -51,6 +51,14 @@ Stell dir das vor: Du programmierst. Du möchtest, dass Claude dir alten Code er
 | **Echte Terminals** | Keine Simulation — das sind echte PTY-Sessions mit voller Interaktivität. |
 | **Plattformübergreifend** | Windows, macOS, Linux. Dein OS, deine Wahl. |
 | **Leichtgewichtig** | Gebaut mit Tauri, nicht Electron. Dein RAM wird es dir danken. |
+| **Integrierter Datei-Explorer** | Navigiere in deinem Projekt, erstelle, umbenenne, lösche Dateien - ohne die App zu verlassen. |
+| **Git-Integration** | Sieh Dateiänderungen, Diff-Statistiken und Git-Status auf einen Blick. |
+| **Multi-Tab-Editor** | Bearbeite Dateien mit Syntaxhervorhebung, Vorschau für Markdown, PDF, Bilder und mehr. |
+| **IDE-Launcher** | Starte VS Code, Cursor, Zed, IntelliJ und mehr als 6 andere IDEs direkt aus der App. |
+| **Authentifizierungserkennung** | Erkennt automatisch, ob deine KI-CLIs authentifiziert sind und führt dich durch das Setup. |
+| **Externe Terminals** | Starte gekachelte Terminalfenster außerhalb der App, wenn du sie brauchst. |
+| **Live-Dateiüberwachung** | Sieh Dateiänderungen in Echtzeit während du arbeitest. |
+| **Auto-Updates** | Halte deine App mit integrierter Update-Prüfung aktuell. |
 
 ## Die Agenten
 
@@ -67,6 +75,23 @@ Wir unterstützen die Schwergewichte:
 | **Cursor** | `cursor` | KI-Assistenz auf IDE-Niveau |
 
 </div>
+
+## IDE-Unterstützung
+
+Starte deine Lieblings-IDE direkt von YzPzCode:
+
+| IDE | Binärdatei | Plattform |
+|-----|------------|-----------|
+| **VS Code** | `code` | Alle |
+| **Cursor** | `cursor` | Alle |
+| **Zed** | `zed` | Alle |
+| **Visual Studio** | `devenv` | Windows |
+| **WebStorm** | `webstorm` | Alle |
+| **IntelliJ** | `idea` | Alle |
+| **Sublime Text** | `subl` | Alle |
+| **Windsurf** | `windsurf` | Alle |
+| **Perplexity** | `perplexity` | Alle |
+| **Antigravity** | `antigravity` | Alle |
 
 ## Schnellstart
 
@@ -157,6 +182,8 @@ graph TB
         Grid[Terminal-Raster]
         Setup[Setup-Bildschirm]
         Store[Zustand Store]
+        Explorer[Datei-Explorer]
+        Editor[Datei-Editor]
     end
 
     subgraph Backend["Backend (Rust + Tauri v2)"]
@@ -164,6 +191,11 @@ graph TB
         PTY[PTY-Manager]
         Detector[CLI-Detektor]
         Installer[CLI-Installer]
+        Auth[Auth-Detektor]
+        Ide[IDE-Detektor]
+        Fs[Dateisystem]
+        Git[Git-Operationen]
+        Watcher[Datei-Überwachung]
     end
 
     subgraph CLIs["KI-CLI-Tools"]
@@ -176,13 +208,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> Detector
     Commands --> Installer
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|Startet| Claude
     PTY -->|Startet| Gemini
@@ -232,15 +273,25 @@ sequenceDiagram
 app/
 ├── src-tauri/          # Rust-Backend
 │   └── src/
-│       ├── agent/      # Agenten-Orchestrierung
-│       ├── agent_cli/  # CLI-Erkennung & Installation
-│       ├── commands/   # Tauri-IPC-Handler
-│       └── terminal/   # PTY-Verwaltung
-├── src/                # React-Frontend
-│   ├── components/     # UI-Komponenten
-│   ├── hooks/          # Eigene Hooks
-│   ├── stores/         # Zustand-Stores
-│   └── types/          # TypeScript-Definitionen
+│       ├── agent/           # Agentenaufgabe & Orchestrierung
+│       ├── agent_cli/       # CLI-Erkennung, Installation & Starten
+│       │   └── providers/   # Anbieter-spezifische Implementierungen
+│       ├── commands/        # Tauri-IPC-Handler
+│       ├── terminal/        # PTY-Sitzungsverwaltung
+│       ├── filesystem/      # Dateioperationen, Git, Überwachung
+│       ├── ide/             # IDE-Erkennung & Starten
+│       └── utils/           # Hilfsmittel
+├── src/                     # React-Frontend
+│   ├── components/
+│   │   ├── setup/          # Setup & Konfigurationsbildschirme
+│   │   ├── workspace/      # Terminal-Raster & Sitzungen
+│   │   ├── explorer/       # Datei-Explorer & Git-Panels
+│   │   ├── editor/         # Multi-Tab-Datei-Editor
+│   │   ├── common/        # Gemeinsame Komponenten
+│   │   └── feedback/       # Feedback-Modal
+│   ├── hooks/              # Eigene React-Hooks
+│   ├── stores/             # Zustand-Zustandsverwaltung
+│   └── types/              # TypeScript-Definitionen
 └── docs/               # Dokumentation
 ```
 

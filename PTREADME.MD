@@ -51,6 +51,14 @@ Imagine isso: você está programando. Quer que o Claude explique um código leg
 | **Terminais reais** | Não é uma simulação — são sessões PTY reais com interatividade completa. |
 | **Multiplataforma** | Windows, macOS, Linux. Seu SO, sua escolha. |
 | **Leve** | Construído com Tauri, não Electron. Sua RAM vai agradecer. |
+| **Explorador de arquivos integrado** | Navegue pelo projeto, crie, renomeie, exclua arquivos sem sair do app. |
+| **Integração com Git** | Veja alterações de arquivos, estatísticas de diff e status do git de relance. |
+| **Editor multi-abas** | Edite arquivos com destaque de sintaxe, prévia de Markdown, PDF, imagens e mais. |
+| **Lançador de IDE** | Inicie VS Code, Cursor, Zed, IntelliJ e mais de 6 IDEs diretamente do app. |
+| **Detecção de autenticação** | Detecta automaticamente se seus CLIs de IA estão autenticados e guia você na configuração. |
+| **Terminais externos** | Lance janelas de terminal externas em mosaico quando precisar. |
+| **Monitoramento de arquivos ao vivo** | Veja alterações de arquivos em tempo real enquanto trabalha. |
+| **Atualizações automáticas** | Mantenha seu app atualizado com verificação de atualização integrada. |
 
 ## Os Agentes
 
@@ -67,6 +75,23 @@ Damos suporte aos pesos pesados:
 | **Cursor** | `cursor` | Assistência de IA em nível de IDE |
 
 </div>
+
+## Suporte a IDE
+
+Inicie seu IDE favorito diretamente do YzPzCode:
+
+| IDE | Binário | Plataforma |
+|-----|---------|------------|
+| **VS Code** | `code` | Todos |
+| **Cursor** | `cursor` | Todos |
+| **Zed** | `zed` | Todos |
+| **Visual Studio** | `devenv` | Windows |
+| **WebStorm** | `webstorm` | Todos |
+| **IntelliJ** | `idea` | Todos |
+| **Sublime Text** | `subl` | Todos |
+| **Windsurf** | `windsurf` | Todos |
+| **Perplexity** | `perplexity` | Todos |
+| **Antigravity** | `antigravity` | Todos |
 
 ## Início rápido
 
@@ -157,6 +182,8 @@ graph TB
         Grid[Grade de Terminais]
         Setup[Tela de Configuração]
         Store[Store Zustand]
+        Explorer[Explorador de Arquivos]
+        Editor[Editor de Arquivos]
     end
 
     subgraph Backend["Backend (Rust + Tauri v2)"]
@@ -164,6 +191,11 @@ graph TB
         PTY[Gerenciador PTY]
         Detector[Detector CLI]
         Installer[Instalador CLI]
+        Auth[Detector de Auth]
+        Ide[Detector de IDE]
+        Fs[Sistema de Arquivos]
+        Git[Operações Git]
+        Watcher[Monitor de Arquivos]
     end
 
     subgraph CLIs["Ferramentas CLI de IA"]
@@ -176,13 +208,22 @@ graph TB
 
     UI --> Grid
     UI --> Setup
+    UI --> Explorer
+    UI --> Editor
     Grid --> Store
     Setup --> Store
+    Explorer --> Store
+    Editor --> Store
     
     Store <-->|Tauri IPC| Commands
     Commands --> PTY
     Commands --> Detector
     Commands --> Installer
+    Commands --> Auth
+    Commands --> Ide
+    Commands --> Fs
+    Commands --> Git
+    Commands --> Watcher
     
     PTY -->|Inicia| Claude
     PTY -->|Inicia| Gemini
@@ -232,15 +273,25 @@ sequenceDiagram
 app/
 ├── src-tauri/          # Backend em Rust
 │   └── src/
-│       ├── agent/      # Orquestração de agentes
-│       ├── agent_cli/  # Detecção e instalação de CLI
-│       ├── commands/   # Manipuladores Tauri IPC
-│       └── terminal/   # Gerenciamento de PTY
-├── src/                # Frontend em React
-│   ├── components/     # Componentes de UI
-│   ├── hooks/          # Hooks personalizados
-│   ├── stores/         # Stores Zustand
-│   └── types/          # Definições TypeScript
+│       ├── agent/           # Execução e orquestração de agentes
+│       ├── agent_cli/       # Detecção, instalação e lançamento de CLI
+│       │   └── providers/   # Implementações específicas de provedores
+│       ├── commands/        # Manipuladores Tauri IPC
+│       ├── terminal/        # Gerenciamento de sessões PTY
+│       ├── filesystem/      # Operações de arquivos, git, monitor
+│       ├── ide/             # Detecção e lançamento de IDE
+│       └── utils/           # Utilitários
+├── src/                     # Frontend em React
+│   ├── components/
+│   │   ├── setup/          # Telas de configuração
+│   │   ├── workspace/      # Grade de terminais e sessões
+│   │   ├── explorer/       # Explorador de arquivos e painéis git
+│   │   ├── editor/         # Editor de arquivos multi-abas
+│   │   ├── common/        # Componentes compartilhados
+│   │   └── feedback/       # Modal de feedback
+│   ├── hooks/              # Hooks React personalizados
+│   ├── stores/             # Gerenciamento de estado Zustand
+│   └── types/              # Definições TypeScript
 └── docs/               # Documentação
 ```
 
