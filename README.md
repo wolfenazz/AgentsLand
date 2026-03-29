@@ -4,119 +4,105 @@
 
 <h1>YzPzCode</h1>
 
-<p><strong>Your AI Coding Squad, One Window Away.</strong></p>
+<p><strong>Your AI Development Ecosystem, Unified.</strong></p>
 
-<p><i>Stop juggling 5 different terminals.<br>YzPzCode brings Claude, Gemini, Codex, Opencode, and Cursor together in one clean interface.</i></p>
+<p><i>Consolidate Claude, Gemini, Codex, Opencode, and Cursor into a single, cohesive interface.<br>Eliminate context switching and optimize your development workflow.</i></p>
 
-[![GitHub stars](https://img.shields.io/github/stars/wolfenazz/YzPzCode?style=for-the-badge&logo=github&color=yellow)](https://github.com/wolfenazz/YzPzCode/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/wolfenazz/YzPzCode?style=for-the-badge&logo=github&color=24292e)](https://github.com/wolfenazz/YzPzCode/stargazers)
 [![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri%20v2-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app)
 [![React](https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![Rust](https://img.shields.io/badge/Rust-F74C00?style=for-the-badge&logo=rust&logoColor=white)](https://rust-lang.org)
-[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
-
-<p>
-<a href="https://github.com/wolfenazz/YzPzCode/releases">
-  <img src="https://img.shields.io/badge/⬇_Download-000000?style=for-the-badge&logo=github&logoColor=white" alt="Download"/>
-</a>
-&nbsp;
-<a href="#-see-it-in-action">
-  <img src="https://img.shields.io/badge/📸_Screenshots-FF6B6B?style=for-the-badge&logo=github" alt="Screenshots"/>
-</a>
-&nbsp;
-<a href="docs/userguid.md">
-  <img src="https://img.shields.io/badge/📖_Docs-4ECDC4?style=for-the-badge" alt="Docs"/>
-</a>
-</p>
+[![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://rust-lang.org)
+[![License](https://img.shields.io/badge/License-MIT-000000?style=for-the-badge)](LICENSE)
 
 <br>
 
+[**Download Latest Release**](https://github.com/wolfenazz/YzPzCode/releases) · [**View Documentation**](docs/userguid.md) · [**Report an Issue**](https://github.com/wolfenazz/YzPzCode/issues)
+
 </div>
 
 ---
 
-## 🎯 The Problem
+## The Objective
+
+Modern development often requires managing multiple AI assistants across disparate terminal windows. YzPzCode centralizes this process, transforming a fragmented workflow into an integrated command center.
+
+| Traditional Workflow | The YzPzCode Architecture |
+| :--- | :--- |
+| Multiple fragmented terminal windows | **Single unified application** |
+| Disconnected command-line interfaces | **Integrated agent ecosystem** |
+| Constant application switching | **Side-by-side grid visualization** |
+| Manual code transfer between tools | **Instantaneous cross-comparison** |
+| Fragmented workspace | **Persistent, saved environment states** |
+
+---
+
+## Interface Preview
 
 <div align="center">
 
-| 😫 The Old Way | 😎 The YzPzCode Way |
-|:--------------:|:-------------------:|
-| Three terminal windows | **One app** |
-| Three different CLIs | **All agents inside** |
-| Alt-tabbing like a maniac | **Side-by-side grid** |
-| Copy-pasting between them | **Compare instantly** |
-| Losing your mind | **Stay in flow** |
+<img src="docs/capture/Capture1.PNG" width="48%" style="border-radius:4px; border: 1px solid #e1e4e8;"/>
+<img src="docs/capture/Capture2.PNG" width="48%" style="border-radius:4px; border: 1px solid #e1e4e8;"/>
+<br><br>
+<img src="docs/capture/Capture3.PNG" width="48%" style="border-radius:4px; border: 1px solid #e1e4e8;"/>
+<img src="docs/capture/Capture4.PNG" width="48%" style="border-radius:4px; border: 1px solid #e1e4e8;"/>
+
+<br><br>
+<i>Engineered for speed, clarity, and performance.</i>
 
 </div>
 
 ---
 
-## 📸 See It In Action
-
-<div align="center">
-
-<img src="docs/capture/Capture1.PNG" width="48%" style="border-radius:8px"/>
-<img src="docs/capture/Capture2.PNG" width="48%" style="border-radius:8px"/>
-<br><br>
-<img src="docs/capture/Capture3.PNG" width="48%" style="border-radius:8px"/>
-<img src="docs/capture/Capture4.PNG" width="48%" style="border-radius:8px"/>
-
-<br><br>
-<i>Clean. Fast. Powerful.</i>
-
-</div>
-
----
-
-## ✨ Features
+## Core Capabilities
 
 <table>
 <tr>
-<td align="center" width="160"><br>🔲<br><b>Multi-Agent Grid</b><br><sub>Claude, Gemini, Codex side-by-side</sub></td>
-<td align="center" width="160"><br>⚡<br><b>One-Click Setup</b><br><sub>Auto-detect your installed CLIs</sub></td>
-<td align="center" width="160"><br>💾<br><b>Workspace Presets</b><br><sub>Save your favorite agent combos</sub></td>
-<td align="center" width="160"><br>🖥️<br><b>Real Terminals</b><br><sub>Actual PTY sessions, not fake</sub></td>
+<td><b>Multi-Agent Grid</b><br><sub>Run Claude, Gemini, and Codex in synchronized, side-by-side views.</sub></td>
+<td><b>Automated Initialization</b><br><sub>Instantly detect and configure locally installed CLIs.</sub></td>
+<td><b>Workspace Presets</b><br><sub>Save and restore optimal agent combinations for specific workflows.</sub></td>
+<td><b>Native Terminals</b><br><sub>Powered by actual PTY sessions for authentic CLI interaction.</sub></td>
 </tr>
 <tr>
-<td align="center"><br>🌍<br><b>Cross-Platform</b><br><sub>Windows, macOS, Linux</sub></td>
-<td align="center"><br>🪶<br><b>Lightweight</b><br><sub>Tauri, not Electron. Your RAM thanks you</sub></td>
-<td align="center"><br>📁<br><b>File Explorer</b><br><sub>Create, rename, delete in-app</sub></td>
-<td align="center"><br>🔀<br><b>Git Integration</b><br><sub>Status, diff stats at a glance</sub></td>
+<td><b>Cross-Platform Support</b><br><sub>Optimized binaries for Windows, macOS, and Linux.</sub></td>
+<td><b>Resource Efficient</b><br><sub>Built on Tauri and Rust, utilizing a fraction of the RAM required by Electron.</sub></td>
+<td><b>Integrated Explorer</b><br><sub>Manage files and directories without leaving the application.</sub></td>
+<td><b>Git Integration</b><br><sub>Monitor repository status and diff statistics at a glance.</sub></td>
 </tr>
 <tr>
-<td align="center"><br>📝<br><b>Multi-Tab Editor</b><br><sub>Syntax highlighting, previews</sub></td>
-<td align="center"><br>🚀<br><b>IDE Launcher</b><br><sub>Open 10+ IDEs from the app</sub></td>
-<td align="center"><br>🔐<br><b>Auth Detection</b><br><sub>Know which CLIs are authenticated</sub></td>
-<td align="center"><br>🔄<br><b>Auto-Updates</b><br><sub>Always the latest version</sub></td>
+<td><b>Multi-Tab Editor</b><br><sub>Built-in syntax highlighting and file preview capabilities.</sub></td>
+<td><b>IDE Integration</b><br><sub>Seamlessly launch into over 10 supported development environments.</sub></td>
+<td><b>Authentication Tracking</b><br><sub>Monitor credential states across all active CLI tools.</sub></td>
+<td><b>Continuous Delivery</b><br><sub>Automated update mechanisms ensure access to the latest features.</sub></td>
 </tr>
 </table>
 
 ---
 
-## 🤖 AI Agent CLIs
+## Supported AI CLI Agents
 
 <div align="center">
 
 <table>
 <tr>
 <td align="center" width="140">
-<img src="app/src/assets/claude.png" width="48" height="48" style="border-radius:12px"/>
-<br><br><b>Claude</b><br><code>claude</code><br><sub>Deep reasoning, patient explanations</sub>
+<img src="app/src/assets/claude.png" width="48" height="48" style="border-radius:8px"/>
+<br><br><b>Claude</b><br><code>claude</code>
 </td>
 <td align="center" width="140">
-<img src="app/src/assets/gemini-cli-logo.svg" width="48" height="48" style="border-radius:12px"/>
-<br><br><b>Gemini</b><br><code>gemini</code><br><sub>Fast, multimodal, Google's finest</sub>
+<img src="app/src/assets/gemini-cli-logo.svg" width="48" height="48" style="border-radius:8px"/>
+<br><br><b>Gemini</b><br><code>gemini</code>
 </td>
 <td align="center" width="140">
-<img src="app/src/assets/codex.png" width="48" height="48" style="border-radius:12px"/>
-<br><br><b>Codex</b><br><code>codex</code><br><sub>Code generation that works</sub>
+<img src="app/src/assets/codex.png" width="48" height="48" style="border-radius:8px"/>
+<br><br><b>Codex</b><br><code>codex</code>
 </td>
 <td align="center" width="140">
-<img src="app/src/assets/opencode.png" width="48" height="48" style="border-radius:12px"/>
-<br><br><b>Opencode</b><br><code>opencode</code><br><sub>Open-source freedom</sub>
+<img src="app/src/assets/opencode.png" width="48" height="48" style="border-radius:8px"/>
+<br><br><b>Opencode</b><br><code>opencode</code>
 </td>
 <td align="center" width="140">
-<img src="app/src/assets/cursor-ai.png" width="48" height="48" style="border-radius:12px"/>
-<br><br><b>Cursor</b><br><code>cursor</code><br><sub>IDE-level AI assistance</sub>
+<img src="app/src/assets/cursor-ai.png" width="48" height="48" style="border-radius:8px"/>
+<br><br><b>Cursor</b><br><code>cursor</code>
 </td>
 </tr>
 </table>
@@ -125,7 +111,7 @@
 
 ---
 
-## 🧩 Supported IDEs
+## Supported Development Environments
 
 <div align="center">
 
@@ -170,49 +156,48 @@
 
 ---
 
-## 🚀 Quick Start
+## Installation & Setup
 
-> **You'll need:** Node.js 18+ and Rust (latest stable)
+> **Prerequisites:** Node.js 18+ and Rust (latest stable build).
 
 ```bash
-# 1. Clone it
-git clone https://github.com/wolfenazz/YzPzCode.git
+# 1. Clone the repository
+git clone [https://github.com/wolfenazz/YzPzCode.git](https://github.com/wolfenazz/YzPzCode.git)
 cd YzPzCode/app
 
 # 2. Install dependencies
 npm install
 
-# 3. Run it
+# 3. Initialize development environment
 npm run tauri dev
-```
+````
 
-The app will detect what AI CLIs you have installed and help you set up the rest.
+Upon launch, the application will automatically detect installed AI CLIs and guide you through the initial configuration.
 
-<details>
-<summary><b>🍎 macOS Users</b></summary>
+\<details\>
+\<summary\>\<b\>macOS Specific Instructions\</b\>\</summary\>
 
 <br>
 
-**Install Rust first:**
+**1. Install Rust Toolchain:**
+
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -sSf [https://sh.rustup.rs](https://sh.rustup.rs) | sh
 ```
-Then restart your terminal before running `npm run tauri dev`.
 
-**Installing from .dmg?** Since the app isn't code-signed yet:
+*Restart your terminal environment before executing `npm run tauri dev`.*
 
-| Option | How |
-|--------|-----|
-| **Right-click** | Right-click the app → Open → Click Open |
-| **System Settings** | System Settings → Privacy & Security → Open Anyway |
-| **Terminal** | `xattr -cr /Applications/YzPzCode.app` |
+**2. Gatekeeper Workarounds (for .dmg installations):**
+As the application is pending official Apple Developer certification, you may encounter Gatekeeper restrictions. Bypass using one of the following methods:
 
-> **Note:** We're working on getting the app properly code-signed with Apple Developer and Microsoft certificates.
+  * **Context Menu:** Right-click the `.app` file → Select "Open" → Confirm "Open".
+  * **System Settings:** Navigate to System Settings → Privacy & Security → Select "Open Anyway".
+  * **Terminal Bypass:** Execute `xattr -cr /Applications/YzPzCode.app`.
 
-</details>
+\</details\>
 
-<details>
-<summary><b>📦 Build for Production</b></summary>
+\<details\>
+\<summary\>\<b\>Production Build Compilation\</b\>\</summary\>
 
 <br>
 
@@ -220,24 +205,22 @@ Then restart your terminal before running `npm run tauri dev`.
 npm run tauri build
 ```
 
-Generates a native installer for your platform. Small, fast, no bloat.
+*This command generates a highly optimized, native installer specific to your operating system.*
 
-</details>
+\</details\>
 
----
+-----
 
-## 🏗️ How It's Built
+## Technical Architecture
 
-<div align="center">
+\<div align="center"\>
 
-| Layer | Stack |
-|:-----:|-------|
-| **Frontend** | React 19 + TypeScript · Vite · Tailwind CSS v4 · Zustand · xterm.js |
-| **Backend** | Tauri v2 (Rust) · portable-pty · Tokio |
+| System Layer | Technology Stack |
+|:---:|:---|
+| **Frontend UI** | React 19, TypeScript, Vite, Tailwind CSS v4, Zustand, xterm.js |
+| **Backend Core** | Tauri v2 (Rust), portable-pty, Tokio (Asynchronous Runtime) |
 
-</div>
-
-### Architecture
+\</div\>
 
 ```mermaid
 graph TB
@@ -296,128 +279,96 @@ graph TB
     PTY -->|Spawns| Cursor
 ```
 
----
+-----
 
-## 📂 Project Structure
+## Repository Structure
 
-```
+```text
 app/
-├── src-tauri/                      # Rust backend
+├── src-tauri/                      # Rust Core Backend
 │   └── src/
 │       ├── agent/                  # Agent task execution & orchestration
-│       ├── agent_cli/              # CLI detection, installation & launching
+│       ├── agent_cli/              # CLI detection, installation & execution
 │       │   └── providers/          # Provider-specific implementations
-│       ├── commands/               # Tauri IPC handlers
-│       ├── terminal/               # PTY session management
-│       ├── filesystem/             # File operations, git, watcher
-│       ├── ide/                    # IDE detection & launching
-│       └── utils/                  # Utilities
-├── src/                            # React frontend
+│       ├── commands/               # Tauri IPC handler definitions
+│       ├── terminal/               # PTY session lifecycle management
+│       ├── filesystem/             # File I/O, git indexing, watchers
+│       ├── ide/                    # IDE detection routing
+│       └── utils/                  # Core utility functions
+├── src/                            # React Client Frontend
 │   ├── components/
-│   │   ├── setup/                  # Setup & configuration screens
-│   │   ├── workspace/              # Terminal grid & sessions
-│   │   ├── explorer/               # File explorer & git panels
-│   │   ├── editor/                 # Multi-tab file editor
-│   │   ├── common/                 # Shared components
-│   │   └── feedback/               # Feedback modal
-│   ├── hooks/                      # Custom React hooks
-│   ├── stores/                     # Zustand state management
-│   └── types/                      # TypeScript definitions
-└── docs/                           # Documentation
+│   │   ├── setup/                  # Configuration & onboarding UI
+│   │   ├── workspace/              # Terminal grid components
+│   │   ├── explorer/               # Directory tree & git status panels
+│   │   ├── editor/                 # Multi-tab integrated editor
+│   │   ├── common/                 # Shared UI primitives
+│   │   └── feedback/               # Application telemetry & feedback
+│   ├── hooks/                      # React lifecycle hooks
+│   ├── stores/                     # Zustand state management slices
+│   └── types/                      # Global TypeScript interfaces
+└── docs/                           # Project documentation & guides
 ```
 
----
+-----
 
-## 🛠️ Contributing
+## Development & Contribution
+
+We adhere to strict typing and formatting standards. Please ensure all checks pass before submitting pull requests.
 
 ```bash
-# Type checking
-npx tsc --noEmit          # Frontend
-cargo check               # Backend
+# Static Analysis
+npx tsc --noEmit          # Verify frontend TypeScript
+cargo check               # Verify backend Rust
 
-# Linting & formatting
-cargo clippy              # Catch Rust issues
-cargo fmt                 # Make it pretty
+# Linting and Code Formatting
+cargo clippy              # Enforce Rust idioms
+cargo fmt                 # Apply standard formatting
 
-# Testing
+# Unit Testing
 cd src-tauri && cargo test
 ```
 
-Found a bug? Have an idea? [Open an issue](https://github.com/wolfenazz/YzPzCode/issues) · [Submit a PR](https://github.com/wolfenazz/YzPzCode/pulls)
+For bug reports or feature requests, please consult the [Issue Tracker](https://github.com/wolfenazz/YzPzCode/issues). Review our [Development Roadmap](https://www.google.com/search?q=docs/plane.md) for upcoming features.
 
-Check out the [full roadmap](docs/plane.md).
+-----
 
----
+## License & Legal
 
-## 📖 Recommended Setup
+This software is distributed under the [MIT License](https://www.google.com/search?q=LICENSE).
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com)
-[![rust-analyzer](https://img.shields.io/badge/rust--analyzer-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-[![Tauri](https://img.shields.io/badge/Tauri%20Ext-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
-
----
-
-## 📜 License
-
-[![MIT License](https://img.shields.io/badge/MIT-License-22C55E?style=for-the-badge&logo=open-source-initiative)](LICENSE)
-
-Fork it. Build on it. Make it yours.
-
----
+-----
 
 <br>
 
-<div align="center">
+\<div align="center"\>
 
-### ⭐ Like What You See?
+**Project Leadership & Contributors**
 
-If YzPzCode saved you from terminal chaos, consider giving it a **star** — it helps others find it too!
-
-[![Star this repo](https://img.shields.io/github/stars/wolfenazz/YzPzCode?style=for-the-badge&logo=github&color=yellow)](https://github.com/wolfenazz/YzPzCode/stargazers)
-
+\<table\>
+\<tr\>
+\<td align="center" width="150"\>
+\<a href="https://github.com/wolfenazz" style="text-decoration: none; color: inherit;"\>
+\<img src="https://github.com/wolfenazz.png?size=160" alt="Naseem" width="72" height="72" style="border-radius:4px;"/\>
 <br><br>
-
----
-
-**Built with ☕ and late nights by**
-
+\<b\>Naseem\</b\>
 <br>
-
-<table>
-<tr>
-<td align="center" width="150">
-<a href="https://github.com/wolfenazz">
-<img src="https://github.com/wolfenazz.png?size=160" alt="Naseem" width="72" height="72" style="border-radius:50%; border:3px solid #24C8DB"/>
+\<sub\>Creator & Lead Architect\</sub\>
+\</a\>
+\</td\>
+\<td align="center" width="150"\>
+\<a href="https://github.com/Noor-Al-Khelaifi" style="text-decoration: none; color: inherit;"\>
+\<img src="https://github.com/Noor-Al-Khelaifi.png?size=160" alt="Noor" width="72" height="72" style="border-radius:4px;"/\>
 <br><br>
-<b>Naseem</b>
+\<b\>Noor\</b\>
 <br>
-<sub>Creator & Lead Dev</sub>
-<br>
-<a href="https://github.com/wolfenazz"><code>@wolfenazz</code></a>
-</a>
-</td>
-<td align="center" width="150">
-<a href="https://github.com/Noor-Al-Khelaifi">
-<img src="https://github.com/Noor-Al-Khelaifi.png?size=160" alt="Noor" width="72" height="72" style="border-radius:50%; border:3px solid #FF6B6B"/>
-<br><br>
-<b>Noor</b>
-<br>
-<sub>Contributor</sub>
-<br>
-<a href="https://github.com/Noor-Al-Khelaifi"><code>@Noor-Al-Khelaifi</code></a>
-</a>
-</td>
-</tr>
-</table>
+\<sub\>Core Contributor\</sub\>
+\</a\>
+\</td\>
+\</tr\>
+\</table\>
 
 <br>
 
-<i>For developers who'd rather code than manage terminals.</i>
+[View Repository](https://www.google.com/search?q=https://github.com/wolfenazz/YzPzCode)
 
-<br><br>
-
-[![Report a Bug](https://img.shields.io/badge/🐛_Report_Bug-EF4444?style=flat-square)](https://github.com/wolfenazz/YzPzCode/issues)
-[![Request Feature](https://img.shields.io/badge/💡_Request_Feature-3B82F6?style=flat-square)](https://github.com/wolfenazz/YzPzCode/issues)
-[![Contribute](https://img.shields.io/badge/🤝_Contribute-22C55E?style=flat-square)](https://github.com/wolfenazz/YzPzCode/pulls)
-
-</div>
+\</div\>
