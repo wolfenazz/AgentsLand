@@ -67,26 +67,26 @@
 
 ---
 
-## ✨ Features
+## Core Capabilities
 
 <table>
 <tr>
-<td align="center" width="160"><br>🔲<br><b>Multi-Agent Grid</b><br><sub>Claude, Gemini, Codex side-by-side</sub></td>
-<td align="center" width="160"><br>⚡<br><b>One-Click Setup</b><br><sub>Auto-detect your installed CLIs</sub></td>
-<td align="center" width="160"><br>💾<br><b>Workspace Presets</b><br><sub>Save your favorite agent combos</sub></td>
-<td align="center" width="160"><br>🖥️<br><b>Real Terminals</b><br><sub>Actual PTY sessions, not fake</sub></td>
+<td><b>Multi-Agent Grid</b><br><sub>Run Claude, Gemini, and Codex in synchronized, side-by-side views.</sub></td>
+<td><b>Automated Initialization</b><br><sub>Instantly detect and configure locally installed CLIs.</sub></td>
+<td><b>Workspace Presets</b><br><sub>Save and restore optimal agent combinations for specific workflows.</sub></td>
+<td><b>Native Terminals</b><br><sub>Powered by actual PTY sessions for authentic CLI interaction.</sub></td>
 </tr>
 <tr>
-<td align="center"><br>🌍<br><b>Cross-Platform</b><br><sub>Windows, macOS, Linux</sub></td>
-<td align="center"><br>🪶<br><b>Lightweight</b><br><sub>Tauri, not Electron. Your RAM thanks you</sub></td>
-<td align="center"><br>📁<br><b>File Explorer</b><br><sub>Create, rename, delete in-app</sub></td>
-<td align="center"><br>🔀<br><b>Git Integration</b><br><sub>Status, diff stats at a glance</sub></td>
+<td><b>Cross-Platform Support</b><br><sub>Optimized binaries for Windows, macOS, and Linux.</sub></td>
+<td><b>Resource Efficient</b><br><sub>Built on Tauri and Rust, utilizing a fraction of the RAM required by Electron.</sub></td>
+<td><b>Integrated Explorer</b><br><sub>Manage files and directories without leaving the application.</sub></td>
+<td><b>Git Integration</b><br><sub>Monitor repository status and diff statistics at a glance.</sub></td>
 </tr>
 <tr>
-<td align="center"><br>📝<br><b>Multi-Tab Editor</b><br><sub>Syntax highlighting, previews</sub></td>
-<td align="center"><br>🚀<br><b>IDE Launcher</b><br><sub>Open 10+ IDEs from the app</sub></td>
-<td align="center"><br>🔐<br><b>Auth Detection</b><br><sub>Know which CLIs are authenticated</sub></td>
-<td align="center"><br>🔄<br><b>Auto-Updates</b><br><sub>Always the latest version</sub></td>
+<td><b>Multi-Tab Editor</b><br><sub>Built-in syntax highlighting and file preview capabilities.</sub></td>
+<td><b>IDE Integration</b><br><sub>Seamlessly launch into over 10 supported development environments.</sub></td>
+<td><b>Authentication Tracking</b><br><sub>Monitor credential states across all active CLI tools.</sub></td>
+<td><b>Continuous Delivery</b><br><sub>Automated update mechanisms ensure access to the latest features.</sub></td>
 </tr>
 </table>
 
@@ -125,7 +125,7 @@
 
 ---
 
-## 🧩 Supported IDEs
+## Supported Development Environments
 
 <div align="center">
 
