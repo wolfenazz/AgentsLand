@@ -203,18 +203,18 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const cellCount = cols * rows;
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col bg-zinc-950">
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 relative"
+        className="flex-1 min-h-0 relative p-1"
       >
         <div
-          className="absolute inset-0 z-0"
+          className="absolute inset-1 z-0"
           style={{
             display: 'grid',
             gridTemplateColumns,
             gridTemplateRows,
-            gap: '1px',
+            gap: '6px',
           }}
         >
           {Array.from({ length: cellCount }).map((_, cellIndex) => {
@@ -225,7 +225,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             return (
               <div
                 key={cellIndex}
-                className="relative overflow-hidden"
+                className="relative overflow-hidden rounded-xl border border-zinc-800/30 bg-zinc-900/5 shadow-xl transition-all duration-500"
                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
               >
                 {session ? (
@@ -236,29 +236,27 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
                   />
                 ) : (
                   <div
-                    className={`h-full flex items-center justify-center cursor-pointer transition-all duration-200 group/empty ${
+                    className={`h-full flex items-center justify-center cursor-pointer transition-all duration-500 group/empty ${
                       isLight
                         ? 'bg-zinc-200/30 hover:bg-zinc-200/80'
-                        : 'bg-zinc-900/20 hover:bg-zinc-900/50'
+                        : 'bg-zinc-900/10 hover:bg-zinc-900/30'
                     }`}
                     onClick={() => setShowNewDialog(true)}
-                    title="Add terminal"
+                    title="Spawn Terminal"
                   >
-                    <div className={`flex flex-col items-center gap-2 transition-colors ${
-                      isLight ? 'text-zinc-300 group-hover/empty:text-zinc-500' : 'text-zinc-800 group-hover/empty:text-zinc-500'
-                    }`}>
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-200 ${
+                    <div className="flex flex-col items-center gap-4 transition-all duration-500 group-hover/empty:scale-110">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
                         isLight
-                          ? 'border-zinc-300 group-hover/empty:border-blue-400 group-hover/empty:bg-blue-50'
-                          : 'border-zinc-800 group-hover/empty:border-blue-500/40 group-hover/empty:bg-blue-500/10'
+                          ? 'border-zinc-300 text-zinc-400 group-hover/empty:border-blue-400 group-hover/empty:bg-blue-50'
+                          : 'border-zinc-800 text-zinc-700 group-hover/empty:border-blue-500/50 group-hover/empty:bg-blue-500/5 group-hover/empty:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0)] group-hover/empty:shadow-[0_0_20px_rgba(59,130,246,0.1)]'
                       }`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
-                      <span className={`text-[8px] uppercase tracking-widest font-bold ${
-                        isLight ? 'text-zinc-300 group-hover/empty:text-zinc-500' : 'text-zinc-800 group-hover/empty:text-zinc-500'
-                      }`}>Add</span>
+                      <span className={`text-[10px] uppercase font-black tracking-[0.3em] transition-colors duration-500 ${
+                        isLight ? 'text-zinc-400' : 'text-zinc-700 group-hover/empty:text-blue-400'
+                      }`}>Spawn_TTY</span>
                     </div>
                   </div>
                 )}
@@ -273,16 +271,16 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             <div
               key={`col-${ci}`}
               onMouseDown={(e) => handleDividerDrag(e, 'col', ci)}
-              className="absolute top-0 bottom-0 cursor-col-resize z-10 group/divider"
+              className="absolute top-2 bottom-2 cursor-col-resize z-10 group/divider"
               style={{
-                left: `calc(${leftPercent}% - ${DIVIDER / 2 + 0.5}px)`,
+                left: `calc(${leftPercent}% - ${DIVIDER / 2}px)`,
                 width: `${DIVIDER}px`,
               }}
             >
-              <div className={`w-px h-full transition-colors duration-100 mx-auto group-hover/divider:w-full group-active/divider:w-full rounded-full ${
+              <div className={`w-1 h-full transition-all duration-300 mx-auto rounded-full ${
                 isLight
-                  ? 'bg-zinc-300 group-hover/divider:bg-blue-400 group-active/divider:bg-blue-500'
-                  : 'bg-zinc-800 group-hover/divider:bg-zinc-500 group-active/divider:bg-blue-500'
+                  ? 'bg-transparent group-hover/divider:bg-blue-400/50'
+                  : 'bg-transparent group-hover/divider:bg-blue-500/20 group-active/divider:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0)] group-hover/divider:shadow-[0_0_10px_rgba(59,130,246,0.1)]'
               }`} />
             </div>
           );
@@ -294,46 +292,43 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             <div
               key={`row-${ri}`}
               onMouseDown={(e) => handleDividerDrag(e, 'row', ri)}
-              className="absolute left-0 right-0 cursor-row-resize z-10 group/divider"
+              className="absolute left-2 right-2 cursor-row-resize z-10 group/divider"
               style={{
-                top: `calc(${topPercent}% - ${DIVIDER / 2 + 0.5}px)`,
+                top: `calc(${topPercent}% - ${DIVIDER / 2}px)`,
                 height: `${DIVIDER}px`,
               }}
             >
-              <div className={`h-px w-full transition-colors duration-100 my-auto group-hover/divider:h-full group-active/divider:h-full rounded-full ${
+              <div className={`h-1 w-full transition-all duration-300 my-auto rounded-full ${
                 isLight
-                  ? 'bg-zinc-300 group-hover/divider:bg-blue-400 group-active/divider:bg-blue-500'
-                  : 'bg-zinc-800 group-hover/divider:bg-zinc-500 group-active/divider:bg-blue-500'
+                  ? 'bg-transparent group-hover/divider:bg-blue-400/50'
+                  : 'bg-transparent group-hover/divider:bg-blue-500/20 group-active/divider:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0)] group-hover/divider:shadow-[0_0_10px_rgba(59,130,246,0.1)]'
               }`} />
             </div>
           );
         })}
       </div>
 
-      <div className={`flex items-center justify-between px-3 py-1.5 shrink-0 border-t accent-line-top ${
-        isLight ? 'border-zinc-300/50 bg-zinc-200/60' : 'border-zinc-800/50 bg-zinc-900/50'
-      }`}>
-        <div className="flex items-center gap-3">
-          <span className={`text-[9px] uppercase tracking-widest font-bold ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            {sorted.length} session{sorted.length !== 1 ? 's' : ''}
-          </span>
-          <span className={`text-[9px] uppercase tracking-widest ${isLight ? 'text-zinc-300' : 'text-zinc-800'}`}>
-            {cols}x{rows}
-          </span>
+      <div className={`flex items-center justify-between px-4 py-2 shrink-0 border-t border-zinc-800/30 bg-zinc-950/50 backdrop-blur-sm`}>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black tracking-[0.2em] text-zinc-600 uppercase">CLUSTER_SIZE</span>
+            <span className="text-[10px] font-bold text-zinc-400">{sorted.length}U</span>
+          </div>
+          <div className="h-3 w-px bg-zinc-800/50" />
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black tracking-[0.2em] text-zinc-600 uppercase">TOPOLOGY</span>
+            <span className="text-[10px] font-bold text-zinc-400">{cols}x{rows}</span>
+          </div>
         </div>
         <button
           onClick={() => setShowNewDialog(true)}
-          className={`flex items-center gap-1.5 px-4 py-1.5 border rounded-sm text-[10px] font-bold uppercase tracking-widest transition-colors duration-200 cursor-pointer ${
-            isLight
-              ? 'border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700'
-              : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
-          }`}
-          title="New terminal"
+          className={`flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 hover:bg-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95 cursor-pointer shadow-lg`}
+          title="Initialize new TTY"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
           </svg>
-          New
+          Initialize_TTY
         </button>
       </div>
 

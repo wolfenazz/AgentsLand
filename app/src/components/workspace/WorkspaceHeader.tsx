@@ -158,40 +158,40 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     <>
       <header 
         data-tauri-drag-region
-        className="relative z-[100] flex items-center h-12 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 select-none transition-all duration-300 titlebar-drag flex-shrink-0"
+        className="relative z-[100] flex items-center h-11 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/30 select-none transition-all duration-300 titlebar-drag flex-shrink-0"
       >
         {/* Left: Branding & Core Navigation */}
-        <div className="flex items-center h-full titlebar-nodrag pl-1">
-          <div className="flex items-center gap-3 px-4 h-9 my-1.5 rounded-r-xl border-r border-zinc-800/50 bg-gradient-to-r from-zinc-900/50 to-transparent hover:from-zinc-900 transition-all duration-500 group cursor-default">
+        <div className="flex items-center h-full titlebar-nodrag pl-1.5">
+          <div className="flex items-center gap-3 px-3 h-8 my-1.5 rounded-xl border border-zinc-800/30 bg-zinc-900/40 hover:bg-zinc-900/80 hover:border-zinc-700/50 transition-all duration-500 group cursor-default shadow-sm">
             <div className="relative">
-              <img src={logo} alt="YzPzCode" className="h-6 w-auto grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110" />
-              <div className="absolute -inset-2 bg-blue-500/10 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <img src={logo} alt="YzPzCode" className="h-5 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110" />
+              <div className="absolute -inset-2 bg-blue-500/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
             <div className="flex flex-col -space-y-0.5">
-              <span className="text-[11px] font-mono font-black tracking-tighter text-zinc-100 uppercase group-hover:text-blue-400 transition-colors">YZPZ::CODE</span>
-              <span className="text-[7px] font-mono text-zinc-500 tracking-[0.4em] uppercase opacity-70">terminal.v2</span>
+              <span className="text-[10px] font-black tracking-tighter text-zinc-400 uppercase group-hover:text-blue-400 transition-colors">YZPZ::CODE</span>
+              <span className="text-[6px] font-black text-zinc-600 tracking-[0.4em] uppercase opacity-70">TERMINAL.V2</span>
             </div>
           </div>
 
           <div className="flex items-center gap-1 h-full px-2">
             <button
               onClick={onDocsClick}
-              className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-zinc-200 group"
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-blue-400 group"
               title="Documentation (F1)"
             >
-              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </button>
 
             <button
               onClick={onSidebarToggle}
-              className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-zinc-200 group"
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-amber-400 group"
               title="Toggle Sidebar (Ctrl+B)"
             >
-              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
-                <path strokeWidth="1.5" d="M9 3v18" />
+              <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={1.5} />
+                <path strokeWidth={1.5} d="M9 3v18" />
               </svg>
             </button>
           </div>
@@ -199,7 +199,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         {/* Middle: Tabs Area */}
         <div className="flex-1 flex items-center h-full overflow-hidden px-4">
-          <div className="flex items-center gap-1 h-full overflow-x-auto overflow-y-hidden scrollbar-none titlebar-nodrag py-1.5">
+          <div className="flex items-center gap-1.5 h-full overflow-x-auto overflow-y-hidden scrollbar-none titlebar-nodrag py-1">
             {workspaces.map((workspace) => (
               <WorkspaceTab
                 key={workspace.id}
@@ -216,28 +216,28 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
             <button
               onClick={onNewWorkspace}
-              className="flex items-center gap-2 h-8 px-4 rounded-lg bg-zinc-900/40 border border-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-300 text-zinc-500 hover:text-zinc-200 group ml-2 whitespace-nowrap"
+              className="flex items-center gap-2 h-8 px-3 rounded-xl bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300 text-blue-500 group ml-2 whitespace-nowrap"
               title="Spawn new session"
             >
               <svg className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span className="text-[10px] font-mono font-bold tracking-widest uppercase">Spawn_TTY</span>
+              <span className="text-[10px] font-black tracking-widest uppercase">SPAWN_TTY</span>
             </button>
           </div>
         </div>
 
         {/* Right: Tools & Window Controls */}
-        <div className="flex items-center h-full titlebar-nodrag pr-1">
-          <div className="flex items-center gap-1 h-full px-2 border-l border-zinc-800/50">
+        <div className="flex items-center h-full titlebar-nodrag pr-1.5">
+          <div className="flex items-center gap-1 h-full px-2 border-l border-zinc-800/30">
             <button
               onClick={() => setIsShortcutOpen(true)}
-              className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-blue-400 group"
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-zinc-800/50 transition-all duration-200 text-zinc-500 hover:text-emerald-400 group"
               title="Command Mapping"
             >
-              <svg className="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
-                <rect x="7" y="7" width="10" height="10" rx="1" strokeWidth="1.5" />
+                <rect x="7" y="7" width="10" height="10" rx="1" strokeWidth={1.5} />
               </svg>
             </button>
 
@@ -245,19 +245,19 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
             <button
               onClick={onViewToggle}
-              className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 group ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 group ${
                 activeView === "terminal"
-                  ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                  ? "bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                   : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50"
               }`}
               title={activeView === "terminal" ? "Focus Code (Ctrl+E)" : "Focus TTY (Ctrl+E)"}
             >
               {activeView === "terminal" ? (
-                <svg className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               ) : (
-                <svg className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               )}
@@ -265,31 +265,31 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
 
           {isWindows && (
-            <div className="flex items-center gap-0.5 h-full pl-2 border-l border-zinc-800/50 ml-1">
+            <div className="flex items-center gap-0.5 h-full pl-2 border-l border-zinc-800/30 ml-1">
               <button
                 onClick={onMinimizeWindow}
-                className="w-10 h-9 flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-500 hover:text-zinc-200 transition-all duration-200"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-500 hover:text-zinc-200 transition-all duration-200"
                 title="Minimize"
               >
-                <svg className="w-3 h-3" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
                   <rect fill="currentColor" width="8" height="1.2" x="2" y="6" />
                 </svg>
               </button>
               <button
                 onClick={onMaximizeWindow}
-                className="w-10 h-9 flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-500 hover:text-zinc-200 transition-all duration-200"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-500 hover:text-zinc-200 transition-all duration-200"
                 title="Maximize"
               >
-                <svg className="w-3 h-3" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
                   <rect fill="none" stroke="currentColor" width="7" height="7" x="2.5" y="2.5" strokeWidth="1.2" />
                 </svg>
               </button>
               <button
                 onClick={onCloseWindow}
-                className="w-10 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 transition-all duration-200"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-rose-500/20 text-zinc-500 hover:text-rose-400 transition-all duration-200"
                 title="Terminate"
               >
-                <svg className="w-3 h-3" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
                   <path fill="none" stroke="currentColor" strokeWidth="1.5" d="M2,2 L10,10 M2,10 L10,2" />
                 </svg>
               </button>

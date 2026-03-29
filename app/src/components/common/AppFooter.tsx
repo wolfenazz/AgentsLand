@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUpdaterStore } from '../../stores/updaterStore';
+import { useAppStore } from '../../stores/appStore';
 
 export const AppFooter: React.FC = () => {
   const {
@@ -15,6 +17,7 @@ export const AppFooter: React.FC = () => {
     clearError,
   } = useUpdaterStore();
 
+  const { currentWorkspace, sessions, theme } = useAppStore();
   const [version, setVersion] = useState<string>('');
 
   useEffect(() => {
@@ -54,80 +57,132 @@ export const AppFooter: React.FC = () => {
   };
 
   return (
-    <footer className="flex-shrink-0 h-7 border-t border-theme bg-theme-card/80 backdrop-blur-sm select-none">
-      <div className="h-full flex items-center justify-between px-3 font-mono text-[9px] tracking-wider uppercase">
-        {/* Left: App Version */}
-        <div className="flex items-center gap-2 text-zinc-500">
-          <span className="text-zinc-600">::</span>
-          <span className="hover:text-theme-main transition-colors">v{version || '---'}</span>
-          <span className="text-zinc-600">|</span>
-          <span className="text-emerald-500/70 flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            ACTIVE
-          </span>
+    <footer className="flex-shrink-0 h-7 border-t border-zinc-800/50 bg-zinc-950/90 backdrop-blur-md select-none font-mono">
+      <div className="h-full flex items-center justify-between px-3 text-[9px] tracking-widest uppercase">
+        {/* Left: System Info */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-zinc-500">
+            <span className="text-blue-500/50 font-black">SYS::</span>
+            <span className="text-zinc-400 hover:text-blue-400 transition-colors cursor-default">v{version || '---'}</span>
+          </div>
+
+          <div className="h-3 w-px bg-zinc-800/50" />
+
+          {currentWorkspace && (
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-600">WORKSPACE:</span>
+              <span className="text-zinc-300 font-bold">{currentWorkspace.name}</span>
+            </div>
+          )}
+
+          <div className="h-3 w-px bg-zinc-800/50" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-600">SESSIONS:</span>
+            <span className="text-emerald-500 font-bold">{sessions.length}</span>
+          </div>
         </div>
 
-        {/* Right: Update Status & Actions */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center h-5">
-            {checking && (
-              <div className="flex items-center gap-1.5 px-2 bg-zinc-800/30">
-                <svg className="w-2.5 h-2.5 text-zinc-500 animate-spin-slow" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-zinc-500">CHECKING...</span>
-              </div>
-            )}
+        {/* Middle: Live Indicator (Centered) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/5 border border-emerald-500/10">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-emerald-500/80 font-black tracking-[0.2em]">LIVE_ENV</span>
+          </div>
+        </div>
 
-            {!checking && error && (
-              <div className="flex items-center gap-1 px-2 bg-red-500/10 text-red-500" title={error}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="max-w-[120px] truncate">ERROR</span>
-              </div>
-            )}
+        {/* Right: Status & Updates */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-600">THEME:</span>
+            <span className="text-zinc-400">{theme}</span>
+          </div>
 
-            {!checking && upToDate && (
-              <div className="flex items-center gap-1 px-2 bg-emerald-500/10 text-emerald-500">
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>SYNCED</span>
-              </div>
-            )}
+          <div className="h-3 w-px bg-zinc-800/50" />
 
-            {!checking && !downloading && updateAvailable && (
-              <button
-                onClick={handleUpdate}
-                className="flex items-center gap-1.5 px-2 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors"
-              >
-                <span className="animate-pulse">●</span>
-                <span>UPDATE {updateAvailable.version}</span>
-              </button>
-            )}
-
-            {downloading && (
-              <div className="flex items-center gap-2 px-2 bg-emerald-500/10 text-emerald-500">
-                <div className="w-12 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 transition-all duration-200"
-                    style={{ width: `${downloadProgress}%` }}
-                  />
-                </div>
-                <span>{downloadProgress}%</span>
-              </div>
-            )}
-
-            {!checking && !downloading && !updateAvailable && !upToDate && !error && (
-              <button
-                onClick={handleCheck}
-                className="px-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
-              >
-                [ CHECK_UPDATES ]
-              </button>
-            )}
+          <div className="flex items-center min-w-[80px] justify-end">
+            <AnimatePresence mode="wait">
+              {checking ? (
+                <motion.div
+                  key="checking"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="flex items-center gap-1.5 text-zinc-500"
+                >
+                  <svg className="w-2.5 h-2.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>SYNCING...</span>
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-1 text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-sm border border-rose-500/20"
+                  title={error}
+                >
+                  <span>ERR_SYNC</span>
+                </motion.div>
+              ) : upToDate ? (
+                <motion.div
+                  key="synced"
+                  initial={{ opacity: 0, x: 5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -5 }}
+                  className="flex items-center gap-1 text-emerald-500 font-bold"
+                >
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>SYNCED</span>
+                </motion.div>
+              ) : updateAvailable ? (
+                <motion.button
+                  key="update"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={handleUpdate}
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500 text-black font-black rounded-sm hover:bg-amber-400 transition-colors"
+                >
+                  <span>UPDATE {updateAvailable.version}</span>
+                </motion.button>
+              ) : downloading ? (
+                <motion.div
+                  key="downloading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center gap-2 text-emerald-500"
+                >
+                  <div className="w-12 h-1 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
+                    <motion.div
+                      className="h-full bg-emerald-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${downloadProgress}%` }}
+                    />
+                  </div>
+                  <span className="font-black">{downloadProgress}%</span>
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="check"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  whileHover={{ color: '#fff', backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  onClick={handleCheck}
+                  className="px-2 py-0.5 text-zinc-500 transition-all rounded-sm"
+                >
+                  [ REFRESH_SYS ]
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

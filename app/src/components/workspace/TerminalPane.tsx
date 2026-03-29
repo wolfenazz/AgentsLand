@@ -577,31 +577,39 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
   };
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden transition-all duration-200 font-mono accent-pane ${
+    <div className={`h-full flex flex-col overflow-hidden transition-all duration-300 font-mono ${
       isLight
         ? 'bg-zinc-100 border border-zinc-300/50'
-        : 'bg-zinc-950 border border-zinc-800/50'
+        : 'bg-zinc-950 border border-zinc-800/50 shadow-2xl'
     }`}>
-      <div className={`flex items-center justify-between px-2 py-1 select-none shrink-0 ${
+      <div className={`flex items-center justify-between px-3 py-1.5 select-none shrink-0 ${
         isLight
           ? 'bg-zinc-200/60 border-b border-zinc-300'
-          : 'bg-zinc-900/50 border-b border-zinc-800'
+          : 'bg-zinc-900/40 border-b border-zinc-800/50 backdrop-blur-md'
       }`}>
-        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-          <span className={`w-1.5 h-1.5 shrink-0 rounded-full ${STATUS_COLORS[session.status]} ${session.status === 'running' ? 'shadow-[0_0_4px_currentColor]' : ''}`} />
-          <span className={`text-[10px] font-bold tracking-widest uppercase shrink-0 ${isLight ? 'text-zinc-500' : 'text-zinc-500'}`}>
-            TTY{session.index + 1}
+        <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+          <div className="relative flex h-2 w-2 shrink-0">
+             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 ${
+               session.status === 'running' ? 'bg-emerald-400' : session.status === 'error' ? 'bg-rose-400' : 'bg-zinc-400'
+             }`}></span>
+             <span className={`relative inline-flex rounded-full h-2 w-2 ${STATUS_COLORS[session.status]}`}></span>
+          </div>
+          
+          <span className={`text-[10px] font-black tracking-[0.2em] uppercase shrink-0 ${isLight ? 'text-zinc-600' : 'text-zinc-500'}`}>
+            TTY::{session.index + 1}
           </span>
 
+          <div className="h-3 w-px bg-zinc-800/50 mx-1" />
+
           {session.agent ? (
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-sm shrink-0 ${
-                isLight ? 'bg-zinc-100 border border-zinc-300' : 'bg-zinc-800 border border-zinc-700'
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md shrink-0 border transition-all duration-300 ${
+                isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-950 border-zinc-800 hover:border-blue-500/30 group/agent'
               }`}>
                 <img
                   src={AGENT_LOGOS[session.agent]}
                   alt={session.agent}
-                  className={`w-3 h-3 object-contain ${session.agent === 'opencode' || session.agent === 'cursor' || session.agent === 'codex'
+                  className={`w-3 h-3 object-contain transition-transform group-hover/agent:scale-110 ${session.agent === 'opencode' || session.agent === 'cursor' || session.agent === 'codex'
                       ? isLight
                         ? 'brightness-[0.8]'
                         : 'invert brightness-[3.5] contrast-[1.5]'
@@ -610,34 +618,36 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
                         : 'brightness-[2.2] contrast-[1.2]'
                     }`}
                 />
-                <span className={`text-[9px] uppercase font-bold tracking-widest truncate max-w-[60px] ${
-                  isLight ? 'text-zinc-700' : 'text-zinc-300'
+                <span className={`text-[9px] uppercase font-black tracking-widest truncate max-w-[80px] ${
+                  isLight ? 'text-zinc-700' : 'text-zinc-400'
                 }`}>{session.agent}</span>
               </div>
-              {getCliStatusBadge()}
+              <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-1 duration-300">
+                {getCliStatusBadge()}
+              </div>
             </div>
           ) : (
-            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-sm shrink-0 ${
-              isLight ? 'bg-zinc-100 border border-zinc-300' : 'bg-zinc-800 border border-zinc-700'
+            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md shrink-0 border ${
+              isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-950 border-zinc-800'
             }`}>
-              <svg className={`w-3 h-3 ${isLight ? 'text-zinc-400' : 'text-zinc-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-3 h-3 ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className={`text-[9px] font-bold uppercase tracking-widest ${isLight ? 'text-zinc-400' : 'text-zinc-500'}`}>SHELL</span>
+              <span className={`text-[9px] font-black uppercase tracking-widest ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`}>CORE::SHELL</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center shrink-0 ml-1">
+        <div className="flex items-center shrink-0 gap-1 ml-2">
           {onClose && (
             <button
               onClick={onClose}
-              className={`flex items-center justify-center w-6 h-6 rounded-sm transition-colors duration-150 cursor-pointer ${
+              className={`flex items-center justify-center w-6 h-6 rounded-md transition-all duration-200 cursor-pointer ${
                 isLight
                   ? 'text-zinc-400 hover:text-rose-600 hover:bg-rose-100'
                   : 'text-zinc-600 hover:text-rose-400 hover:bg-rose-900/30'
               }`}
-              title="Close terminal"
+              title="Terminate process"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -146,35 +146,38 @@ export const GitChangesPanel: React.FC<GitChangesPanelProps> = ({
   }
 
   return (
-    <div className="shrink-0 border-t border-theme/60 bg-theme-card/50">
+    <div className="shrink-0 border-t border-zinc-800/30 bg-zinc-950/40 backdrop-blur-sm overflow-hidden">
       <div
-        className="flex items-center justify-between px-3 py-1.5 bg-zinc-800/40 border-b border-theme/30 cursor-pointer select-none hover:bg-zinc-800/60 transition-colors"
+        className={`flex items-center justify-between px-3 py-2 bg-zinc-900/20 border-b border-zinc-800/20 cursor-pointer select-none transition-all duration-300 group/git-header ${
+          isExpanded ? 'bg-zinc-900/40' : 'hover:bg-zinc-900/60'
+        }`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-2">
-          <motion.svg
-            className="w-3 h-3 text-zinc-400"
+        <div className="flex items-center gap-2.5">
+          <motion.div
             animate={{ rotate: isExpanded ? 0 : -90 }}
-            transition={{ duration: 0.15 }}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="text-zinc-500 group-hover/git-header:text-blue-400 transition-colors"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </motion.svg>
-          <span className="text-[10px] font-semibold text-zinc-300 uppercase tracking-wide">
-            Changes
-          </span>
-          <span className="text-[9px] text-zinc-500 font-medium">
-            {changedFiles.length} file{changedFiles.length !== 1 ? 's' : ''}
-          </span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </motion.div>
+          <div className="flex flex-col -space-y-0.5">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] group-hover/git-header:text-zinc-200 transition-colors">
+              Source_Control
+            </span>
+            <span className="text-[7px] text-zinc-600 font-black tracking-widest uppercase opacity-70">
+              {changedFiles.length} DIFFS_DETECTED
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-medium">
-            <span className="text-emerald-400">+{totalAdded}</span>
-            <span className="text-zinc-600 mx-1">/</span>
-            <span className="text-rose-400">-{totalDeleted}</span>
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-950 border border-zinc-800/50 shadow-inner group-hover/git-header:border-blue-500/30 transition-all duration-500">
+            <span className="text-[9px] font-black text-emerald-500">+{totalAdded}</span>
+            <div className="h-2 w-[1px] bg-zinc-800" />
+            <span className="text-[9px] font-black text-rose-500">-{totalDeleted}</span>
+          </div>
         </div>
       </div>
 
@@ -182,59 +185,72 @@ export const GitChangesPanel: React.FC<GitChangesPanelProps> = ({
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: panelHeight - 36, opacity: 1 }}
+            animate={{ height: panelHeight - 40, opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="overflow-hidden relative"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="overflow-hidden relative bg-zinc-950/20"
           >
             <div
-              className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-amber-500/30 active:bg-amber-500/50 transition-colors z-10"
+              className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-blue-500/40 active:bg-blue-500 transition-all duration-300 z-10 rounded-full mx-8 mt-0.5"
               onMouseDown={handleMouseDown}
               onClick={(e) => e.stopPropagation()}
             />
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
-              <div className="py-0.5">
-                {changedFiles.map((file) => {
+            <div className="h-full overflow-y-auto custom-scrollbar">
+              <div className="py-2 space-y-0.5">
+                {changedFiles.map((file, idx) => {
                   const addedPercent = (file.linesAdded / maxChanges) * 100;
                   const deletedPercent = (file.linesDeleted / maxChanges) * 100;
 
                   return (
-                    <div
+                    <motion.div
                       key={file.path}
-                      className="group flex items-center gap-1.5 px-3 py-1 hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.02 }}
+                      className="group/file flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-800/40 cursor-pointer transition-all duration-200 mx-1 rounded-lg border border-transparent hover:border-zinc-800/50"
                       onClick={() => handleFileClick(file)}
                     >
-                      <FileIcon
-                        extension={file.name.includes('.') ? file.name.split('.').pop() || null : null}
-                        isDir={false}
-                        className="w-3.5 h-3.5 shrink-0"
-                      />
-                      <span className="text-[10px] text-zinc-300 truncate min-w-0 flex-1 font-mono">
-                        {getRelativePath(file.path)}
-                      </span>
-                      <GitStatusBadge change={file.change === 'untracked' ? 'untracked' : file.change} />
-                      <span className="text-[9px] font-mono shrink-0 tabular-nums">
-                        {file.linesAdded > 0 && (
-                          <span className="text-emerald-500">+{file.linesAdded}</span>
-                        )}
-                        {file.linesAdded > 0 && file.linesDeleted > 0 && (
-                          <span className="text-zinc-600 mx-0.5">/</span>
-                        )}
-                        {file.linesDeleted > 0 && (
-                          <span className="text-rose-500">-{file.linesDeleted}</span>
-                        )}
-                      </span>
-                      <div className="w-12 h-1.5 rounded-full overflow-hidden shrink-0 bg-zinc-800/80 flex">
-                        <div
-                          className="h-full bg-emerald-500/70 transition-all"
-                          style={{ width: `${addedPercent}%` }}
+                      <div className="relative">
+                        <FileIcon
+                          extension={file.name.includes('.') ? file.name.split('.').pop() || null : null}
+                          isDir={false}
+                          className="w-4 h-4 shrink-0 transition-transform group-hover/file:scale-110"
                         />
-                        <div
-                          className="h-full bg-rose-500/70 transition-all"
-                          style={{ width: `${deletedPercent}%` }}
-                        />
+                         <div className="absolute -top-1 -right-1">
+                            <GitStatusBadge change={file.change === 'untracked' ? 'untracked' : file.change} />
+                         </div>
                       </div>
-                    </div>
+                      <div className="flex flex-col min-w-0 flex-1 ml-1">
+                        <span className="text-[10px] font-black text-zinc-300 truncate tracking-tight group-hover/file:text-white transition-colors">
+                          {file.name}
+                        </span>
+                        <span className="text-[8px] text-zinc-600 truncate font-mono uppercase tracking-tighter opacity-60">
+                          {getRelativePath(file.path)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                         <div className="flex items-center gap-1 font-mono text-[9px] tabular-nums">
+                            {file.linesAdded > 0 && (
+                              <span className="text-emerald-500 font-black">+{file.linesAdded}</span>
+                            )}
+                            {file.linesDeleted > 0 && (
+                              <span className="text-rose-500 font-black">-{file.linesDeleted}</span>
+                            )}
+                          </div>
+                          
+                          <div className="w-14 h-1.5 rounded-full overflow-hidden shrink-0 bg-zinc-900 border border-zinc-800/50 flex shadow-inner">
+                            <div
+                              className="h-full bg-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                              style={{ width: `${addedPercent}%` }}
+                            />
+                            <div
+                              className="h-full bg-rose-500/80 shadow-[0_0_8px_rgba(244,63,94,0.3)]"
+                              style={{ width: `${deletedPercent}%` }}
+                            />
+                          </div>
+                      </div>
+                    </motion.div>
                   );
                 })}
               </div>
