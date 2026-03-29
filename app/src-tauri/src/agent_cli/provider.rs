@@ -40,6 +40,9 @@ pub trait AgentCliProvider: Send + Sync {
     fn get_docs_url(&self) -> &'static str;
     fn get_prerequisites(&self) -> Vec<PrerequisiteType>;
     fn get_icon_path(&self) -> &'static str;
+    fn get_npm_package_name(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 pub fn get_provider(agent: AgentType) -> Box<dyn AgentCliProvider> {

@@ -49,4 +49,8 @@ impl AgentCliProvider for GeminiCliProvider {
     fn get_icon_path(&self) -> &'static str {
         "/assets/gemini-cli-logo.svg"
     }
+
+    fn get_npm_package_name(&self) -> Option<&'static str> {
+        Some("@google/gemini-cli")
+    }
 }

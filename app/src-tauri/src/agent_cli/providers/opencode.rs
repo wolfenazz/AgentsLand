@@ -68,4 +68,8 @@ impl AgentCliProvider for OpenCodeCliProvider {
     fn get_icon_path(&self) -> &'static str {
         "/assets/opencode.png"
     }
+
+    fn get_npm_package_name(&self) -> Option<&'static str> {
+        Some("opencode-ai")
+    }
 }

@@ -49,4 +49,8 @@ impl AgentCliProvider for CodexCliProvider {
     fn get_icon_path(&self) -> &'static str {
         "/assets/codex.png"
     }
+
+    fn get_npm_package_name(&self) -> Option<&'static str> {
+        Some("@openai/codex")
+    }
 }

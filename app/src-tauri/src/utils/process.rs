@@ -7,6 +7,17 @@ use std::os::windows::process::CommandExt;
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[cfg(target_os = "windows")]
+fn is_shell_script(path: &str) -> bool {
+    if let Ok(mut file) = std::fs::File::open(path) {
+        let mut buf = [0u8; 2];
+        if std::io::Read::read_exact(&mut file, &mut buf).is_ok() {
+            return buf == [b'#', b'!'];
+        }
+    }
+    false
+}
+
+#[cfg(target_os = "windows")]
 fn find_ps_script(dir: &std::path::Path) -> Option<std::path::PathBuf> {
     if let Ok(entries) = std::fs::read_dir(dir) {
         for entry in entries.flatten() {
@@ -73,6 +84,43 @@ impl ProcessRunner {
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped());
                 return Self::add_no_window(&mut cmd).output();
+            }
+
+            // Handle shell script shims (#!/bin/sh) left by npm on Windows.
+            // npm creates three files: name, name.cmd, name.ps1 — the extensionless
+            // one is a Unix shell script that cannot run natively on Windows.
+            // Try the .cmd variant first, then fall back to the .ps1 script.
+            if is_shell_script(binary_path) {
+                let path = std::path::Path::new(binary_path);
+                if let Some(stem) = path.file_name() {
+                    let stem = stem.to_string_lossy();
+                    let dir = path
+                        .parent()
+                        .unwrap_or(std::path::Path::new("."));
+
+                    let cmd_path = dir.join(format!("{}.cmd", stem));
+                    if cmd_path.exists() {
+                        let mut cmd = Command::new("cmd");
+                        cmd.arg("/c")
+                            .arg(&cmd_path)
+                            .args(args)
+                            .stdin(Stdio::null())
+                            .stdout(Stdio::piped())
+                            .stderr(Stdio::piped());
+                        return Self::add_no_window(&mut cmd).output();
+                    }
+
+                    if let Some(ps_script) = find_ps_script(dir) {
+                        let mut cmd = Command::new("powershell.exe");
+                        cmd.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File"])
+                            .arg(&ps_script)
+                            .args(args)
+                            .stdin(Stdio::null())
+                            .stdout(Stdio::piped())
+                            .stderr(Stdio::piped());
+                        return Self::add_no_window(&mut cmd).output();
+                    }
+                }
             }
         }
         Self::run_hidden(binary_path, args)

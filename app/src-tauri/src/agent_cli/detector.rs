@@ -79,7 +79,10 @@ impl AgentCliDetector {
                     }
                     None => {
                         info.status = CliStatus::Installed;
-                        info.version = Some("unknown".to_string());
+                        info.version = provider
+                            .get_npm_package_name()
+                            .and_then(|pkg| Self::get_npm_version(pkg))
+                            .or_else(|| Some("unknown".to_string()));
                     }
                 }
             }
@@ -146,6 +149,23 @@ impl AgentCliDetector {
             Some(truncated.to_string())
         } else {
             None
+        }
+    }
+
+    fn get_npm_version(package_name: &str) -> Option<String> {
+        let output =
+            ProcessRunner::run_hidden("npm", &["list", "-g", package_name, "--json"]).ok()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json: serde_json::Value = serde_json::from_str(&stdout).ok()?;
+        let version = json
+            .get("dependencies")
+            .and_then(|deps| deps.get(package_name))
+            .and_then(|pkg| pkg.get("version"))
+            .and_then(|v| v.as_str())?;
+        if version.is_empty() {
+            None
+        } else {
+            Some(version.to_string())
         }
     }
 }
