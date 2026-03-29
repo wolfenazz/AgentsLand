@@ -109,7 +109,6 @@ body {
 
 .animate-popover-in {
   animation: popover-in 0.2s ease-out;
-  translate: -50% 0;
 }
 
 @keyframes theme-ripple {

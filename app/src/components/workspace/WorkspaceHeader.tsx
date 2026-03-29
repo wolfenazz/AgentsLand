@@ -163,7 +163,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         {/* Left: Branding & Core Navigation */}
         <div className="flex items-center h-full titlebar-nodrag">
           <div className="flex items-center gap-2.5 px-4 h-full border-r border-theme bg-theme-card/40 group cursor-default">
-            <img src={logo} alt="YzPzCode" className="h-5 w-auto opacity-80 group-hover:opacity-100 transition-opacity duration-200" />
+            <img src={logo} alt="YzPzCode" className="h-5 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-110 group-hover:drop-shadow-[0_2px_8px_rgba(255,255,255,0.08)] transition-all duration-300" />
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-semibold tracking-tight text-theme-main">YZPZ</span>
               <span className="text-[9px] text-zinc-600">/</span>

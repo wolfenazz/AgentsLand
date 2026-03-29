@@ -18,6 +18,8 @@ interface WorkspaceProps {
   onDocsClick: () => void;
 }
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) => {
   const {
     currentWorkspace,
@@ -47,6 +49,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
   const hasInitialized = useRef<Record<string, boolean>>({});
   const sidebarWidthRef = useRef(250);
   const [sidebarWidth, setSidebarWidth] = useState(250);
+  const [isResizing, setIsResizing] = useState(false);
   const isDragging = useRef(false);
   const rafIdRef = useRef<number | null>(null);
 
@@ -92,6 +95,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
     };
     const handleMouseUp = () => {
       isDragging.current = false;
+      setIsResizing(false);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       if (rafIdRef.current) {
@@ -114,6 +118,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
   const handleSidebarResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     isDragging.current = true;
+    setIsResizing(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
@@ -228,30 +233,50 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
       <main className="flex-1 overflow-hidden bg-theme-main">
         {currentWorkspace ? (
           <div className="h-full flex items-stretch">
-            {explorerOpen && (
-              <>
-                <div
-                  style={{ width: `${sidebarWidth}px`, minWidth: '180px' }}
-                  className="shrink-0 overflow-hidden border-r border-theme"
+            <AnimatePresence initial={false}>
+              {explorerOpen && (
+                <motion.div
+                  key="sidebar"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: sidebarWidth, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={isResizing ? { duration: 0 } : { duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                  className="flex items-stretch shrink-0 overflow-hidden border-r border-theme"
                 >
-                  <FileExplorer
-                    workspacePath={currentWorkspace.path}
-                    workspaceName={currentWorkspace.name}
-                    onFileClick={handleFileClick}
+                  <div
+                    style={{ width: `${sidebarWidth}px`, minWidth: '180px' }}
+                    className="h-full shrink-0 overflow-hidden"
+                  >
+                    <FileExplorer
+                      workspacePath={currentWorkspace.path}
+                      workspaceName={currentWorkspace.name}
+                      onFileClick={handleFileClick}
+                    />
+                  </div>
+                  <div
+                    className="w-px hover:w-1 cursor-col-resize hover:bg-zinc-500 active:bg-zinc-400 transition-all duration-150 shrink-0 z-50"
+                    onMouseDown={handleSidebarResizeStart}
                   />
-                </div>
-                <div
-                  className="w-px hover:w-1 cursor-col-resize hover:bg-zinc-500 active:bg-zinc-400 transition-all duration-150 shrink-0"
-                  onMouseDown={handleSidebarResizeStart}
-                />
-              </>
-            )}
-            <div className="flex-1 min-w-0 overflow-hidden relative">
-              {activeView === "terminal" ? (
-                <TerminalGrid sessions={sessions} isLoading={isLoading} theme={theme} />
-              ) : (
-                <FileEditor />
+                </motion.div>
               )}
+            </AnimatePresence>
+            <div className="flex-1 min-w-0 overflow-hidden relative">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={activeView}
+                  initial={{ opacity: 0, scale: 0.99, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.01, y: -4 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                  className="h-full w-full"
+                >
+                  {activeView === "terminal" ? (
+                    <TerminalGrid sessions={sessions} isLoading={isLoading} theme={theme} />
+                  ) : (
+                    <FileEditor />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         ) : (

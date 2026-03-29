@@ -322,13 +322,24 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
         </div>
         <button
           onClick={() => setShowNewDialog(true)}
-          className={`flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 hover:bg-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95 cursor-pointer shadow-lg`}
+          className={`group/init relative flex items-center gap-2 px-3.5 py-1.5 ${
+            isLight 
+              ? 'bg-zinc-900 text-zinc-100 border-zinc-800' 
+              : 'bg-white text-zinc-900 border-zinc-200 shadow-[0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)]'
+          } border rounded-lg text-[9px] font-bold uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 cursor-pointer shadow-md hover:shadow-xl`}
           title="Initialize new TTY"
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-          </svg>
-          Initialize_TTY
+          <div className="relative flex items-center justify-center">
+            <svg className="w-3 h-3 transition-transform duration-500 group-hover/init:rotate-[360deg]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <span className="relative">Initialize_TTY</span>
+          
+          {/* Depth Glow Effect */}
+          <div className={`absolute inset-0 rounded-lg opacity-0 group-hover/init:opacity-100 transition-opacity duration-500 pointer-events-none ${
+            isLight ? 'bg-white/5' : 'bg-black/5'
+          }`} />
         </button>
       </div>
 

@@ -56,18 +56,17 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
         onClick={(e) => e.stopPropagation()}
       >
         {/* Subtle Header */}
-        <div className="px-6 pt-6 pb-4 flex items-center justify-between">
-          <div>
-            <h2 className={`text-sm font-bold tracking-tight ${isLight ? 'text-zinc-900' : 'text-zinc-100'}`}>
-              Spawn New Session
-            </h2>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mt-0.5 opacity-60">
-              Terminal Orchestration
-            </p>
-          </div>
+        <div className="px-6 pt-8 pb-4 relative flex flex-col items-center">
+          <h2 className={`text-sm font-bold tracking-tight ${isLight ? 'text-zinc-900' : 'text-zinc-100'}`}>
+            Spawn New Session
+          </h2>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mt-1 opacity-60">
+            Terminal Orchestration
+          </p>
+          
           <button
             onClick={onClose}
-            className={`p-2 rounded-full transition-all duration-200 ${
+            className={`absolute right-6 top-6 p-2 rounded-full transition-all duration-200 ${
               isLight ? 'hover:bg-zinc-200 text-zinc-400' : 'hover:bg-white/10 text-zinc-500'
             } hover:text-rose-500`}
           >
