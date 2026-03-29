@@ -346,7 +346,18 @@ If YzPzCode saved you from terminal chaos, consider giving it a **star** — it 
 
 ---
 
-**Built with caffeine and late nights by [Naseem](https://github.com/wolfenazz), [Noor](https://github.com/Noor-Al-Khelaifi) & Khalid**
+**Built with caffeine and late nights by**
+
+<div>
+<a href="https://github.com/wolfenazz">
+  <img src="https://github.com/wolfenazz.png" alt="Naseem" width="80" style="border-radius:50%; display:inline-block; margin:0 8px"/>
+  <br/>Naseem
+</a>
+<a href="https://github.com/Noor-Al-Khelaifi">
+  <img src="https://github.com/Noor-Al-Khelaifi.png" alt="Noor" width="80" style="border-radius:50%; display:inline-block; margin:0 8px"/>
+  <br/>Noor
+</a>
+</div>
 
 *For developers who'd rather code than manage terminals.*
 
