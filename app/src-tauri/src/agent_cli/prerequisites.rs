@@ -56,6 +56,7 @@ impl PrerequisitesChecker {
                         "OpenCode".to_string(),
                         "Codex CLI".to_string(),
                         "Gemini CLI".to_string(),
+                        "Kilo CLI".to_string(),
                     ],
                 }
             }
@@ -89,6 +90,7 @@ impl PrerequisitesChecker {
                         "OpenCode".to_string(),
                         "Codex CLI".to_string(),
                         "Gemini CLI".to_string(),
+                        "Kilo CLI".to_string(),
                     ],
                 }
             }
@@ -119,6 +121,7 @@ impl PrerequisitesChecker {
                         "OpenCode".to_string(),
                         "Codex CLI".to_string(),
                         "Gemini CLI".to_string(),
+                        "Kilo CLI".to_string(),
                     ],
                 }
             }

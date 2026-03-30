@@ -17,6 +17,7 @@ import codexLogo from '../../assets/codex.png';
 import geminiLogo from '../../assets/gemini-cli-logo.svg';
 import opencodeLogo from '../../assets/opencode.png';
 import cursorLogo from '../../assets/cursor-ai.png';
+import kiloLogo from '../../assets/kiloCode.gif';
 
 interface TerminalPaneProps {
   session: TerminalSession;
@@ -31,6 +32,7 @@ const AGENT_LOGOS: Record<AgentType, string> = {
   gemini: geminiLogo,
   opencode: opencodeLogo,
   cursor: cursorLogo,
+  kilo: kiloLogo,
 };
 
 const STATUS_COLORS = {

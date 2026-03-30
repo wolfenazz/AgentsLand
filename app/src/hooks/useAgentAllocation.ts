@@ -3,7 +3,7 @@ import { AgentType, AgentFleet, AgentCliInfo } from '../types';
 
 const STORAGE_KEY = 'yzpzcode-agent-allocation';
 
-const VALID_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor'];
+const VALID_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor', 'kilo'];
 
 const loadPersistedAllocation = (): Record<AgentType, number> | null => {
   try {
@@ -47,9 +47,10 @@ const DEFAULT_ALLOCATION: Record<AgentType, number> = {
   gemini: 0,
   opencode: 0,
   cursor: 0,
+  kilo: 0,
 };
 
-const ALL_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor'];
+const ALL_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor', 'kilo'];
 
 export const useAgentAllocation = (totalSlots: number) => {
   const [allocation, setAllocation] = useState<Record<AgentType, number>>(() => {

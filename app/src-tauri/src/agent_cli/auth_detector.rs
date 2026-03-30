@@ -33,6 +33,7 @@ impl AuthDetector {
             AgentType::Codex => Self::check_codex_auth(),
             AgentType::Gemini => Self::check_gemini_auth(),
             AgentType::Cursor => Self::check_cursor_auth(),
+            AgentType::Kilo => Self::check_kilo_auth(),
         }
     }
 
@@ -43,6 +44,7 @@ impl AuthDetector {
             AgentType::Codex,
             AgentType::Gemini,
             AgentType::Cursor,
+            AgentType::Kilo,
         ]
         .iter()
         .map(|agent| Self::check_auth(*agent))
@@ -261,6 +263,48 @@ impl AuthDetector {
         }
     }
 
+    fn check_kilo_auth() -> AuthInfo {
+        if env::var("KILO_API_KEY").is_ok() {
+            return AuthInfo {
+                agent: AgentType::Kilo,
+                status: AuthStatus::Authenticated,
+                error: None,
+                config_path: None,
+            };
+        }
+
+        if let Some(home) = Self::get_home_dir() {
+            let config_path = home.join(".config").join("kilo");
+
+            if config_path.exists() {
+                let config_file = config_path.join("opencode.json");
+                let config_jsonc = config_path.join("opencode.jsonc");
+
+                for file in [&config_file, &config_jsonc] {
+                    if file.exists() {
+                        if let Ok(contents) = fs::read_to_string(file) {
+                            if contents.contains("apiKey") || contents.contains("provider") {
+                                return AuthInfo {
+                                    agent: AgentType::Kilo,
+                                    status: AuthStatus::Authenticated,
+                                    error: None,
+                                    config_path: Some(config_path.to_string_lossy().to_string()),
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        AuthInfo {
+            agent: AgentType::Kilo,
+            status: AuthStatus::NotAuthenticated,
+            error: None,
+            config_path: None,
+        }
+    }
+
     fn get_home_dir() -> Option<PathBuf> {
         #[cfg(target_os = "windows")]
         {
@@ -294,6 +338,11 @@ impl AuthDetector {
             AgentType::Cursor => vec![
                 "Run 'agent login' in a terminal".to_string(),
                 "Or sign in through the Cursor desktop app".to_string(),
+            ],
+            AgentType::Kilo => vec![
+                "Run 'kilo' and use '/connect' to add provider credentials".to_string(),
+                "Or set KILO_API_KEY environment variable".to_string(),
+                "Or run 'kilo auth' to manage credentials".to_string(),
             ],
         }
     }

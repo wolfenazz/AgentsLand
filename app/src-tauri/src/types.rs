@@ -8,6 +8,7 @@ pub enum AgentType {
     Gemini,
     Opencode,
     Cursor,
+    Kilo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

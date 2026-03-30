@@ -1,4 +1,4 @@
-export type AgentType = "claude" | "codex" | "gemini" | "opencode" | "cursor";
+export type AgentType = "claude" | "codex" | "gemini" | "opencode" | "cursor" | "kilo";
 
 export type AgentTaskStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
 

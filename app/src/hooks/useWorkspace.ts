@@ -11,6 +11,7 @@ const DEFAULT_AGENT_FLEET: AgentFleet = {
     gemini: 0,
     opencode: 0,
     cursor: 0,
+    kilo: 0,
   },
 };
 

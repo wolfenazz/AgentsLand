@@ -91,6 +91,7 @@ const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
   gemini: null,
   opencode: null,
   cursor: null,
+  kilo: null,
 };
 
 export const useAppStore = create<AppState>()(
