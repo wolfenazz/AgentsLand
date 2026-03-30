@@ -5,6 +5,7 @@ import codexLogo from '../../assets/codex.png';
 import geminiLogo from '../../assets/gemini-cli-logo.svg';
 import opencodeLogo from '../../assets/opencode.png';
 import cursorLogo from '../../assets/cursor-ai.png';
+import kiloLogo from '../../assets/kiloCode.gif';
 
 interface AgentOption {
   type: AgentType;
@@ -20,6 +21,7 @@ const AGENT_OPTIONS: AgentOption[] = [
   { type: 'gemini', label: 'Gemini CLI', description: 'Google Multimodal Assistant', logo: geminiLogo, color: '#4285F4' },
   { type: 'opencode', label: 'OpenCode', description: 'Open Source Autonomy', logo: opencodeLogo, color: '#FFFFFF' },
   { type: 'cursor', label: 'Cursor Agent', description: 'Contextual AI Environment', logo: cursorLogo, color: '#3178C6' },
+  { type: 'kilo', label: 'Kilo Code', description: 'Lightweight AI Developer', logo: kiloLogo, color: '#8B5CF6' },
 ];
 
 interface NewTerminalDialogProps {
@@ -50,14 +52,14 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
       <div
         className={`relative w-full max-w-[440px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] overflow-hidden animate-popover-in font-mono ${
           isLight
-            ? 'bg-white/90 border border-black/5'
+            ? 'bg-zinc-900/95 border border-zinc-700'
             : 'bg-zinc-950/80 border border-white/[0.08]'
         } backdrop-blur-3xl rounded-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Subtle Header */}
         <div className="px-6 pt-8 pb-4 relative flex flex-col items-center">
-          <h2 className={`text-sm font-bold tracking-tight ${isLight ? 'text-zinc-900' : 'text-zinc-100'}`}>
+          <h2 className={`text-sm font-bold tracking-tight ${isLight ? 'text-zinc-100' : 'text-zinc-100'}`}>
             Spawn New Session
           </h2>
           <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mt-1 opacity-60">
@@ -67,7 +69,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
           <button
             onClick={onClose}
             className={`absolute right-6 top-6 p-2 rounded-full transition-all duration-200 ${
-              isLight ? 'hover:bg-zinc-200 text-zinc-400' : 'hover:bg-white/10 text-zinc-500'
+              isLight ? 'hover:bg-zinc-800 text-zinc-500' : 'hover:bg-white/10 text-zinc-500'
             } hover:text-rose-500`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,17 +87,17 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
             className={`w-full group relative flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
               hovered === 'shell'
                 ? isLight
-                  ? 'bg-zinc-900 text-white shadow-xl translate-x-1'
+                  ? 'bg-white text-black shadow-xl translate-x-1'
                   : 'bg-white text-black shadow-xl translate-x-1'
                 : isLight
-                  ? 'hover:bg-zinc-100 text-zinc-600'
+                  ? 'hover:bg-white/5 text-zinc-400'
                   : 'hover:bg-white/5 text-zinc-400'
             }`}
           >
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
               hovered === 'shell'
-                ? isLight ? 'bg-white/20' : 'bg-black/20'
-                : isLight ? 'bg-zinc-200' : 'bg-white/5'
+                ? isLight ? 'bg-black/20' : 'bg-black/20'
+                : isLight ? 'bg-white/5' : 'bg-white/5'
             }`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -124,7 +126,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
                 className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
                   hovered === agent.type
                     ? isLight
-                      ? 'bg-zinc-100 shadow-sm translate-x-1'
+                      ? 'bg-white/10 shadow-sm translate-x-1'
                       : 'bg-white/5 shadow-sm translate-x-1'
                     : 'bg-transparent'
                 }`}
@@ -140,17 +142,23 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 p-2 ${
                   hovered === agent.type
                     ? 'bg-white shadow-md scale-110'
-                    : isLight ? 'bg-zinc-100 grayscale' : 'bg-white/10 grayscale opacity-60'
+                    : isLight ? 'bg-white/10 grayscale opacity-60' : 'bg-white/10 grayscale opacity-60'
                 }`}>
-                  <img src={agent.logo} alt={agent.label} className="w-full h-full object-contain" />
+                  <img 
+                    src={agent.logo} 
+                    alt={agent.label} 
+                    className={`w-full h-full object-contain ${
+                      hovered !== agent.type ? 'brightness-75' : ''
+                    }`} 
+                  />
                 </div>
 
                 <div className="text-left flex-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[11px] font-bold tracking-wider uppercase ${
                       hovered === agent.type 
-                        ? isLight ? 'text-zinc-900' : 'text-zinc-100'
-                        : isLight ? 'text-zinc-500' : 'text-zinc-400'
+                        ? isLight ? 'text-zinc-100' : 'text-zinc-100'
+                        : isLight ? 'text-zinc-400' : 'text-zinc-400'
                     }`}>
                       {agent.label}
                     </span>
@@ -177,7 +185,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
 
         {/* Minimal Bottom Status */}
         <div className={`px-6 py-4 flex items-center justify-between border-t ${
-          isLight ? 'border-zinc-100 bg-zinc-50/50' : 'border-white/[0.04] bg-white/[0.02]'
+          isLight ? 'border-zinc-800 bg-zinc-900/50' : 'border-white/[0.04] bg-white/[0.02]'
         }`}>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -186,7 +194,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
           <div className="flex items-center gap-1.5">
             <span className="text-[8px] text-zinc-600 uppercase tracking-widest">dismiss</span>
             <kbd className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${
-              isLight ? 'bg-white border-zinc-200 text-zinc-400' : 'bg-zinc-900 border-zinc-800 text-zinc-500'
+              isLight ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-zinc-900 border-zinc-800 text-zinc-500'
             }`}>ESC</kbd>
           </div>
         </div>

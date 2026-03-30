@@ -32,6 +32,7 @@ interface AppState {
   setSessions: (sessions: TerminalSession[]) => void;
   addSession: (session: TerminalSession) => void;
   removeSession: (sessionId: string) => void;
+  reorderSession: (sessionId: string, newIndex: number) => void;
   setIsLoadingTerminals: (loading: boolean) => void;
   updateWorkspaceList: (workspaces: WorkspaceConfig[]) => void;
   addToWorkspaceList: (workspace: WorkspaceConfig) => void;
@@ -155,20 +156,74 @@ export const useAppStore = create<AppState>()(
       removeSession: (sessionId) =>
         set((state) => {
           const wsId = state.activeWorkspaceId;
-          const filtered = state.sessions.filter((s) => s.id !== sessionId);
+          const filteredSessions = state.sessions.filter((s) => s.id !== sessionId);
+          
           let updatedByWorkspace = state.sessionsByWorkspace;
+          let finalSessions = filteredSessions;
+
           if (wsId) {
             const currentWs = state.sessionsByWorkspace[wsId] || [];
+            const workspaceFiltered = currentWs.filter((s) => s.id !== sessionId)
+              .sort((a, b) => a.index - b.index)
+              .map((s, idx) => ({ ...s, index: idx }));
+            
             updatedByWorkspace = {
               ...state.sessionsByWorkspace,
-              [wsId]: currentWs.filter((s) => s.id !== sessionId),
+              [wsId]: workspaceFiltered,
             };
+
+            // Sync global sessions list with re-indexed workspace sessions
+            finalSessions = filteredSessions.map(s => {
+              const updated = workspaceFiltered.find(u => u.id === s.id);
+              return updated || s;
+            });
           }
+
           return {
-            sessions: filtered,
+            sessions: finalSessions,
             sessionsByWorkspace: updatedByWorkspace,
             activeSessionId:
               state.activeSessionId === sessionId ? null : state.activeSessionId,
+          };
+        }),
+      reorderSession: (sessionId, targetIndex) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          const sessions = wsId 
+            ? (state.sessionsByWorkspace[wsId] || [])
+            : state.sessions;
+          
+          const draggedSession = sessions.find((s) => s.id === sessionId);
+          if (!draggedSession) return state;
+
+          const sorted = [...sessions].sort((a, b) => a.index - b.index);
+          
+          // targetIndex is the cellIndex (rank) in the grid (0..N-1)
+          // We want to find the session currently at that rank
+          const targetSession = sorted[targetIndex];
+
+          // If no session at that rank (empty cell), or dragging onto self, do nothing
+          if (!targetSession || targetSession.id === sessionId) return state;
+
+          const oldIndex = draggedSession.index;
+          const newIndex = targetSession.index;
+
+          // Swap logic: if you drag A onto B, they swap places.
+          const reordered = sessions.map((s) => {
+            if (s.id === sessionId) {
+              return { ...s, index: newIndex };
+            }
+            if (s.id === targetSession.id) {
+              return { ...s, index: oldIndex };
+            }
+            return s;
+          });
+          
+          return {
+            sessions: state.sessions.map(s => reordered.find(r => r.id === s.id) || s),
+            sessionsByWorkspace: wsId
+              ? { ...state.sessionsByWorkspace, [wsId]: reordered }
+              : state.sessionsByWorkspace,
           };
         }),
       setIsLoadingTerminals: (loading) => set({ isLoadingTerminals: loading }),

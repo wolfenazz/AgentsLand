@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TerminalSession, AgentType } from '../../types';
 import { TerminalPane } from './TerminalPane';
 import { NewTerminalDialog } from './NewTerminalDialog';
@@ -31,6 +32,8 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [colSizes, setColSizes] = useState<number[] | null>(null);
   const [rowSizes, setRowSizes] = useState<number[] | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     axis: 'col' | 'row';
@@ -42,6 +45,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const isLight = theme === 'light';
   const addSession = useAppStore((s) => s.addSession);
   const removeSession = useAppStore((s) => s.removeSession);
+  const reorderSession = useAppStore((s) => s.reorderSession);
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
 
   const sorted = useMemo(() => [...sessions].sort((a, b) => a.index - b.index), [sessions]);
@@ -70,14 +74,11 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     if (!currentWorkspace) return;
     setShowNewDialog(false);
     try {
-      const nextIndex = sessions.length > 0
-        ? Math.max(...sessions.map((s) => s.index)) + 1
-        : 0;
       const newSession = await invoke<TerminalSession>('create_single_terminal_session', {
         request: {
           workspaceId: currentWorkspace.id,
           workspacePath: currentWorkspace.path,
-          index: nextIndex,
+          index: sessions.length,
           agent,
         },
       });
@@ -87,7 +88,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     } catch (err) {
       console.error('Failed to create terminal:', err);
     }
-  }, [currentWorkspace, sessions, addSession]);
+  }, [currentWorkspace, sessions.length, addSession]);
 
   const handleRemoveTerminal = useCallback(async (sessionId: string) => {
     try {
@@ -99,6 +100,47 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     setColSizes(null);
     setRowSizes(null);
   }, [removeSession]);
+
+  const handleDragStart = useCallback((_e: React.DragEvent, sessionId: string) => {
+    setDraggingId(sessionId);
+    document.body.style.cursor = 'grabbing';
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingId(null);
+    setDropTargetIndex(null);
+    document.body.style.cursor = '';
+  }, []);
+
+  const handleCellDragOver = useCallback((e: React.DragEvent, cellIndex: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDropTargetIndex(cellIndex);
+  }, []);
+
+  const handleCellDragLeave = useCallback((e: React.DragEvent) => {
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    const currentTarget = e.currentTarget as HTMLElement;
+    if (!currentTarget.contains(relatedTarget)) {
+      setDropTargetIndex(null);
+    }
+  }, []);
+
+  const handleCellDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const sessionId = e.dataTransfer.getData('text/plain');
+    if (!sessionId) return;
+    
+    const session = sorted.find((s) => s.id === sessionId);
+    if (!session) return;
+    
+    if (session.index !== targetIndex) {
+      reorderSession(sessionId, targetIndex);
+    }
+    
+    setDraggingId(null);
+    setDropTargetIndex(null);
+  }, [sorted, reorderSession]);
 
   const getPointerPercent = useCallback((e: MouseEvent, axis: 'col' | 'row') => {
     if (!containerRef.current) return 0;
@@ -203,7 +245,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const cellCount = cols * rows;
 
   return (
-    <div className="h-full w-full flex flex-col bg-zinc-950">
+    <div className={`h-full w-full flex flex-col bg-theme-main`}>
       <div
         ref={containerRef}
         className="flex-1 min-h-0 relative p-1"
@@ -221,46 +263,87 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             const row = Math.floor(cellIndex / cols);
             const col = cellIndex % cols;
             const session = sorted[cellIndex] || null;
+            const isDropTarget = dropTargetIndex === cellIndex && draggingId && session?.id !== draggingId;
+            const isDragging = draggingId === session?.id;
 
             return (
-              <div
+              <motion.div
                 key={cellIndex}
-                className="relative overflow-hidden rounded-xl border border-zinc-800/30 bg-zinc-900/5 shadow-xl transition-all duration-500"
+                layout
+                animate={{
+                  scale: isDragging ? 1.03 : isDropTarget ? 1.01 : 1,
+                  opacity: isDragging ? 0.85 : isDropTarget ? 0.9 : 1,
+                  zIndex: isDragging ? 50 : isDropTarget ? 20 : 1,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 35,
+                  layout: { type: "spring", stiffness: 400, damping: 35 },
+                }}
+                className={`relative overflow-hidden rounded-xl border bg-theme-card shadow-xl transition-all duration-300 ${
+                  isDropTarget
+                    ? isLight
+                      ? 'border-emerald-400/60 shadow-[0_0_20px_rgba(52,211,153,0.3)]'
+                      : 'border-emerald-500/50 shadow-[0_0_20px_rgba(52,211,153,0.2)]'
+                    : 'border-theme'
+                } ${isDragging ? 'shadow-2xl' : ''}`}
                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                onDragOver={(e) => handleCellDragOver(e as unknown as React.DragEvent, cellIndex)}
+                onDragLeave={handleCellDragLeave}
+                onDrop={(e) => handleCellDrop(e as unknown as React.DragEvent, cellIndex)}
               >
                 {session ? (
                   <TerminalPane
                     session={session}
                     onClose={() => handleRemoveTerminal(session.id)}
                     theme={theme}
+                    isDragging={isDragging}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
                   />
                 ) : (
                   <div
-                    className={`h-full flex items-center justify-center cursor-pointer transition-all duration-500 group/empty ${
+                    className={`h-full flex items-center justify-center cursor-pointer transition-all duration-300 group/empty ${
                       isLight
-                        ? 'bg-zinc-200/30 hover:bg-zinc-200/80'
+                        ? 'bg-zinc-800/10 hover:bg-zinc-800/30'
                         : 'bg-zinc-900/10 hover:bg-zinc-900/30'
                     }`}
                     onClick={() => setShowNewDialog(true)}
                     title="Spawn Terminal"
                   >
-                    <div className="flex flex-col items-center gap-4 transition-all duration-500 group-hover/empty:scale-110">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
+                    <div className="flex flex-col items-center gap-4 transition-all duration-300 group-hover/empty:scale-110">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 ${
                         isLight
-                          ? 'border-zinc-300 text-zinc-400 group-hover/empty:border-blue-400 group-hover/empty:bg-blue-50'
-                          : 'border-zinc-800 text-zinc-700 group-hover/empty:border-blue-500/50 group-hover/empty:bg-blue-500/5 group-hover/empty:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0)] group-hover/empty:shadow-[0_0_20px_rgba(59,130,246,0.1)]'
+                          ? 'border-zinc-700 text-zinc-500 group-hover/empty:border-zinc-500 group-hover/empty:bg-zinc-800/40'
+                          : 'border-zinc-800 text-zinc-700 group-hover/empty:border-zinc-600 group-hover/empty:bg-zinc-800/20 group-hover/empty:text-zinc-400'
                       }`}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
-                      <span className={`text-[10px] uppercase font-black tracking-[0.3em] transition-colors duration-500 ${
-                        isLight ? 'text-zinc-400' : 'text-zinc-700 group-hover/empty:text-blue-400'
+                      <span className={`text-[10px] uppercase font-black tracking-[0.3em] transition-colors duration-300 ${
+                        isLight ? 'text-zinc-500 group-hover/empty:text-zinc-300' : 'text-zinc-700 group-hover/empty:text-zinc-400'
                       }`}>Spawn_TTY</span>
                     </div>
                   </div>
                 )}
-              </div>
+                <AnimatePresence>
+                  {isDropTarget && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className={`absolute inset-0 rounded-xl border-2 pointer-events-none ${
+                        isLight
+                          ? 'border-emerald-400/80 bg-emerald-400/10'
+                          : 'border-emerald-500/60 bg-emerald-500/5'
+                      }`}
+                    />
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
         </div>
@@ -271,7 +354,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             <div
               key={`col-${ci}`}
               onMouseDown={(e) => handleDividerDrag(e, 'col', ci)}
-              className="absolute top-2 bottom-2 cursor-col-resize z-10 group/divider"
+              className="absolute top-2 bottom-2 cursor-col-resize z-30 group/divider"
               style={{
                 left: `calc(${leftPercent}% - ${DIVIDER / 2}px)`,
                 width: `${DIVIDER}px`,
@@ -279,8 +362,8 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             >
               <div className={`w-1 h-full transition-all duration-300 mx-auto rounded-full ${
                 isLight
-                  ? 'bg-transparent group-hover/divider:bg-blue-400/50'
-                  : 'bg-transparent group-hover/divider:bg-blue-500/20 group-active/divider:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0)] group-hover/divider:shadow-[0_0_10px_rgba(59,130,246,0.1)]'
+                  ? 'bg-transparent group-hover/divider:bg-zinc-600/50'
+                  : 'bg-transparent group-hover/divider:bg-zinc-700/50 group-active/divider:bg-zinc-500'
               }`} />
             </div>
           );
@@ -292,7 +375,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             <div
               key={`row-${ri}`}
               onMouseDown={(e) => handleDividerDrag(e, 'row', ri)}
-              className="absolute left-2 right-2 cursor-row-resize z-10 group/divider"
+              className="absolute left-2 right-2 cursor-row-resize z-30 group/divider"
               style={{
                 top: `calc(${topPercent}% - ${DIVIDER / 2}px)`,
                 height: `${DIVIDER}px`,
@@ -300,32 +383,32 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             >
               <div className={`h-1 w-full transition-all duration-300 my-auto rounded-full ${
                 isLight
-                  ? 'bg-transparent group-hover/divider:bg-blue-400/50'
-                  : 'bg-transparent group-hover/divider:bg-blue-500/20 group-active/divider:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0)] group-hover/divider:shadow-[0_0_10px_rgba(59,130,246,0.1)]'
+                  ? 'bg-transparent group-hover/divider:bg-zinc-600/50'
+                  : 'bg-transparent group-hover/divider:bg-zinc-700/50 group-active/divider:bg-zinc-500'
               }`} />
             </div>
           );
         })}
       </div>
 
-      <div className={`flex items-center justify-between px-4 py-2 shrink-0 border-t border-zinc-800/30 bg-zinc-950/50 backdrop-blur-sm`}>
+      <div className={`flex items-center justify-between px-4 py-2 shrink-0 border-t border-theme bg-theme-card/50 backdrop-blur-sm`}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black tracking-[0.2em] text-zinc-600 uppercase">CLUSTER_SIZE</span>
-            <span className="text-[10px] font-bold text-zinc-400">{sorted.length}U</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">CLUSTER_SIZE</span>
+            <span className="text-[10px] font-bold text-theme-main">{sorted.length}U</span>
           </div>
-          <div className="h-3 w-px bg-zinc-800/50" />
+          <div className="h-3 w-px bg-theme-hover mx-1" />
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black tracking-[0.2em] text-zinc-600 uppercase">TOPOLOGY</span>
-            <span className="text-[10px] font-bold text-zinc-400">{cols}x{rows}</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">TOPOLOGY</span>
+            <span className="text-[10px] font-bold text-theme-main">{cols}x{rows}</span>
           </div>
         </div>
         <button
           onClick={() => setShowNewDialog(true)}
           className={`group/init relative flex items-center gap-2 px-3.5 py-1.5 ${
             isLight 
-              ? 'bg-zinc-900 text-zinc-100 border-zinc-800' 
-              : 'bg-white text-zinc-900 border-zinc-200 shadow-[0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)]'
+              ? 'bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700' 
+              : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
           } border rounded-lg text-[9px] font-bold uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 cursor-pointer shadow-md hover:shadow-xl`}
           title="Initialize new TTY"
         >
@@ -336,9 +419,8 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           </div>
           <span className="relative">Initialize_TTY</span>
           
-          {/* Depth Glow Effect */}
           <div className={`absolute inset-0 rounded-lg opacity-0 group-hover/init:opacity-100 transition-opacity duration-500 pointer-events-none ${
-            isLight ? 'bg-white/5' : 'bg-black/5'
+            isLight ? 'bg-white/5' : 'bg-white/5'
           }`} />
         </button>
       </div>

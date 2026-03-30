@@ -43,7 +43,7 @@ const IndentGuides: React.FC<{ level: number }> = memo(({ level }) => {
       {Array.from({ length: level }).map((_, i) => (
         <div
           key={i}
-          className="w-[14px] border-l border-zinc-800/60"
+          className="w-[14px] border-l border-theme/30"
         />
       ))}
     </div>
@@ -87,7 +87,7 @@ const EditInput: React.FC<{
     <input
       ref={inputRef}
       defaultValue={value}
-      className="flex-1 bg-zinc-800 text-xs text-zinc-200 px-1 py-0 outline-none border border-emerald-500/50 rounded-sm min-w-0"
+      className="flex-1 bg-zinc-800 text-xs text-zinc-200 px-1 py-0 outline-none border border-zinc-600 rounded-sm min-w-0"
       onKeyDown={handleKeyDown}
       onBlur={(e) => {
         e.stopPropagation();
@@ -164,9 +164,9 @@ const TreeNodeInner: React.FC<NodeRendererProps<TreeNodeData>> = ({
       }}
       className={`flex items-center gap-1 pr-3 cursor-pointer select-none group transition-colors duration-100 rounded-sm mx-1 ${
         isActive
-          ? 'bg-emerald-500/10 text-emerald-300'
+          ? 'bg-zinc-800 text-zinc-100'
           : node.willReceiveDrop
-            ? 'bg-blue-500/10 text-blue-300'
+            ? 'bg-zinc-700/30 text-zinc-300'
             : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
       }`}
       onClick={handleClick}

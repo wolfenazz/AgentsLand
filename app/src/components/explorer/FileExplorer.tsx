@@ -156,14 +156,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   return (
     <div
-      className="h-full flex flex-col bg-zinc-950/50 backdrop-blur-sm border-r border-zinc-800/50 select-none overflow-hidden"
+      className="h-full flex flex-col bg-theme-main backdrop-blur-sm border-r border-theme select-none overflow-hidden"
       onContextMenu={handleContainerContextMenu}
     >
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-800/50 shrink-0 bg-zinc-900/20">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-theme shrink-0 bg-theme-card/40">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+          <div className="p-1 rounded-md bg-zinc-800/50 border border-theme">
             <svg
-              className="w-3 h-3 text-amber-500 shrink-0"
+              className="w-3 h-3 text-zinc-500 shrink-0"
               fill="none"
               viewBox="0 0 16 16"
             >
@@ -174,14 +174,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               />
             </svg>
           </div>
-          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] truncate">
+          <span className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.2em] truncate">
             {workspaceName}
           </span>
         </div>
         <div className="flex items-center gap-0.5">
           <button
             onClick={() => handleNewFile(null)}
-            className="p-1.5 hover:bg-zinc-800 rounded-md transition-all duration-200 text-zinc-500 hover:text-blue-400 cursor-pointer group"
+            className="p-1.5 hover:bg-theme-hover rounded-md transition-all duration-200 text-zinc-500 hover:text-theme-main cursor-pointer group"
             title="New File"
           >
             <svg
@@ -200,7 +200,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </button>
           <button
             onClick={() => handleNewFolder(null)}
-            className="p-1.5 hover:bg-zinc-800 rounded-md transition-all duration-200 text-zinc-500 hover:text-amber-400 cursor-pointer group"
+            className="p-1.5 hover:bg-theme-hover rounded-md transition-all duration-200 text-zinc-500 hover:text-theme-main cursor-pointer group"
             title="New Folder"
           >
             <svg
@@ -219,7 +219,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </button>
           <button
             onClick={refreshRoot}
-            className="p-1.5 hover:bg-zinc-800 rounded-md transition-all duration-200 text-zinc-500 hover:text-emerald-400 cursor-pointer group"
+            className="p-1.5 hover:bg-theme-hover rounded-md transition-all duration-200 text-zinc-500 hover:text-theme-main cursor-pointer group"
             title="Refresh"
           >
             <svg
@@ -239,8 +239,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         </div>
       </div>
 
-      <div className="px-2 py-2 border-b border-zinc-800/50 bg-zinc-900/10">
-        <div className="flex items-center gap-2 px-2.5 py-1.5 bg-zinc-950 border border-zinc-800/50 rounded-lg focus-within:border-blue-500/50 transition-colors shadow-inner">
+      <div className="px-2 py-2 border-b border-theme bg-theme-card/10">
+        <div className="flex items-center gap-2 px-2.5 py-1.5 bg-theme-main border border-theme rounded-lg focus-within:border-zinc-600 transition-colors shadow-inner">
           <svg
             className="w-3.5 h-3.5 text-zinc-600 shrink-0"
             fill="none"
@@ -264,7 +264,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="p-1 hover:bg-zinc-800 rounded-md cursor-pointer text-zinc-500 hover:text-zinc-300"
+              className="p-1 hover:bg-theme-hover rounded-md cursor-pointer text-zinc-500 hover:text-zinc-300"
             >
               <svg
                 className="w-3 h-3"

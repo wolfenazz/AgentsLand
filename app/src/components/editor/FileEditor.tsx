@@ -12,9 +12,10 @@ import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { java } from '@codemirror/lang-java';
 import { cpp } from '@codemirror/lang-cpp';
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { closeBrackets, closeBracketsKeymap, autocompletion } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { searchKeymap, highlightSelectionMatches, openSearchPanel } from '@codemirror/search';
+// minimap removed due to version conflict issues
 import { useAppStore } from '../../stores/appStore';
 import { EditorTabs } from './EditorTabs';
 import { MarkdownPreview } from './MarkdownPreview';
@@ -88,45 +89,48 @@ const darkEditorTheme = EditorView.theme({
 const lightEditorTheme = EditorView.theme({
   '&': {
     fontSize: '13px',
-    backgroundColor: '#f4f4f5',
+    backgroundColor: '#d4d4d8',
     color: '#18181b',
     height: '100%',
   },
   '.cm-scroller': {
-    backgroundColor: '#f4f4f5',
+    backgroundColor: '#d4d4d8',
   },
   '.cm-content': {
     fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
     padding: '4px 0',
-    backgroundColor: '#f4f4f5',
+    backgroundColor: '#d4d4d8',
   },
   '.cm-gutters': {
-    backgroundColor: '#e4e4e7',
-    borderRight: '1px solid #d4d4d8',
-    color: '#a1a1aa',
+    backgroundColor: '#cacacc',
+    borderRight: '1px solid #b8b8bc',
+    color: '#71717a',
     minWidth: '40px',
   },
   '.cm-activeLineGutter': {
-    backgroundColor: '#e4e4e7',
-    color: '#52525b',
+    backgroundColor: '#cacacc',
+    color: '#404040',
   },
   '.cm-activeLine': {
-    backgroundColor: 'rgba(24, 24, 27, 0.05)',
+    backgroundColor: 'rgba(24, 24, 27, 0.08)',
   },
   '.cm-selectionBackground': {
-    backgroundColor: '#bfdbfe !important',
+    backgroundColor: '#93c5fd !important',
   },
   '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: '#bfdbfe !important',
+    backgroundColor: '#93c5fd !important',
   },
   '.cm-cursor': {
-    borderLeftColor: '#3b82f6',
+    borderLeftColor: '#2563eb',
   },
   '.cm-line': {
     padding: '0 4px',
   },
   '.cm-foldGutter': {
-    backgroundColor: '#e4e4e7',
+    backgroundColor: '#cacacc',
+  },
+  '.cm-minimap': {
+    backgroundColor: '#bfbfc2',
   },
 }, { dark: false });
 
@@ -151,10 +155,15 @@ const getExtension = (name: string): string | null => {
   return null;
 };
 
-const getThemeExtensions = (t: string) =>
-  t === 'light'
+const getThemeExtensions = (t: string): any => {
+  const baseExtensions: any = t === 'light'
     ? [lightEditorTheme, lightHighlightStyle, syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
     : [darkEditorTheme, oneDark];
+  
+  return baseExtensions;
+};
+
+const wordWrapCompartment = new Compartment();
 
 export const FileEditor: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -178,6 +187,7 @@ export const FileEditor: React.FC = () => {
   const theme = useAppStore((s) => s.theme);
 
   const [mdPreview, setMdPreview] = useState(false);
+  const [wordWrap, setWordWrap] = useState(false);
 
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
   const fileExt = activeFile ? getExtension(activeFile.name) : null;
@@ -224,12 +234,14 @@ export const FileEditor: React.FC = () => {
       extensions: [
         themeCompartment.of(getThemeExtensions(theme)),
         languageCompartment.of(langExt),
+        wordWrapCompartment.of(wordWrap ? EditorView.lineWrapping : EditorView.theme({})),
         lineNumbers(),
         highlightActiveLine(),
         highlightActiveLineGutter(),
         drawSelection(),
         bracketMatching(),
         closeBrackets(),
+        autocompletion(),
         history(),
         indentOnInput(),
         highlightSelectionMatches(),
@@ -244,6 +256,24 @@ export const FileEditor: React.FC = () => {
             key: 'Mod-s',
             run: () => {
               callbacksRef.current.handleSave();
+              return true;
+            },
+          },
+          {
+            key: 'Mod-g',
+            run: (view) => {
+              const line = prompt('Go to line number:');
+              if (line && !isNaN(Number(line))) {
+                const lineNumber = Number(line);
+                const doc = view.state.doc;
+                if (lineNumber > 0 && lineNumber <= doc.lines) {
+                  view.dispatch({
+                    selection: { anchor: doc.line(lineNumber).from },
+                    scrollIntoView: true,
+                  });
+                  view.focus();
+                }
+              }
               return true;
             },
           },
@@ -280,6 +310,13 @@ export const FileEditor: React.FC = () => {
   }, [theme]);
 
   useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({
+      effects: wordWrapCompartment.reconfigure(wordWrap ? EditorView.lineWrapping : EditorView.theme({})),
+    });
+  }, [wordWrap]);
+
+  useEffect(() => {
     if (!viewRef.current || !activeFile) return;
     if (currentFileRef.current !== activeFile.path) return;
     const current = viewRef.current.state.doc.toString();
@@ -312,7 +349,7 @@ export const FileEditor: React.FC = () => {
   const showEditor = activeFile && !isPreviewable && !(isMarkdown && mdPreview);
 
   return (
-    <div className={`h-full flex flex-col ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}>
+    <div className={`h-full flex flex-col ${theme === 'light' ? 'bg-gray-300' : 'bg-[#09090b]'}`}>
       <EditorTabs
         openFiles={openFiles}
         activeFilePath={activeFilePath}
@@ -326,7 +363,7 @@ export const FileEditor: React.FC = () => {
       />
 
       {activeFile && (
-        <div className={`flex items-center justify-between px-3 py-1 border-b shrink-0 ${theme === 'light' ? 'bg-zinc-200/60 border-zinc-300' : 'bg-zinc-950 border-zinc-800/60'}`}>
+        <div className={`flex items-center justify-between px-3 py-1 border-b shrink-0 ${theme === 'light' ? 'bg-gray-200/60 border-gray-300' : 'bg-zinc-950 border-zinc-800/60'}`}>
           <div className="flex items-center gap-2">
             <span className={`text-[10px] ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'} font-mono tracking-wider`}>
               {getBreadcrumb(activeFile.path)}
@@ -335,14 +372,49 @@ export const FileEditor: React.FC = () => {
               <span className="text-[9px] text-amber-500 uppercase tracking-widest">Modified</span>
             )}
           </div>
-          {isMarkdown && (
-            <button
+          <div className="flex items-center gap-1">
+            {showEditor && !isMarkdown && (
+              <>
+                <button
+                  onClick={() => viewRef.current && openSearchPanel(viewRef.current)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
+                    theme === 'light'
+                      ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
+                      : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
+                  }`}
+                  title="Find (Ctrl-F)"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Find
+                </button>
+                <button
+                  onClick={() => setWordWrap(!wordWrap)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
+                    wordWrap
+                      ? 'bg-blue-500/10 text-blue-500 border border-blue-500/30'
+                      : theme === 'light'
+                        ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
+                        : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
+                  }`}
+                  title="Toggle Word Wrap"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                  Wrap
+                </button>
+              </>
+            )}
+            {isMarkdown && (
+              <button
               onClick={() => setMdPreview(!mdPreview)}
               className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
                 mdPreview
                   ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30'
                   : theme === 'light'
-                    ? 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
+                    ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
                     : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
               }`}
               title={mdPreview ? 'Show source' : 'Show preview'}
@@ -359,14 +431,15 @@ export const FileEditor: React.FC = () => {
               )}
               {mdPreview ? 'Code' : 'Preview'}
             </button>
-          )}
+            )}
+          </div>
         </div>
       )}
 
       <div className="flex-1 relative min-h-0 overflow-hidden">
         <div
           ref={editorRef}
-          className={`absolute inset-0 ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}
+          className={`absolute inset-0 ${theme === 'light' ? 'bg-gray-300' : 'bg-[#09090b]'}`}
           style={{ visibility: showEditor ? 'visible' : 'hidden' }}
         />
 
@@ -403,12 +476,12 @@ export const FileEditor: React.FC = () => {
         )}
 
         {activeFile && isMarkdown && mdPreview && (
-          <MarkdownPreview content={activeFile.content} theme={theme} />
+          <MarkdownPreview content={activeFile.content} theme={theme} filePath={activeFile.path} />
         )}
 
         {!activeFile && (
-          <div className={`absolute inset-0 flex items-center justify-center ${theme === 'light' ? 'bg-zinc-100' : 'bg-[#09090b]'}`}>
-            <div className={`flex flex-col items-center gap-3 ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+          <div className={`absolute inset-0 flex items-center justify-center ${theme === 'light' ? 'bg-gray-300' : 'bg-[#09090b]'}`}>
+            <div className={`flex flex-col items-center gap-3 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>
               <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
               </svg>

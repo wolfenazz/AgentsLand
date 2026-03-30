@@ -24,6 +24,9 @@ interface TerminalPaneProps {
   onResize?: (cols: number, rows: number) => void;
   onClose?: () => void;
   theme?: 'dark' | 'light';
+  isDragging?: boolean;
+  onDragStart?: (e: React.DragEvent, sessionId: string) => void;
+  onDragEnd?: () => void;
 }
 
 const AGENT_LOGOS: Record<AgentType, string> = {
@@ -52,7 +55,7 @@ const DARK_TERMINAL_THEME = {
   red: '#cd3131',
   green: '#0dbc79',
   yellow: '#e5e510',
-  blue: '#2472c8',
+  blue: '#52525b', /* Neutralized */
   magenta: '#bc3fbc',
   cyan: '#11a8cd',
   white: '#e5e5e5',
@@ -60,38 +63,46 @@ const DARK_TERMINAL_THEME = {
   brightRed: '#f14c4c',
   brightGreen: '#23d18b',
   brightYellow: '#f5f543',
-  brightBlue: '#3b8eea',
+  brightBlue: '#71717a', /* Neutralized */
   brightMagenta: '#d670d6',
   brightCyan: '#29b8db',
   brightWhite: '#e5e5e5',
 };
 
 const LIGHT_TERMINAL_THEME = {
-  background: '#f4f4f5',
-  foreground: '#18181b',
-  cursor: '#52525b',
-  cursorAccent: '#f4f4f5',
-  selectionBackground: '#bfdbfe',
-  selectionForeground: '#18181b',
-  black: '#18181b',
-  red: '#b91c1c',
-  green: '#15803d',
-  yellow: '#a16207',
-  blue: '#1d4ed8',
-  magenta: '#9333ea',
-  cyan: '#0e7490',
-  white: '#f4f4f5',
-  brightBlack: '#71717a',
-  brightRed: '#dc2626',
-  brightGreen: '#16a34a',
-  brightYellow: '#ca8a04',
-  brightBlue: '#2563eb',
-  brightMagenta: '#a855f7',
-  brightCyan: '#06b6d4',
+  background: '#18181b', /* zinc-900 */
+  foreground: '#f4f4f5', /* zinc-100 */
+  cursor: '#a1a1aa',
+  cursorAccent: '#18181b',
+  selectionBackground: '#3f3f46',
+  selectionForeground: '#ffffff',
+  black: '#000000',
+  red: '#cd3131',
+  green: '#0dbc79',
+  yellow: '#e5e510',
+  blue: '#71717a',
+  magenta: '#bc3fbc',
+  cyan: '#11a8cd',
+  white: '#e5e5e5',
+  brightBlack: '#666666',
+  brightRed: '#f14c4c',
+  brightGreen: '#23d18b',
+  brightYellow: '#f5f543',
+  brightBlue: '#a1a1aa',
+  brightMagenta: '#d670d6',
+  brightCyan: '#29b8db',
   brightWhite: '#ffffff',
 };
 
-export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, onClose, theme: themeProp }) => {
+export const TerminalPane: React.FC<TerminalPaneProps> = ({ 
+  session, 
+  onResize, 
+  onClose, 
+  theme: themeProp,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+}) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -566,7 +577,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
 
     if (!launchState) {
       return (
-        <span className={`${badgeBase} ${isLight ? 'bg-zinc-200 border border-zinc-300 text-zinc-500' : 'bg-zinc-900 border border-zinc-700 text-zinc-400'}`}>
+        <span className={`${badgeBase} ${isLight ? 'bg-gray-600 border border-gray-500 text-gray-300' : 'bg-zinc-900 border border-zinc-700 text-zinc-400'}`}>
           Ready
         </span>
       );
@@ -575,7 +586,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
     switch (launchState.status) {
       case 'Starting':
         return (
-          <span className={`${badgeBase} flex items-center gap-1 ${isLight ? 'bg-zinc-200 border border-zinc-300 text-zinc-600' : 'bg-zinc-800 border border-zinc-700 text-zinc-300'}`}>
+          <span className={`${badgeBase} flex items-center gap-1 ${isLight ? 'bg-gray-600 border border-gray-500 text-gray-200' : 'bg-zinc-800 border border-zinc-700 text-zinc-300'}`}>
             <svg className="w-2.5 h-2.5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -598,7 +609,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
         );
       default:
         return (
-          <span className={`${badgeBase} ${isLight ? 'bg-zinc-200 border border-zinc-300 text-zinc-500' : 'bg-zinc-900 border border-zinc-700 text-zinc-400'}`}>
+          <span className={`${badgeBase} ${isLight ? 'bg-gray-600 border border-gray-500 text-gray-300' : 'bg-zinc-900 border border-zinc-700 text-zinc-400'}`}>
             Ready
           </span>
         );
@@ -640,15 +651,47 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
   return (
     <div className={`h-full flex flex-col overflow-hidden transition-all duration-300 font-mono ${
       isLight
-        ? 'bg-zinc-100 border border-zinc-300/50'
+        ? 'bg-zinc-900 border border-zinc-700 shadow-xl'
         : 'bg-zinc-950 border border-zinc-800/50 shadow-2xl'
     }`}>
-      <div className={`flex items-center justify-between px-3 py-1.5 select-none shrink-0 ${
-        isLight
-          ? 'bg-zinc-200/60 border-b border-zinc-300'
-          : 'bg-zinc-900/40 border-b border-zinc-800/50 backdrop-blur-md'
-      }`}>
+      <div 
+        className={`flex items-center justify-between px-3 py-1.5 select-none shrink-0 cursor-grab active:cursor-grabbing ${
+          isLight
+            ? 'bg-zinc-800/80 border-b border-zinc-700 backdrop-blur-md'
+            : 'bg-zinc-900/40 border-b border-zinc-800/50 backdrop-blur-md'
+        }`}
+        draggable={true}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', session.id);
+          onDragStart?.(e, session.id);
+        }}
+        onDragEnd={() => {
+          onDragEnd?.();
+        }}
+      >
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+          <div
+            className={`flex items-center justify-center w-4 h-4 rounded-sm shrink-0 ${
+              isDragging
+                ? isLight
+                  ? 'bg-zinc-600 text-zinc-200'
+                  : 'bg-zinc-700 text-zinc-300'
+                : isLight
+                  ? 'text-zinc-600'
+                  : 'text-zinc-700'
+            }`}
+            title="Drag to reorder"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="5" r="1.5" />
+              <circle cx="15" cy="5" r="1.5" />
+              <circle cx="9" cy="12" r="1.5" />
+              <circle cx="15" cy="12" r="1.5" />
+              <circle cx="9" cy="19" r="1.5" />
+              <circle cx="15" cy="19" r="1.5" />
+            </svg>
+          </div>
           <div className="relative flex h-2 w-2 shrink-0">
              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 ${
                session.status === 'running' ? 'bg-emerald-400' : session.status === 'error' ? 'bg-rose-400' : 'bg-zinc-400'
@@ -656,7 +699,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
              <span className={`relative inline-flex rounded-full h-2 w-2 ${STATUS_COLORS[session.status]}`}></span>
           </div>
           
-          <span className={`text-[10px] font-black tracking-[0.2em] uppercase shrink-0 ${isLight ? 'text-zinc-600' : 'text-zinc-500'}`}>
+          <span className={`text-[10px] font-black tracking-[0.2em] uppercase shrink-0 ${isLight ? 'text-zinc-400' : 'text-zinc-500'}`}>
             TTY::{session.index + 1}
           </span>
 
@@ -665,22 +708,22 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
           {session.agent ? (
             <div className="flex items-center gap-2 min-w-0">
               <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md shrink-0 border transition-all duration-300 ${
-                isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-950 border-zinc-800 hover:border-blue-500/30 group/agent'
+                isLight ? 'bg-zinc-800 border-zinc-700' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 group/agent'
               }`}>
                 <img
                   src={AGENT_LOGOS[session.agent]}
                   alt={session.agent}
                   className={`w-3 h-3 object-contain transition-transform group-hover/agent:scale-110 ${session.agent === 'opencode' || session.agent === 'cursor' || session.agent === 'codex'
                       ? isLight
-                        ? 'brightness-[0.8]'
+                        ? 'invert brightness-[3.5] contrast-[1.5]'
                         : 'invert brightness-[3.5] contrast-[1.5]'
                       : isLight
-                        ? 'brightness-[0.9]'
+                        ? 'brightness-[2.2] contrast-[1.2]'
                         : 'brightness-[2.2] contrast-[1.2]'
                     }`}
                 />
                 <span className={`text-[9px] uppercase font-black tracking-widest truncate max-w-[80px] ${
-                  isLight ? 'text-zinc-700' : 'text-zinc-400'
+                  isLight ? 'text-zinc-300' : 'text-zinc-400'
                 }`}>{session.agent}</span>
               </div>
               <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-1 duration-300">
@@ -689,12 +732,12 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
             </div>
           ) : (
             <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md shrink-0 border ${
-              isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-950 border-zinc-800'
+              isLight ? 'bg-zinc-800 border-zinc-700' : 'bg-zinc-950 border-zinc-800'
             }`}>
-              <svg className={`w-3 h-3 ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-3 h-3 ${isLight ? 'text-zinc-500' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className={`text-[9px] font-black uppercase tracking-widest ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`}>CORE::SHELL</span>
+              <span className={`text-[9px] font-black uppercase tracking-widest ${isLight ? 'text-zinc-500' : 'text-zinc-600'}`}>CORE::SHELL</span>
             </div>
           )}
         </div>
@@ -706,8 +749,8 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
               disabled={isRefreshing}
               className={`flex items-center justify-center w-6 h-6 rounded-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                 isLight
-                  ? 'text-zinc-400 hover:text-blue-600 hover:bg-blue-100'
-                  : 'text-zinc-600 hover:text-blue-400 hover:bg-blue-900/30'
+                  ? 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700'
+                  : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/50'
               }`}
               title="Restart CLI"
             >
@@ -721,8 +764,8 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
               onClick={onClose}
               className={`flex items-center justify-center w-6 h-6 rounded-md transition-all duration-200 cursor-pointer ${
                 isLight
-                  ? 'text-zinc-400 hover:text-rose-600 hover:bg-rose-100'
-                  : 'text-zinc-600 hover:text-rose-400 hover:bg-rose-900/30'
+                  ? 'text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30'
+                  : 'text-zinc-600 hover:text-rose-400 hover:bg-rose-950/30'
               }`}
               title="Terminate process"
             >
@@ -736,7 +779,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
 
       {showSearch && (
         <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${
-          isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-900 border-zinc-800'
+          isLight ? 'bg-zinc-800 border-zinc-700' : 'bg-zinc-900 border-zinc-800'
         }`}>
           <svg className={`w-3.5 h-3.5 ${isLight ? 'text-zinc-400' : 'text-zinc-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -754,13 +797,13 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
             }}
             placeholder="Search..."
             className={`flex-1 bg-transparent text-xs outline-none ${
-              isLight ? 'text-zinc-800 placeholder-zinc-400' : 'text-zinc-300 placeholder-zinc-600'
+              isLight ? 'text-zinc-200 placeholder-zinc-500' : 'text-zinc-300 placeholder-zinc-600'
             }`}
             autoFocus
           />
           <button
             onClick={() => handleSearch('prev')}
-            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-200 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
+            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-700 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
             title="Previous match"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -769,7 +812,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
           </button>
           <button
             onClick={() => handleSearch('next')}
-            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-200 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
+            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-700 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
             title="Next match"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -778,7 +821,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
           </button>
           <button
             onClick={handleClearSearch}
-            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-200 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
+            className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'hover:bg-zinc-700 text-zinc-400' : 'hover:bg-zinc-800 text-zinc-500'}`}
             title="Close search"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -790,7 +833,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({ session, onResize, o
 
       <div
         ref={terminalRef}
-        className={`flex-1 overflow-hidden min-h-0 p-0.5 ${isLight ? 'bg-[#f4f4f5]' : 'bg-[#09090b]'}`}
+        className={`flex-1 overflow-hidden min-h-0 p-0.5 ${isLight ? 'bg-[#18181b]' : 'bg-[#09090b]'}`}
       />
 
       {showAuthModal && session.agent && (
@@ -827,7 +870,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ agent, onClose, getAuthInstructio
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 font-mono">
       <div className={`border rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl ${
-        isLight ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-950 border-zinc-800'
+        isLight ? 'bg-gray-700 border-gray-500' : 'bg-zinc-950 border-zinc-800'
       }`}>
         <h3 className={`text-sm font-bold mb-4 tracking-widest uppercase border-b pb-2 ${
           isLight ? 'text-zinc-800 border-zinc-300' : 'text-zinc-100 border-zinc-800'
@@ -836,7 +879,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ agent, onClose, getAuthInstructio
         </h3>
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <svg className={`w-6 h-6 animate-spin ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`} fill="none" viewBox="0 0 24 24">
+            <svg className={`w-6 h-6 animate-spin ${isLight ? 'text-gray-300' : 'text-zinc-600'}`} fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
@@ -848,8 +891,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ agent, onClose, getAuthInstructio
               isLight ? 'bg-zinc-50 border-zinc-300' : 'bg-zinc-900/50 border-zinc-800'
             }`}>
               {instructions.map((instr, i) => (
-                <li key={i} className={`text-xs flex gap-2 ${isLight ? 'text-zinc-700' : 'text-zinc-300'}`}>
-                  <span className={`select-none ${isLight ? 'text-zinc-400' : 'text-zinc-600'}`}>{'$>'}</span>
+                <li key={i} className={`text-xs flex gap-2 ${isLight ? 'text-gray-200' : 'text-zinc-300'}`}>
+                  <span className={`select-none ${isLight ? 'text-gray-300' : 'text-zinc-600'}`}>{'$>'}</span>
                   <span>{instr}</span>
                 </li>
               ))}
