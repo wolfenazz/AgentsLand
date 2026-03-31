@@ -371,7 +371,7 @@ Fork it. Build on it. Make it yours.
 
 ### - Like What You See?
 
-If YzPzCode saved you from terminal chaos, consider giving it a **star** — it helps others find it too!
+If YzPzCode saved you from terminal chaos, consider giving it a **star** it helps others find it too!
 
 [![Star this repo](https://img.shields.io/github/stars/wolfenazz/YzPzCode?style=for-the-badge&logo=github&color=yellow)](https://github.com/wolfenazz/YzPzCode/stargazers)
 
