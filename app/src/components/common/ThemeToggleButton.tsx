@@ -29,6 +29,9 @@ export const ThemeToggleButton: React.FC<ThemeToggleButtonProps> = ({ theme, onT
 
   return (
     <button
+      role="switch"
+      aria-checked={theme === 'dark'}
+      aria-label="Toggle dark mode"
       onClick={handleClick}
       className="relative flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main overflow-hidden"
       title="Switch Theme"

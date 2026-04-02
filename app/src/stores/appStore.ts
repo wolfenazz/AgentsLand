@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus, GitDiffStat } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus, GitDiffStat, CliLaunchState, AuthInfo } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -20,8 +20,8 @@ interface AppState {
   cliStatuses: Record<AgentType, AgentCliInfo | null>;
   prerequisites: PrerequisiteStatus[];
   installInProgress: AgentType | null;
-  cliLaunchStates: Record<string, any>;
-  authInfos: Record<AgentType, any>;
+  cliLaunchStates: Record<string, CliLaunchState | null>;
+  authInfos: Record<AgentType, AuthInfo | null>;
   theme: "dark" | "light";
   selectedIdes: IdeType[];
   ideStatuses: Record<IdeType, IdeInfo | null>;
@@ -58,8 +58,8 @@ interface AppState {
   setCliStatuses: (statuses: Record<AgentType, AgentCliInfo>) => void;
   setPrerequisites: (prereqs: PrerequisiteStatus[]) => void;
   setInstallInProgress: (agent: AgentType | null) => void;
-  setLaunchState: (sessionId: string, state: any) => void;
-  setAuthInfo: (agent: AgentType, info: any) => void;
+  setLaunchState: (sessionId: string, state: CliLaunchState | null) => void;
+  setAuthInfo: (agent: AgentType, info: AuthInfo | null) => void;
   toggleIde: (ide: IdeType) => void;
   setSelectedIdes: (ides: IdeType[]) => void;
   setIdeStatuses: (statuses: Record<IdeType, IdeInfo | null>) => void;
@@ -118,8 +118,8 @@ export const useAppStore = create<AppState>()(
       cliStatuses: initialCliStatuses,
       prerequisites: [],
       installInProgress: null,
-      cliLaunchStates: {} as Record<string, any>,
-      authInfos: {} as Record<AgentType, any>,
+      cliLaunchStates: {} as Record<string, CliLaunchState | null>,
+      authInfos: {} as Record<AgentType, AuthInfo | null>,
       theme: "dark",
       selectedIdes: [],
       autoSave: true,

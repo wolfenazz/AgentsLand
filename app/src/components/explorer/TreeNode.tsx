@@ -158,6 +158,8 @@ const TreeNodeInner: React.FC<NodeRendererProps<TreeNodeData>> = ({
   return (
     <div
       ref={dragHandle}
+      role="treeitem"
+      aria-expanded={data.isDir ? node.isOpen : undefined}
       style={{
         ...style,
         paddingLeft: 0,

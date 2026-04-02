@@ -48,7 +48,9 @@ export const useFileWatcher = (workspacePath: string | null) => {
     setupListener();
 
     return () => {
-      invoke('stop_fs_watcher').catch(() => {});
+      invoke('stop_fs_watcher').catch((err) => {
+        console.error('Failed to stop file watcher:', err);
+      });
       if (unlisten) unlisten();
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);

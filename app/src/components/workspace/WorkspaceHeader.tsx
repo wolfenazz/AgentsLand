@@ -38,6 +38,7 @@ const SHORTCUTS = [
     { keys: ['Ctrl', 'Tab'], action: 'Switch workspace tab' },
     { keys: ['Ctrl', 'B'], action: 'Toggle Sidebar' },
     { keys: ['Ctrl', 'E'], action: 'Toggle View' },
+    { keys: ['Ctrl', 'W'], action: 'Close tab' },
   ]},
   { category: 'Window', items: [
     { keys: ['F11'], action: 'Toggle fullscreen' },
@@ -64,7 +65,10 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({ onClose }) => {
       className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] font-mono animate-fade-in" 
       onClick={onClose}
     >
-      <div 
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Keyboard shortcuts"
         className="bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
@@ -229,8 +233,9 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <div className="flex items-center h-full titlebar-nodrag">
           <div className="flex items-center h-full border-l border-theme">
             <button
-              className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors duration-150 text-zinc-500 hover:text-zinc-200 cursor-pointer group"
-              title="Settings"
+              disabled
+              className="flex items-center justify-center w-10 h-full hover:bg-theme-hover transition-colors duration-150 text-zinc-500 hover:text-zinc-200 cursor-not-allowed group"
+              title="Settings (coming soon)"
             >
               <svg className="w-4 h-4 transition-transform duration-500 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />

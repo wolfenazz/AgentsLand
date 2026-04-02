@@ -50,8 +50,6 @@ const DEFAULT_ALLOCATION: Record<AgentType, number> = {
   kilo: 0,
 };
 
-const ALL_AGENTS: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor', 'kilo'];
-
 export const useAgentAllocation = (totalSlots: number) => {
   const [allocation, setAllocation] = useState<Record<AgentType, number>>(() => {
     const persisted = loadPersistedAllocation();
@@ -60,7 +58,7 @@ export const useAgentAllocation = (totalSlots: number) => {
 
   const [enabledAgents, setEnabledAgents] = useState<Set<AgentType>>(() => {
     const persisted = loadPersistedAllocation();
-    if (!persisted) return new Set(ALL_AGENTS);
+    if (!persisted) return new Set(VALID_AGENTS);
     return new Set(
       (Object.entries(persisted) as [AgentType, number][])
         .filter(([, count]) => count > 0)
@@ -116,7 +114,7 @@ export const useAgentAllocation = (totalSlots: number) => {
 
   const resetAllocation = useCallback(() => {
     setAllocation(DEFAULT_ALLOCATION);
-    setEnabledAgents(new Set(ALL_AGENTS));
+    setEnabledAgents(new Set(VALID_AGENTS));
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
@@ -124,7 +122,7 @@ export const useAgentAllocation = (totalSlots: number) => {
     const newAllocation: Record<AgentType, number> = { ...DEFAULT_ALLOCATION };
     const newEnabledAgents = new Set<AgentType>();
     
-    const installedAgents = ALL_AGENTS.filter(
+    const installedAgents = VALID_AGENTS.filter(
       agent => cliStatuses[agent]?.status === 'Installed'
     );
     

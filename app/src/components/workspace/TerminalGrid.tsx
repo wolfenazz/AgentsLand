@@ -395,12 +395,12 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
       <div className={`flex items-center justify-between px-4 py-2 shrink-0 border-t border-theme bg-theme-card/50 backdrop-blur-sm`}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">CLUSTER_SIZE</span>
-            <span className="text-[10px] font-bold text-theme-main">{sorted.length}U</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">Sessions</span>
+            <span className="text-[10px] font-bold text-theme-main">{sorted.length}</span>
           </div>
           <div className="h-3 w-px bg-theme-hover mx-1" />
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">TOPOLOGY</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-theme-secondary uppercase">Layout</span>
             <span className="text-[10px] font-bold text-theme-main">{cols}x{rows}</span>
           </div>
         </div>

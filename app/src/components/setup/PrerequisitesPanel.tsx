@@ -15,9 +15,9 @@ export function PrerequisitesPanel({ prerequisites, onCheck, loading }: Prerequi
   const allMet = prerequisites.every(p => p.installed && p.meetsMinimum);
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4">
+    <div className="bg-theme-card rounded-lg p-4 border border-theme">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-200">Prerequisites</h3>
+        <h3 className="text-sm font-medium text-theme-main">Prerequisites</h3>
         {allMet ? (
           <span className="text-xs text-green-400 flex items-center gap-1">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -31,11 +31,11 @@ export function PrerequisitesPanel({ prerequisites, onCheck, loading }: Prerequi
       </div>
 
       {loading ? (
-        <div className="text-center py-4 text-gray-400 text-sm">Checking...</div>
+        <div className="text-center py-4 text-theme-secondary text-sm">Checking...</div>
       ) : (
         <div className="space-y-2">
           {prerequisites.map((prereq) => (
-            <div key={prereq.prerequisiteType} className="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded">
+            <div key={prereq.prerequisiteType} className="flex items-center justify-between py-2 px-3 bg-theme-hover rounded">
               <div className="flex items-center gap-2">
                 {prereq.installed && prereq.meetsMinimum ? (
                   <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -50,12 +50,12 @@ export function PrerequisitesPanel({ prerequisites, onCheck, loading }: Prerequi
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 )}
-                <span className="text-sm text-gray-200">{prereq.name}</span>
+                <span className="text-sm text-theme-main">{prereq.name}</span>
               </div>
               
               <div className="flex items-center gap-3">
                 {prereq.version && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-theme-secondary">
                     v{prereq.version}
                     {!prereq.meetsMinimum && (
                       <span className="text-yellow-400 ml-1">(need {prereq.minimumVersion}+)</span>

@@ -256,6 +256,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </svg>
           <input
             type="text"
+            aria-label="Search files"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search patterns..."
@@ -313,6 +314,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </div>
         ) : (
           <ExplorerContext.Provider value={explorerContextValue}>
+            <div role="tree" aria-label="File explorer" className="h-full w-full">
             <Tree<TreeNodeData>
               ref={treeRef}
               data={treeData}
@@ -334,6 +336,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             >
               {TreeNode}
             </Tree>
+            </div>
           </ExplorerContext.Provider>
         )}
 

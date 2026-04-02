@@ -52,7 +52,7 @@ export const useWorkspace = () => {
     }
 
     const workspace: WorkspaceConfig = {
-      id: `workspace-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: workspaceName,
       path: selectedPath,
       layout: selectedLayout,

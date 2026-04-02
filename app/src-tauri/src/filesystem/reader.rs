@@ -3,9 +3,11 @@ use std::path::Path;
 
 use base64::Engine;
 
+use crate::filesystem::validation::validate_no_path_traversal;
 use crate::types::FileContent;
 
 pub fn read_file_content(file_path: &str) -> Result<FileContent, String> {
+    validate_no_path_traversal(file_path).map_err(|e| e.to_string())?;
     let path = Path::new(file_path);
     if !path.exists() {
         return Err(format!("File does not exist: {}", file_path));
@@ -21,6 +23,7 @@ pub fn read_file_content(file_path: &str) -> Result<FileContent, String> {
 }
 
 pub fn write_file_content(file_path: &str, content: &str) -> Result<(), String> {
+    validate_no_path_traversal(file_path).map_err(|e| e.to_string())?;
     let path = Path::new(file_path);
     if !path.exists() {
         if let Some(parent) = path.parent() {
@@ -89,6 +92,7 @@ fn detect_language(path: &Path) -> &'static str {
 }
 
 pub fn read_file_as_base64(file_path: &str) -> Result<String, String> {
+    validate_no_path_traversal(file_path).map_err(|e| e.to_string())?;
     let path = Path::new(file_path);
     if !path.exists() {
         return Err(format!("File does not exist: {}", file_path));
@@ -130,6 +134,7 @@ fn detect_mime_type(path: &Path) -> &'static str {
 }
 
 pub fn is_binary_file(file_path: &str) -> Result<bool, String> {
+    validate_no_path_traversal(file_path).map_err(|e| e.to_string())?;
     let path = Path::new(file_path);
     if !path.exists() {
         return Err(format!("File does not exist: {}", file_path));
@@ -159,7 +164,7 @@ pub fn is_binary_file(file_path: &str) -> Result<bool, String> {
 
     let bytes = match fs::read(path) {
         Ok(b) => b,
-        Err(_) => return Ok(true),
+        Err(e) => return Err(format!("Failed to read file for binary check: {}", e)),
     };
 
     let check_len = bytes.len().min(8192);

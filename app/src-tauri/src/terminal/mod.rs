@@ -40,10 +40,6 @@ impl TerminalManager {
         count: usize,
         agent_allocation: HashMap<AgentType, usize>,
     ) -> Result<Vec<TerminalSession>> {
-        println!(
-            "Creating {} terminal sessions for workspace: {} at {}",
-            count, workspace_id, workspace_path
-        );
         let mut result_sessions = Vec::new();
         let mut agent_queue: Vec<Option<AgentType>> = Vec::new();
 
@@ -57,14 +53,10 @@ impl TerminalManager {
             agent_queue.push(None);
         }
 
-        println!("Final agent queue size: {}", agent_queue.len());
-
         let app = self.app_handle.lock().unwrap();
 
         for index in 0..count {
             let agent = agent_queue.get(index).cloned().flatten();
-
-            println!("Spawning PTY session {} for agent {:?}", index, agent);
 
             let (pty_session, output_rx) = match PtySession::create(
                 workspace_id.clone(),
@@ -148,6 +140,8 @@ impl TerminalManager {
         let mut sessions = self.sessions.lock().unwrap();
         if let Some(session) = sessions.get_mut(session_id) {
             session.write(input.as_bytes())?;
+        } else {
+            return Err(anyhow::anyhow!("Session not found: {}", session_id));
         }
         Ok(())
     }
@@ -163,6 +157,8 @@ impl TerminalManager {
         let sessions = self.sessions.lock().unwrap();
         if let Some(session) = sessions.get(session_id) {
             session.resize(cols, rows, pixel_width, pixel_height)?;
+        } else {
+            return Err(anyhow::anyhow!("Session not found: {}", session_id));
         }
         Ok(())
     }
@@ -170,22 +166,13 @@ impl TerminalManager {
     pub fn kill_session(&self, session_id: &str) -> Result<()> {
         let mut sessions = self.sessions.lock().unwrap();
         if let Some(session) = sessions.get_mut(session_id) {
-            println!("Killing session: {}", session_id);
             session.kill();
-            println!("Session {} killed successfully", session_id);
-        } else {
-            println!(
-                "Session {} not found (may already be terminated)",
-                session_id
-            );
         }
         sessions.remove(session_id);
         Ok(())
     }
 
     pub fn kill_sessions_by_workspace(&self, workspace_id: &str) -> Result<()> {
-        println!("Killing all sessions for workspace: {}", workspace_id);
-
         let session_ids: Vec<String> = {
             let sessions = self.sessions.lock().unwrap();
             sessions
@@ -195,34 +182,25 @@ impl TerminalManager {
                 .collect()
         };
 
-        println!(
-            "Found {} sessions to kill for workspace {}",
-            session_ids.len(),
-            workspace_id
-        );
-
         for session_id in &session_ids {
             self.kill_session(session_id)?;
         }
 
-        println!("All sessions killed for workspace {}", workspace_id);
         Ok(())
     }
 
     #[allow(dead_code)]
     pub fn kill_all_sessions(&self) -> Result<()> {
-        println!("Killing all sessions");
         let mut sessions = self.sessions.lock().unwrap();
         for (id, session) in sessions.iter_mut() {
             match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 session.kill();
             })) {
-                Ok(_) => println!("Session {} killed", id),
+                Ok(_) => {}
                 Err(e) => eprintln!("Panic while killing session {}: {:?}", id, e),
             }
         }
         sessions.clear();
-        println!("All sessions cleared");
         Ok(())
     }
 

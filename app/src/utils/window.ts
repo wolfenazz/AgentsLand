@@ -7,7 +7,9 @@ let _isMac: boolean | null = null;
 export const initWindowPlatform = async (): Promise<boolean> => {
     if (_isWindows !== null) return _isWindows;
 
-    const ua = navigator.userAgent.toLowerCase();
+    const uaData = navigator as unknown as Record<string, unknown>;
+    const platform = (uaData['userAgentData'] as { platform?: string } | undefined)?.platform?.toLowerCase();
+    const ua = platform ?? navigator.userAgent.toLowerCase();
     _isWindows = ua.includes('windows');
     _isMac = ua.includes('mac');
 
@@ -18,7 +20,7 @@ export const initWindowPlatform = async (): Promise<boolean> => {
             console.error('Failed to set decorations:', e);
         }
     }
-    return _isWindows;
+    return _isWindows as boolean;
 };
 
 export const getIsWindows = (): boolean => _isWindows ?? false;

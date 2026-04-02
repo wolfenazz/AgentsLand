@@ -44,6 +44,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     resetUpToDate,
   } = useUpdaterStore();
 
+    const [createError, setCreateError] = React.useState<string | null>(null);
     const [isLaunching, setIsLaunching] = React.useState(false);
     const [openPopover, setOpenPopover] = React.useState<string | null>(null);
     const [copiedAuthor, setCopiedAuthor] = React.useState<string | null>(null);
@@ -143,6 +144,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
 
   const handleCreateWorkspace = async () => {
     if (isLaunching) return;
+    setCreateError(null);
     setIsLaunching(true);
     try {
       if (selectedLayout.openExternally) {
@@ -178,7 +180,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
       }
     } catch (error) {
       console.error('Failed to create workspace:', error);
-      alert('Failed to create workspace. Please try again.');
+      setCreateError(error instanceof Error ? error.message : 'Failed to create workspace. Please try again.');
     } finally {
       setIsLaunching(false);
     }
@@ -315,6 +317,26 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               </div>
               <button
                 onClick={() => setWarningDismissed(true)}
+                className="text-zinc-500 hover:text-zinc-300 transition-colors duration-150 p-1 cursor-pointer"
+                title="Dismiss"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {createError && (
+            <div className="flex items-center justify-between gap-4 px-4 py-3 bg-rose-500/[0.06] border border-rose-500/20 rounded-md">
+              <div className="flex items-center gap-3">
+                <svg className="w-4 h-4 text-rose-500/80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-xs font-mono text-rose-400/80">{createError}</span>
+              </div>
+              <button
+                onClick={() => setCreateError(null)}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors duration-150 p-1 cursor-pointer"
                 title="Dismiss"
               >

@@ -33,7 +33,6 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       let x = e.clientX;
       let y = e.clientY;
 
-      // Adjust position to keep menu in viewport
       const menuWidth = 180;
       const menuHeight = 220;
       if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 8;
@@ -74,10 +73,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   return (
     <div
       ref={menuRef}
+      role="menu"
+      aria-label="Context menu"
       className="fixed z-[10000] bg-theme-card border border-theme rounded-md shadow-lg py-1 min-w-[180px] font-mono animate-scale-in"
       style={{ left: position.x, top: position.y }}
     >
       <button
+        role="menuitem"
         onClick={() => handleAction(onNewWorkspace)}
         className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11px] text-zinc-400 hover:text-theme-main hover:bg-theme-hover transition-colors duration-100 text-left cursor-pointer"
       >
@@ -88,6 +90,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       </button>
 
       <button
+        role="menuitem"
         onClick={() => handleAction(onDocsClick)}
         className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11px] text-zinc-400 hover:text-theme-main hover:bg-theme-hover transition-colors duration-100 text-left cursor-pointer"
       >
@@ -98,8 +101,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       </button>
 
       <button
+        role="menuitem"
         onClick={() => {
-          navigator.clipboard.writeText('');
+          const selection = window.getSelection()?.toString() ?? '';
+          if (selection) {
+            navigator.clipboard.writeText(selection).catch(console.error);
+          }
           close();
         }}
         className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11px] text-zinc-400 hover:text-theme-main hover:bg-theme-hover transition-colors duration-100 text-left cursor-pointer"
@@ -112,10 +119,19 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       </button>
 
       <button
+        role="menuitem"
         onClick={async () => {
           try {
             const text = await navigator.clipboard.readText();
-            document.execCommand('insertText', false, text);
+            const target = document.activeElement as HTMLInputElement | HTMLTextAreaElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+              const start = target.selectionStart ?? 0;
+              const end = target.selectionEnd ?? 0;
+              const value = target.value;
+              target.value = value.slice(0, start) + text + value.slice(end);
+              target.selectionStart = target.selectionEnd = start + text.length;
+              target.dispatchEvent(new Event('input', { bubbles: true }));
+            }
           } catch {}
           close();
         }}
@@ -128,9 +144,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         <span className="ml-auto text-[9px] text-zinc-700">Ctrl+V</span>
       </button>
 
-      <div className="my-1 mx-2 border-t border-theme" />
+      <div role="separator" className="my-1 mx-2 border-t border-theme" />
 
       <button
+        role="menuitem"
         onClick={() => handleAction(onThemeToggle)}
         className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11px] text-zinc-400 hover:text-theme-main hover:bg-theme-hover transition-colors duration-100 text-left cursor-pointer"
       >
@@ -147,7 +164,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         Toggle Theme
       </button>
 
-      <div className="my-1 mx-2 border-t border-theme" />
+      <div role="separator" className="my-1 mx-2 border-t border-theme" />
 
       <div className="px-3 py-1.5 text-[9px] text-zinc-700 uppercase tracking-[0.15em] cursor-default">
         YzPzCode

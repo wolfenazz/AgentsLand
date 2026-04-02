@@ -31,6 +31,7 @@ const MenuItem: React.FC<{
   danger?: boolean;
 }> = memo(({ label, shortcut, onClick, danger }) => (
   <button
+    role="menuitem"
     className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] cursor-pointer transition-colors duration-75 ${
       danger
         ? 'text-rose-400 hover:bg-rose-500/10'
@@ -184,6 +185,7 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.1, ease: 'easeOut' }}
           className="absolute z-50 bg-theme-card backdrop-blur-md border border-theme rounded-lg shadow-2xl py-1 min-w-[200px] overflow-hidden"
+          role="menu"
           onContextMenu={(e) => e.preventDefault()}
         >
           {(isDir || !hasNode) && (

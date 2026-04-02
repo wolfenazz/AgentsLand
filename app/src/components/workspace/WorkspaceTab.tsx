@@ -18,6 +18,10 @@ export const WorkspaceTab: React.FC<WorkspaceTabProps> = ({
 }) => {
   return (
     <div
+      role="tab"
+      aria-selected={isActive}
+      tabIndex={0}
+      title={workspace.name}
       className={`
         group relative flex items-center gap-2 h-full px-3 cursor-pointer select-none
         transition-colors duration-150 whitespace-nowrap border-r border-theme
@@ -27,12 +31,13 @@ export const WorkspaceTab: React.FC<WorkspaceTabProps> = ({
         }
       `}
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
     >
       <svg className={`w-3 h-3 flex-shrink-0 ${isActive ? 'text-zinc-300' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
       </svg>
 
-      <span className={`text-[10px] font-mono tracking-[0.1em] truncate max-w-[120px] uppercase ${isActive ? 'text-zinc-200' : 'text-zinc-500'}`}>
+      <span className={`text-[10px] font-mono tracking-[0.1em] truncate max-w-[120px] uppercase ${isActive ? 'text-zinc-200' : 'text-zinc-500'}`} title={workspace.name}>
         {workspace.name}
       </span>
 

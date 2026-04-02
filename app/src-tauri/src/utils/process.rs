@@ -94,9 +94,7 @@ impl ProcessRunner {
                 let path = std::path::Path::new(binary_path);
                 if let Some(stem) = path.file_name() {
                     let stem = stem.to_string_lossy();
-                    let dir = path
-                        .parent()
-                        .unwrap_or(std::path::Path::new("."));
+                    let dir = path.parent().unwrap_or(std::path::Path::new("."));
 
                     let cmd_path = dir.join(format!("{}.cmd", stem));
                     if cmd_path.exists() {

@@ -17,6 +17,7 @@ function isLikelyBinary(entry: FileEntry): boolean {
 
 export const useFileEditor = () => {
   const [isOpening, setIsOpening] = useState(false);
+  const [openError, setOpenError] = useState<string | null>(null);
   const openFileTab = useAppStore((s) => s.openFileTab);
 
   const openFile = useCallback(async (entry: FileEntry, change?: string) => {
@@ -29,6 +30,7 @@ export const useFileEditor = () => {
     }
 
     setIsOpening(true);
+    setOpenError(null);
     try {
       if (change === 'deleted') {
         const workspacePath = state.currentWorkspace?.path;
@@ -84,10 +86,13 @@ export const useFileEditor = () => {
         openFileTab(tab);
       }
     } catch (err) {
-      console.error('Failed to open file:', entry.path, err);
+      const message = err instanceof Error ? err.message : String(err);
+      setOpenError(`Failed to open file: ${message}`);
     }
     setIsOpening(false);
   }, [openFileTab]);
 
-  return { openFile, isOpening };
+  const clearError = useCallback(() => setOpenError(null), []);
+
+  return { openFile, isOpening, openError, clearError };
 };

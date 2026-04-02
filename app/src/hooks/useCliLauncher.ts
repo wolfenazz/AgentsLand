@@ -70,11 +70,11 @@ export const useCliLauncher = () => {
     return await invoke<string>('get_cli_binary_name', { agent });
   }, []);
 
-  const getLaunchStateSync = (sessionId: string): CliLaunchState | undefined => {
+  const getLaunchStateSync = (sessionId: string): CliLaunchState | null | undefined => {
     return launchStates[sessionId];
   };
 
-  const getAuthInfoSync = (agent: AgentType): AuthInfo | undefined => {
+  const getAuthInfoSync = (agent: AgentType): AuthInfo | null | undefined => {
     return authInfos[agent];
   };
 

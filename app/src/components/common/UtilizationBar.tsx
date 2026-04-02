@@ -29,7 +29,7 @@ export const UtilizationBar: React.FC<UtilizationBarProps> = ({
 
   return (
     <div className={`flex items-center gap-3 font-mono ${className}`}>
-      <div className="flex-1 h-2 bg-zinc-900 overflow-hidden flex">
+      <div role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={total} className="flex-1 h-2 bg-zinc-900 overflow-hidden flex">
         {Array.from({ length: segmentCount }, (_, i) => (
           <div
             key={i}

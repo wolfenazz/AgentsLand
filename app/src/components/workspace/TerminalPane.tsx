@@ -122,8 +122,8 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
   const [installing, setInstalling] = useState(false);
 
   const cliInfo: AgentCliInfo | null = session.agent ? cliStatuses[session.agent] : null;
-  const launchState: CliLaunchState | undefined = session.agent ? getLaunchStateSync(session.id) : undefined;
-  const authInfo: AuthInfo | undefined = session.agent ? getAuthInfoSync(session.agent) : undefined;
+  const launchState: CliLaunchState | null | undefined = session.agent ? getLaunchStateSync(session.id) : undefined;
+  const authInfo: AuthInfo | null | undefined = session.agent ? getAuthInfoSync(session.agent) : undefined;
 
   const terminalTheme = isLight ? LIGHT_TERMINAL_THEME : DARK_TERMINAL_THEME;
 

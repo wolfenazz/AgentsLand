@@ -25,7 +25,9 @@ function App() {
   const [isWindows, setIsWindows] = useState(false);
 
   useEffect(() => {
-    initWindowPlatform().then(setIsWindows);
+    initWindowPlatform().then(setIsWindows).catch((err) => {
+      console.error('Failed to initialize window platform:', err);
+    });
 
     if (lastOpenedWorkspaceId && view === 'setup' && openWorkspaces.length === 0) {
       const lastWorkspace = workspaceList.find(w => w.id === lastOpenedWorkspaceId);

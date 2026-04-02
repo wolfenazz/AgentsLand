@@ -197,6 +197,9 @@ export const AgentFleetConfig: React.FC<AgentFleetConfigProps> = ({
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={enabledAgents.has(agent as AgentType)}
+                aria-label={`Toggle ${info.label}`}
                 onClick={() => toggleAgent(agent as AgentType)}
                 className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 cursor-pointer ${
                   enabledAgents.has(agent as AgentType)

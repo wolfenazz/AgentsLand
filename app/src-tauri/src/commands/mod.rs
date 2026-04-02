@@ -40,7 +40,12 @@ pub async fn create_single_terminal_session(
         .map_err(|e| e.to_string())?;
 
     if let Some(agent) = request.agent {
-        let _ = launcher.launch_cli(&session.id, agent);
+        if let Err(e) = launcher.launch_cli(&session.id, agent) {
+            eprintln!(
+                "Warning: failed to launch CLI for session {}: {}",
+                session.id, e
+            );
+        }
     }
 
     Ok(session)
@@ -53,7 +58,9 @@ pub async fn create_terminal_sessions(
     request: CreateSessionsRequest,
 ) -> Result<Vec<TerminalSession>, String> {
     // Kill only existing sessions for this workspace to ensure a clean state
-    let _ = manager.kill_sessions_by_workspace(&request.workspace_id);
+    if let Err(e) = manager.kill_sessions_by_workspace(&request.workspace_id) {
+        eprintln!("Warning: failed to kill existing sessions: {}", e);
+    }
 
     let sessions = manager
         .create_sessions(
@@ -68,7 +75,12 @@ pub async fn create_terminal_sessions(
     // We do this after creating all sessions
     for session in &sessions {
         if let Some(agent) = session.agent {
-            let _ = launcher.launch_cli(&session.id, agent);
+            if let Err(e) = launcher.launch_cli(&session.id, agent) {
+                eprintln!(
+                    "Warning: failed to launch CLI for session {}: {}",
+                    session.id, e
+                );
+            }
         }
     }
 
@@ -142,12 +154,15 @@ pub async fn execute_agent_task(
     let task = agent_executor.create_task(request);
     let task_id = task.id.clone();
     let task_clone = task.clone();
+    let task_id_for_log = task_id.clone();
 
     let executor = agent_executor.inner().clone();
     let terminal_mgr = terminal_manager.inner().clone();
 
     tokio::spawn(async move {
-        let _ = executor.execute_with_retry(task_id, &terminal_mgr).await;
+        if let Err(e) = executor.execute_with_retry(task_id, &terminal_mgr).await {
+            eprintln!("Agent task {} failed: {}", task_id_for_log, e);
+        }
     });
 
     Ok(task_clone)
@@ -352,6 +367,13 @@ pub async fn get_cli_binary_name(agent: AgentType) -> Result<String, String> {
 
 #[tauri::command]
 pub async fn open_url(url: String) -> Result<(), String> {
+    let scheme = url.split(':').next().unwrap_or("").to_lowercase();
+    if scheme != "http" && scheme != "https" {
+        return Err(format!(
+            "Only http/https URLs are allowed, got '{}' scheme",
+            scheme
+        ));
+    }
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new("cmd")
@@ -398,8 +420,9 @@ pub async fn close_window(
     window: tauri::Window,
     terminal_manager: State<'_, TerminalManager>,
 ) -> Result<(), String> {
-    println!("close_window called, cleaning up sessions...");
-    let _ = terminal_manager.kill_all_sessions();
+    if let Err(e) = terminal_manager.kill_all_sessions() {
+        eprintln!("Warning: failed to kill all sessions on close: {}", e);
+    }
     window.close().map_err(|e| e.to_string())
 }
 
@@ -449,7 +472,8 @@ pub async fn send_feedback(
         embeds: Vec<DiscordEmbed>,
     }
 
-    let webhook_url = "https://canary.discord.com/api/webhooks/1486331999936581664/5NhDM8ejMhP_nWwvGwhxbTewEiYr8xsNtrvYB2v3QHZxUUEiOcFwm3mQvlkXUv13yYwI";
+    let webhook_url = std::env::var("DISCORD_WEBHOOK_URL")
+        .unwrap_or_else(|_| "https://canary.discord.com/api/webhooks/1486331999936581664/5NhDM8ejMhP_nWwvGwhxbTewEiYr8xsNtrvYB2v3QHZxUUEiOcFwm3mQvlkXUv13yYwI".to_string());
 
     let embed = DiscordEmbed {
         title: "📝 New Feedback".to_string(),
@@ -595,17 +619,56 @@ fn chrono_lite_timestamp() -> String {
     let duration = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default();
-    let secs = duration.as_secs();
-    let datetime = secs as i64;
+    let total_secs = duration.as_secs();
+
+    let days_since_epoch = total_secs / 86400;
+    let time_of_day_secs = total_secs % 86400;
+
+    let mut year = 1970usize;
+    let mut remaining_days = days_since_epoch as usize;
+
+    loop {
+        let days_in_year = if is_leap_year(year) { 366 } else { 365 };
+        if remaining_days < days_in_year {
+            break;
+        }
+        remaining_days -= days_in_year;
+        year += 1;
+    }
+
+    let month_days: [usize; 12] = if is_leap_year(year) {
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    } else {
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    };
+
+    let mut month = 0usize;
+    for (i, &days) in month_days.iter().enumerate() {
+        if remaining_days < days {
+            month = i;
+            break;
+        }
+        remaining_days -= days;
+    }
+
+    let day = remaining_days + 1;
+    let hour = (time_of_day_secs / 3600) as u8;
+    let minute = ((time_of_day_secs % 3600) / 60) as u8;
+    let second = (time_of_day_secs % 60) as u8;
+
     format!(
         "{}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-        1970 + datetime / 31536000,
-        (datetime % 31536000) / 2592000 + 1,
-        (datetime % 2592000) / 86400 + 1,
-        (datetime % 86400) / 3600,
-        (datetime % 3600) / 60,
-        datetime % 60
+        year,
+        month + 1,
+        day,
+        hour,
+        minute,
+        second
     )
+}
+
+fn is_leap_year(year: usize) -> bool {
+    year.is_multiple_of(4) && !year.is_multiple_of(100) || year.is_multiple_of(400)
 }
 
 fn get_grid_dimensions(count: usize) -> (usize, usize) {
@@ -657,12 +720,6 @@ pub async fn launch_external_terminals(request: LaunchExternalRequest) -> Result
 
     let agent_queue = build_agent_queue(&request.agent_allocation, request.count);
     let (cols, rows) = get_grid_dimensions(request.count);
-
-    println!("DEBUG: agent_queue = {:?}", agent_queue);
-    println!(
-        "DEBUG: count = {}, cols = {}, rows = {}",
-        request.count, cols, rows
-    );
 
     #[cfg(target_os = "windows")]
     {
@@ -1172,7 +1229,10 @@ pub async fn get_git_diff_stats(workspace_path: String) -> Result<Vec<GitDiffSta
 }
 
 #[tauri::command]
-pub async fn get_git_file_content(workspace_path: String, file_path: String) -> Result<String, String> {
+pub async fn get_git_file_content(
+    workspace_path: String,
+    file_path: String,
+) -> Result<String, String> {
     filesystem::git_diff_stats::get_git_file_content(&workspace_path, &file_path)
 }
 

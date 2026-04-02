@@ -59,17 +59,20 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({ x, y, items, onC
   return (
     <div
       ref={menuRef}
+      role="menu"
+      aria-label="Tab context menu"
       className="fixed z-[200] min-w-[180px] bg-theme-card border border-theme rounded shadow-2xl py-1 animate-popover-in font-mono select-none"
       style={{ top: y, left: x }}
     >
       {items.map((item, i) => {
         if (item.separator) {
-          return <div key={`sep-${i}`} className="my-1 border-t border-theme" />;
+          return <div key={`sep-${i}`} role="separator" className="my-1 border-t border-theme" />;
         }
         const mi = item as MenuItem;
         return (
           <button
             key={i}
+            role="menuitem"
             onClick={() => {
               if (!mi.disabled) {
                 mi.action();

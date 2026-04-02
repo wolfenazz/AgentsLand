@@ -50,6 +50,9 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
       />
       
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Spawn new session"
         className={`relative w-full max-w-[440px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] overflow-hidden animate-popover-in font-mono ${
           isLight
             ? 'bg-zinc-900/95 border border-zinc-700'

@@ -7,6 +7,8 @@ use ignore::WalkBuilder;
 use crate::types::FileEntry;
 
 pub fn list_directory_entries(dir_path: &str) -> Result<Vec<FileEntry>, String> {
+    crate::filesystem::validation::validate_no_path_traversal(dir_path)
+        .map_err(|e| e.to_string())?;
     let root = Path::new(dir_path);
     if !root.exists() || !root.is_dir() {
         return Err(format!("Directory does not exist: {}", dir_path));

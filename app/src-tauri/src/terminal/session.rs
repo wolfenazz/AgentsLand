@@ -36,8 +36,6 @@ impl PtySession {
         let shell = get_default_shell();
         let session_id = Uuid::new_v4().to_string();
 
-        println!("PtySession::create: shell={}, cwd={}", shell, cwd);
-
         // Canonicalize or at least check if path exists
         let path = std::path::Path::new(&cwd);
         if !path.exists() {

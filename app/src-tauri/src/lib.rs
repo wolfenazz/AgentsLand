@@ -71,7 +71,9 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             {
                 if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.set_decorations(true);
+                    if let Err(e) = window.set_decorations(true) {
+                        eprintln!("Warning: failed to set window decorations: {}", e);
+                    }
                 }
             }
 
@@ -79,8 +81,9 @@ pub fn run() {
                 let terminal_manager_clone = terminal_manager.clone();
 
                 app.listen("tauri://close-requested", move |_event| {
-                    println!("Window close requested, cleaning up sessions...");
-                    let _ = terminal_manager_clone.kill_all_sessions();
+                    if let Err(e) = terminal_manager_clone.kill_all_sessions() {
+                        eprintln!("Warning: failed to kill sessions on close-requested: {}", e);
+                    }
                 });
             }
 

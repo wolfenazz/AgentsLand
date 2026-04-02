@@ -117,6 +117,7 @@ const TabBar: React.FC<TabBarProps> = ({
 
   return (
     <div
+      role="tablist"
       className={`flex items-center overflow-x-auto shrink-0 relative ${theme === 'light' ? 'bg-zinc-100 border-b border-zinc-300' : 'bg-zinc-950 border-b border-zinc-800'}`}
       onContextMenu={handleBarContextMenu}
     >
@@ -125,6 +126,10 @@ const TabBar: React.FC<TabBarProps> = ({
         return (
           <div
             key={file.path}
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={0}
+            title={file.path}
             className={`relative flex items-center gap-1.5 px-3 py-1.5 border-r cursor-pointer group min-w-0 max-w-[160px] transition-colors duration-100 ${
               isActive
                 ? theme === 'light'
@@ -135,6 +140,7 @@ const TabBar: React.FC<TabBarProps> = ({
                   : 'bg-zinc-950 text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-400 border-zinc-800/60'
             }`}
             onClick={() => onTabClick(file.path)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTabClick(file.path); } }}
             onContextMenu={(e) => handleContextMenu(e, file.path, index)}
           >
             <FileIcon
@@ -142,7 +148,7 @@ const TabBar: React.FC<TabBarProps> = ({
               isDir={false}
               className="w-3.5 h-3.5 shrink-0"
             />
-            <span className="text-[11px] truncate">{file.name}</span>
+            <span className="text-[11px] truncate" title={file.path}>{file.name}</span>
 
             {file.isDirty && (
               <span className={`w-2 h-2 rounded-full shrink-0 group-hover:hidden ${theme === 'light' ? 'bg-zinc-400' : 'bg-zinc-400'}`} />

@@ -2,7 +2,11 @@ use anyhow::Result;
 use std::fs;
 use std::path::Path;
 
+use super::validation::validate_no_path_traversal;
+
 pub fn rename_entry(old_path: &str, new_name: &str) -> Result<()> {
+    validate_no_path_traversal(old_path)?;
+    validate_no_path_traversal(new_name)?;
     let old = Path::new(old_path);
     if !old.exists() {
         return Err(anyhow::anyhow!("Source path does not exist: {}", old_path));
@@ -23,6 +27,8 @@ pub fn rename_entry(old_path: &str, new_name: &str) -> Result<()> {
 }
 
 pub fn move_entry(source_path: &str, destination_dir: &str) -> Result<()> {
+    validate_no_path_traversal(source_path)?;
+    validate_no_path_traversal(destination_dir)?;
     let source = Path::new(source_path);
     if !source.exists() {
         return Err(anyhow::anyhow!(
@@ -54,6 +60,7 @@ pub fn move_entry(source_path: &str, destination_dir: &str) -> Result<()> {
 }
 
 pub fn create_file(path: &str) -> Result<()> {
+    validate_no_path_traversal(path)?;
     let p = Path::new(path);
     if p.exists() {
         return Err(anyhow::anyhow!("File already exists: {}", path));
@@ -66,6 +73,7 @@ pub fn create_file(path: &str) -> Result<()> {
 }
 
 pub fn create_directory(path: &str) -> Result<()> {
+    validate_no_path_traversal(path)?;
     let p = Path::new(path);
     if p.exists() {
         return Err(anyhow::anyhow!("Directory already exists: {}", path));
@@ -75,6 +83,7 @@ pub fn create_directory(path: &str) -> Result<()> {
 }
 
 pub fn delete_entry(path: &str) -> Result<()> {
+    validate_no_path_traversal(path)?;
     let p = Path::new(path);
     if !p.exists() {
         return Err(anyhow::anyhow!("Path does not exist: {}", path));
@@ -88,6 +97,7 @@ pub fn delete_entry(path: &str) -> Result<()> {
 }
 
 pub fn reveal_in_file_manager(path: &str) -> Result<()> {
+    validate_no_path_traversal(path)?;
     let p = Path::new(path);
     let target = if p.is_file() || !p.exists() {
         p.parent().unwrap_or(p)

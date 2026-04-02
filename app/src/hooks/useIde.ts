@@ -25,7 +25,7 @@ export const useIde = () => {
       const statuses = await invoke<Record<IdeType, IdeInfo>>('detect_all_ides_cmd');
       setIdeStatuses(statuses);
     } catch (err) {
-      setError(err as string);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

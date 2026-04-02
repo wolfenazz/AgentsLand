@@ -63,7 +63,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       setSubmitState('success');
       setTimeout(() => {
         onClose();
-      }, 1200);
+      }, 2500);
     } catch (err) {
       setSubmitState('error');
       setErrorMessage(String(err));
@@ -83,6 +83,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 font-mono">
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Send feedback"
         className="w-full max-w-lg mx-4 bg-zinc-950 border border-zinc-800 shadow-2xl"
       >
         <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
