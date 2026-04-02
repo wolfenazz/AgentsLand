@@ -15,7 +15,7 @@ import { cpp } from '@codemirror/lang-cpp';
 import { closeBrackets, closeBracketsKeymap, autocompletion } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches, openSearchPanel } from '@codemirror/search';
-// minimap removed due to version conflict issues
+import { showMinimap } from '@replit/codemirror-minimap';
 import { useAppStore } from '../../stores/appStore';
 import { EditorTabs } from './EditorTabs';
 import { MarkdownPreview } from './MarkdownPreview';
@@ -40,6 +40,8 @@ const languageExtensions: Record<string, () => any> = {
 
 const languageCompartment = new Compartment();
 const themeCompartment = new Compartment();
+const wordWrapCompartment = new Compartment();
+const minimapCompartment = new Compartment();
 
 const darkEditorTheme = EditorView.theme({
   '&': {
@@ -144,7 +146,7 @@ const lightHighlightStyle = EditorView.theme({
   '.tok-operator': { color: '#52525b' },
   '.tok-meta': { color: '#9ca3af' },
   '.tok-propertyName': { color: '#0891b2' },
-  '.tok typeName': { color: '#0891b2' },
+  '.tok-typeName': { color: '#0891b2' },
   '.tok-punctuation': { color: '#71717a' },
   '.tok-atom': { color: '#ea580c' },
 }, { dark: false });
@@ -156,19 +158,28 @@ const getExtension = (name: string): string | null => {
 };
 
 const getThemeExtensions = (t: string): any => {
-  const baseExtensions: any = t === 'light'
+  return t === 'light'
     ? [lightEditorTheme, lightHighlightStyle, syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
     : [darkEditorTheme, oneDark];
-  
-  return baseExtensions;
 };
 
-const wordWrapCompartment = new Compartment();
+function getMinimapExtension(enabled: boolean) {
+  if (!enabled) return [];
+  return showMinimap.compute(['doc'], () => ({
+    create: () => {
+      const dom = document.createElement('div');
+      return { dom };
+    },
+    displayText: 'blocks',
+    showOverlay: 'mouse-over',
+  }));
+}
 
 export const FileEditor: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const currentFileRef = useRef<string | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbacksRef = useRef<{
     updateFileContent: (path: string, content: string) => void;
     handleSave: () => void;
@@ -185,6 +196,10 @@ export const FileEditor: React.FC = () => {
   const closeAllFiles = useAppStore((s) => s.closeAllFiles);
   const closeSavedFiles = useAppStore((s) => s.closeSavedFiles);
   const theme = useAppStore((s) => s.theme);
+  const autoSave = useAppStore((s) => s.autoSave);
+  const showMinimapSetting = useAppStore((s) => s.showMinimap);
+  const setAutoSave = useAppStore((s) => s.setAutoSave);
+  const setShowMinimap = useAppStore((s) => s.setShowMinimap);
 
   const [mdPreview, setMdPreview] = useState(false);
   const [wordWrap, setWordWrap] = useState(false);
@@ -234,7 +249,8 @@ export const FileEditor: React.FC = () => {
       extensions: [
         themeCompartment.of(getThemeExtensions(theme)),
         languageCompartment.of(langExt),
-        wordWrapCompartment.of(wordWrap ? EditorView.lineWrapping : EditorView.theme({})),
+        wordWrapCompartment.of(wordWrap ? EditorView.lineWrapping : []),
+        minimapCompartment.of(getMinimapExtension(showMinimapSetting)),
         lineNumbers(),
         highlightActiveLine(),
         highlightActiveLineGutter(),
@@ -255,6 +271,10 @@ export const FileEditor: React.FC = () => {
           {
             key: 'Mod-s',
             run: () => {
+              if (autoSaveTimerRef.current) {
+                clearTimeout(autoSaveTimerRef.current);
+                autoSaveTimerRef.current = null;
+              }
               callbacksRef.current.handleSave();
               return true;
             },
@@ -281,9 +301,16 @@ export const FileEditor: React.FC = () => {
         EditorView.updateListener.of((update) => {
           if (update.docChanged && currentFileRef.current) {
             callbacksRef.current.updateFileContent(currentFileRef.current, update.state.doc.toString());
+            const { autoSave: as } = useAppStore.getState();
+            if (as) {
+              if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+              autoSaveTimerRef.current = setTimeout(() => {
+                callbacksRef.current.handleSave();
+                autoSaveTimerRef.current = null;
+              }, 2000);
+            }
           }
         }),
-        EditorView.lineWrapping,
       ],
     });
 
@@ -295,6 +322,10 @@ export const FileEditor: React.FC = () => {
     viewRef.current = view;
 
     return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
       if (viewRef.current === view) {
         view.destroy();
         viewRef.current = null;
@@ -312,9 +343,16 @@ export const FileEditor: React.FC = () => {
   useEffect(() => {
     if (!viewRef.current) return;
     viewRef.current.dispatch({
-      effects: wordWrapCompartment.reconfigure(wordWrap ? EditorView.lineWrapping : EditorView.theme({})),
+      effects: wordWrapCompartment.reconfigure(wordWrap ? EditorView.lineWrapping : []),
     });
   }, [wordWrap]);
+
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({
+      effects: minimapCompartment.reconfigure(getMinimapExtension(showMinimapSetting)),
+    });
+  }, [showMinimapSetting]);
 
   useEffect(() => {
     if (!viewRef.current || !activeFile) return;
@@ -348,6 +386,15 @@ export const FileEditor: React.FC = () => {
 
   const showEditor = activeFile && !isPreviewable && !(isMarkdown && mdPreview);
 
+  const toolbarBtnClass = (active: boolean) =>
+    `flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
+      active
+        ? 'bg-blue-500/10 text-blue-500 border border-blue-500/30'
+        : theme === 'light'
+          ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
+          : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
+    }`;
+
   return (
     <div className={`h-full flex flex-col ${theme === 'light' ? 'bg-gray-300' : 'bg-[#09090b]'}`}>
       <EditorTabs
@@ -377,12 +424,8 @@ export const FileEditor: React.FC = () => {
               <>
                 <button
                   onClick={() => viewRef.current && openSearchPanel(viewRef.current)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
-                    theme === 'light'
-                      ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
-                      : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
-                  }`}
-                  title="Find (Ctrl-F)"
+                  className={toolbarBtnClass(false)}
+                  title="Find & Replace (Ctrl-F)"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -391,19 +434,33 @@ export const FileEditor: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setWordWrap(!wordWrap)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer ${
-                    wordWrap
-                      ? 'bg-blue-500/10 text-blue-500 border border-blue-500/30'
-                      : theme === 'light'
-                        ? 'text-zinc-400 hover:text-zinc-600 hover:bg-gray-300'
-                        : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
-                  }`}
+                  className={toolbarBtnClass(wordWrap)}
                   title="Toggle Word Wrap"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                   </svg>
                   Wrap
+                </button>
+                <button
+                  onClick={() => setShowMinimap(!showMinimapSetting)}
+                  className={toolbarBtnClass(showMinimapSetting)}
+                  title="Toggle Minimap"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                  </svg>
+                  Map
+                </button>
+                <button
+                  onClick={() => setAutoSave(!autoSave)}
+                  className={toolbarBtnClass(autoSave)}
+                  title="Toggle Auto-Save (2s debounce)"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  Auto
                 </button>
               </>
             )}

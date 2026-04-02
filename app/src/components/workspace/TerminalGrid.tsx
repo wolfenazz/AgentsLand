@@ -1,7 +1,20 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
 import { TerminalSession, AgentType } from '../../types';
-import { TerminalPane } from './TerminalPane';
+import { SortableTerminalPane } from './SortableTerminalPane';
 import { NewTerminalDialog } from './NewTerminalDialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '../../stores/appStore';
@@ -32,8 +45,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [colSizes, setColSizes] = useState<number[] | null>(null);
   const [rowSizes, setRowSizes] = useState<number[] | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     axis: 'col' | 'row';
@@ -45,11 +57,19 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const isLight = theme === 'light';
   const addSession = useAppStore((s) => s.addSession);
   const removeSession = useAppStore((s) => s.removeSession);
-  const reorderSession = useAppStore((s) => s.reorderSession);
+  const reorderSessions = useAppStore((s) => s.reorderSessions);
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
 
   const sorted = useMemo(() => [...sessions].sort((a, b) => a.index - b.index), [sessions]);
   const { cols, rows } = getGridDimensions(sorted.length);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const activeColSizes = useMemo(() => {
     if (colSizes && colSizes.length === cols) {
@@ -101,46 +121,28 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     setRowSizes(null);
   }, [removeSession]);
 
-  const handleDragStart = useCallback((_e: React.DragEvent, sessionId: string) => {
-    setDraggingId(sessionId);
-    document.body.style.cursor = 'grabbing';
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   }, []);
 
-  const handleDragEnd = useCallback(() => {
-    setDraggingId(null);
-    setDropTargetIndex(null);
-    document.body.style.cursor = '';
-  }, []);
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
 
-  const handleCellDragOver = useCallback((e: React.DragEvent, cellIndex: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDropTargetIndex(cellIndex);
-  }, []);
+    if (!over || active.id === over.id) return;
 
-  const handleCellDragLeave = useCallback((e: React.DragEvent) => {
-    const relatedTarget = e.relatedTarget as HTMLElement | null;
-    const currentTarget = e.currentTarget as HTMLElement;
-    if (!currentTarget.contains(relatedTarget)) {
-      setDropTargetIndex(null);
+    const fromIndex = sorted.findIndex((s) => s.id === active.id);
+    const toIndex = sorted.findIndex((s) => s.id === over.id);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      reorderSessions(fromIndex, toIndex);
     }
-  }, []);
+  }, [sorted, reorderSessions]);
 
-  const handleCellDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const sessionId = e.dataTransfer.getData('text/plain');
-    if (!sessionId) return;
-    
-    const session = sorted.find((s) => s.id === sessionId);
-    if (!session) return;
-    
-    if (session.index !== targetIndex) {
-      reorderSession(sessionId, targetIndex);
-    }
-    
-    setDraggingId(null);
-    setDropTargetIndex(null);
-  }, [sorted, reorderSession]);
+  const activeSession = useMemo(
+    () => (activeId ? sorted.find((s) => s.id === activeId) ?? null : null),
+    [activeId, sorted]
+  );
 
   const getPointerPercent = useCallback((e: MouseEvent, axis: 'col' | 'row') => {
     if (!containerRef.current) return 0;
@@ -243,6 +245,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   }
 
   const cellCount = cols * rows;
+  const sortableIds = sorted.map((s) => s.id);
 
   return (
     <div className={`h-full w-full flex flex-col bg-theme-main`}>
@@ -250,103 +253,101 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
         ref={containerRef}
         className="flex-1 min-h-0 relative p-1"
       >
-        <div
-          className="absolute inset-1 z-0"
-          style={{
-            display: 'grid',
-            gridTemplateColumns,
-            gridTemplateRows,
-            gap: '6px',
-          }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
-          {Array.from({ length: cellCount }).map((_, cellIndex) => {
-            const row = Math.floor(cellIndex / cols);
-            const col = cellIndex % cols;
-            const session = sorted[cellIndex] || null;
-            const isDropTarget = dropTargetIndex === cellIndex && draggingId && session?.id !== draggingId;
-            const isDragging = draggingId === session?.id;
+          <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+            <div
+              className="absolute inset-1 z-0"
+              style={{
+                display: 'grid',
+                gridTemplateColumns,
+                gridTemplateRows,
+                gap: '6px',
+              }}
+            >
+              {Array.from({ length: cellCount }).map((_, cellIndex) => {
+                const row = Math.floor(cellIndex / cols);
+                const col = cellIndex % cols;
+                const session = sorted[cellIndex] || null;
 
-            return (
-              <motion.div
-                key={cellIndex}
-                layout
-                animate={{
-                  scale: isDragging ? 1.03 : isDropTarget ? 1.01 : 1,
-                  opacity: isDragging ? 0.85 : isDropTarget ? 0.9 : 1,
-                  zIndex: isDragging ? 50 : isDropTarget ? 20 : 1,
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 35,
-                  layout: { type: "spring", stiffness: 400, damping: 35 },
-                }}
-                className={`relative overflow-hidden rounded-xl border bg-theme-card shadow-xl transition-all duration-300 ${
-                  isDropTarget
-                    ? isLight
-                      ? 'border-emerald-400/60 shadow-[0_0_20px_rgba(52,211,153,0.3)]'
-                      : 'border-emerald-500/50 shadow-[0_0_20px_rgba(52,211,153,0.2)]'
-                    : 'border-theme'
-                } ${isDragging ? 'shadow-2xl' : ''}`}
-                style={{ gridRow: row + 1, gridColumn: col + 1 }}
-                onDragOver={(e) => handleCellDragOver(e as unknown as React.DragEvent, cellIndex)}
-                onDragLeave={handleCellDragLeave}
-                onDrop={(e) => handleCellDrop(e as unknown as React.DragEvent, cellIndex)}
-              >
-                {session ? (
-                  <TerminalPane
-                    session={session}
-                    onClose={() => handleRemoveTerminal(session.id)}
-                    theme={theme}
-                    isDragging={isDragging}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                  />
-                ) : (
+                return (
                   <div
-                    className={`h-full flex items-center justify-center cursor-pointer transition-all duration-300 group/empty ${
-                      isLight
-                        ? 'bg-zinc-800/10 hover:bg-zinc-800/30'
-                        : 'bg-zinc-900/10 hover:bg-zinc-900/30'
-                    }`}
-                    onClick={() => setShowNewDialog(true)}
-                    title="Spawn Terminal"
+                    key={session ? session.id : `empty-${cellIndex}`}
+                    className={`relative overflow-hidden rounded-xl border bg-theme-card shadow-xl border-theme`}
+                    style={{ gridRow: row + 1, gridColumn: col + 1 }}
                   >
-                    <div className="flex flex-col items-center gap-4 transition-all duration-300 group-hover/empty:scale-110">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 ${
-                        isLight
-                          ? 'border-zinc-700 text-zinc-500 group-hover/empty:border-zinc-500 group-hover/empty:bg-zinc-800/40'
-                          : 'border-zinc-800 text-zinc-700 group-hover/empty:border-zinc-600 group-hover/empty:bg-zinc-800/20 group-hover/empty:text-zinc-400'
-                      }`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
+                    {session ? (
+                      <SortableTerminalPane
+                        session={session}
+                        onClose={() => handleRemoveTerminal(session.id)}
+                        theme={theme}
+                      />
+                    ) : (
+                      <div
+                        className={`h-full flex items-center justify-center cursor-pointer transition-all duration-300 group/empty ${
+                          isLight
+                            ? 'bg-zinc-800/10 hover:bg-zinc-800/30'
+                            : 'bg-zinc-900/10 hover:bg-zinc-900/30'
+                        }`}
+                        onClick={() => setShowNewDialog(true)}
+                        title="Spawn Terminal"
+                      >
+                        <div className="flex flex-col items-center gap-4 transition-all duration-300 group-hover/empty:scale-110">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 ${
+                            isLight
+                              ? 'border-zinc-700 text-zinc-500 group-hover/empty:border-zinc-500 group-hover/empty:bg-zinc-800/40'
+                              : 'border-zinc-800 text-zinc-700 group-hover/empty:border-zinc-600 group-hover/empty:bg-zinc-800/20 group-hover/empty:text-zinc-400'
+                          }`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          </div>
+                          <span className={`text-[10px] uppercase font-black tracking-[0.3em] transition-colors duration-300 ${
+                            isLight ? 'text-zinc-500 group-hover/empty:text-zinc-300' : 'text-zinc-700 group-hover/empty:text-zinc-400'
+                          }`}>Spawn_TTY</span>
+                        </div>
                       </div>
-                      <span className={`text-[10px] uppercase font-black tracking-[0.3em] transition-colors duration-300 ${
-                        isLight ? 'text-zinc-500 group-hover/empty:text-zinc-300' : 'text-zinc-700 group-hover/empty:text-zinc-400'
-                      }`}>Spawn_TTY</span>
-                    </div>
+                    )}
                   </div>
-                )}
-                <AnimatePresence>
-                  {isDropTarget && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className={`absolute inset-0 rounded-xl border-2 pointer-events-none ${
-                        isLight
-                          ? 'border-emerald-400/80 bg-emerald-400/10'
-                          : 'border-emerald-500/60 bg-emerald-500/5'
-                      }`}
-                    />
+                );
+              })}
+            </div>
+          </SortableContext>
+
+          <DragOverlay dropAnimation={null}>
+            {activeSession ? (
+              <div className={`rounded-xl border shadow-2xl overflow-hidden ${
+                isLight ? 'bg-zinc-900/90 border-zinc-600' : 'bg-zinc-950/90 border-zinc-700'
+              }`}>
+                <div className={`flex items-center gap-3 px-3 py-2 ${
+                  isLight ? 'bg-zinc-800/90' : 'bg-zinc-900/90'
+                }`}>
+                  <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${
+                    isLight ? 'text-zinc-300' : 'text-zinc-400'
+                  }`}>
+                    TTY::{activeSession.index + 1}
+                  </span>
+                  {activeSession.agent && (
+                    <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md border ${
+                      isLight ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-950 border-zinc-800 text-zinc-400'
+                    }`}>
+                      {activeSession.agent}
+                    </span>
                   )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
+                </div>
+                <div className={`h-24 flex items-center justify-center ${
+                  isLight ? 'bg-zinc-900/80 text-zinc-600' : 'bg-zinc-950/80 text-zinc-700'
+                }`}>
+                  <span className="text-[10px] uppercase tracking-widest font-bold">Moving...</span>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
         {cols > 1 && Array.from({ length: cols - 1 }).map((_, ci) => {
           const leftPercent = activeColSizes.slice(0, ci + 1).reduce((a, b) => a + b, 0);

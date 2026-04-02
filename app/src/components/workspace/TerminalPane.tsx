@@ -24,9 +24,7 @@ interface TerminalPaneProps {
   onResize?: (cols: number, rows: number) => void;
   onClose?: () => void;
   theme?: 'dark' | 'light';
-  isDragging?: boolean;
-  onDragStart?: (e: React.DragEvent, sessionId: string) => void;
-  onDragEnd?: () => void;
+  dragListeners?: Record<string, unknown>;
 }
 
 const AGENT_LOGOS: Record<AgentType, string> = {
@@ -99,9 +97,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
   onResize, 
   onClose, 
   theme: themeProp,
-  isDragging,
-  onDragStart,
-  onDragEnd,
+  dragListeners,
 }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
@@ -655,43 +651,14 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
         : 'bg-zinc-950 border border-zinc-800/50 shadow-2xl'
     }`}>
       <div 
-        className={`flex items-center justify-between px-3 py-1.5 select-none shrink-0 cursor-grab active:cursor-grabbing ${
+        className={`drag-handle flex items-center justify-between px-3 py-1.5 select-none shrink-0 cursor-grab active:cursor-grabbing ${
           isLight
             ? 'bg-zinc-800/80 border-b border-zinc-700 backdrop-blur-md'
             : 'bg-zinc-900/40 border-b border-zinc-800/50 backdrop-blur-md'
         }`}
-        draggable={true}
-        onDragStart={(e) => {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', session.id);
-          onDragStart?.(e, session.id);
-        }}
-        onDragEnd={() => {
-          onDragEnd?.();
-        }}
+        {...dragListeners}
       >
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-          <div
-            className={`flex items-center justify-center w-4 h-4 rounded-sm shrink-0 ${
-              isDragging
-                ? isLight
-                  ? 'bg-zinc-600 text-zinc-200'
-                  : 'bg-zinc-700 text-zinc-300'
-                : isLight
-                  ? 'text-zinc-600'
-                  : 'text-zinc-700'
-            }`}
-            title="Drag to reorder"
-          >
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="9" cy="5" r="1.5" />
-              <circle cx="15" cy="5" r="1.5" />
-              <circle cx="9" cy="12" r="1.5" />
-              <circle cx="15" cy="12" r="1.5" />
-              <circle cx="9" cy="19" r="1.5" />
-              <circle cx="15" cy="19" r="1.5" />
-            </svg>
-          </div>
           <div className="relative flex h-2 w-2 shrink-0">
              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 ${
                session.status === 'running' ? 'bg-emerald-400' : session.status === 'error' ? 'bg-rose-400' : 'bg-zinc-400'

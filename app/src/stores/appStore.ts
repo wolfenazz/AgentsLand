@@ -25,6 +25,8 @@ interface AppState {
   theme: "dark" | "light";
   selectedIdes: IdeType[];
   ideStatuses: Record<IdeType, IdeInfo | null>;
+  autoSave: boolean;
+  showMinimap: boolean;
 
   setView: (view: "setup" | "workspace" | "docs") => void;
   setViewWithPrevious: (view: "docs") => void;
@@ -32,15 +34,17 @@ interface AppState {
   setSessions: (sessions: TerminalSession[]) => void;
   addSession: (session: TerminalSession) => void;
   removeSession: (sessionId: string) => void;
-  reorderSession: (sessionId: string, newIndex: number) => void;
   setIsLoadingTerminals: (loading: boolean) => void;
   updateWorkspaceList: (workspaces: WorkspaceConfig[]) => void;
   addToWorkspaceList: (workspace: WorkspaceConfig) => void;
   setActiveSession: (sessionId: string | null) => void;
   updateAgentAllocation: (agent: AgentType, count: number) => void;
   markWorkspaceOpened: (workspaceId: string) => void;
+  reorderSessions: (fromIndex: number, toIndex: number) => void;
   clearCurrentWorkspace: () => void;
   toggleTheme: () => void;
+  setAutoSave: (enabled: boolean) => void;
+  setShowMinimap: (show: boolean) => void;
 
   openWorkspace: (workspace: WorkspaceConfig) => void;
   closeWorkspace: (workspaceId: string) => void;
@@ -118,6 +122,8 @@ export const useAppStore = create<AppState>()(
       authInfos: {} as Record<AgentType, any>,
       theme: "dark",
       selectedIdes: [],
+      autoSave: true,
+      showMinimap: true,
       ideStatuses: {
         vsCode: null,
         visualStudio: null,
@@ -186,46 +192,6 @@ export const useAppStore = create<AppState>()(
               state.activeSessionId === sessionId ? null : state.activeSessionId,
           };
         }),
-      reorderSession: (sessionId, targetIndex) =>
-        set((state) => {
-          const wsId = state.activeWorkspaceId;
-          const sessions = wsId 
-            ? (state.sessionsByWorkspace[wsId] || [])
-            : state.sessions;
-          
-          const draggedSession = sessions.find((s) => s.id === sessionId);
-          if (!draggedSession) return state;
-
-          const sorted = [...sessions].sort((a, b) => a.index - b.index);
-          
-          // targetIndex is the cellIndex (rank) in the grid (0..N-1)
-          // We want to find the session currently at that rank
-          const targetSession = sorted[targetIndex];
-
-          // If no session at that rank (empty cell), or dragging onto self, do nothing
-          if (!targetSession || targetSession.id === sessionId) return state;
-
-          const oldIndex = draggedSession.index;
-          const newIndex = targetSession.index;
-
-          // Swap logic: if you drag A onto B, they swap places.
-          const reordered = sessions.map((s) => {
-            if (s.id === sessionId) {
-              return { ...s, index: newIndex };
-            }
-            if (s.id === targetSession.id) {
-              return { ...s, index: oldIndex };
-            }
-            return s;
-          });
-          
-          return {
-            sessions: state.sessions.map(s => reordered.find(r => r.id === s.id) || s),
-            sessionsByWorkspace: wsId
-              ? { ...state.sessionsByWorkspace, [wsId]: reordered }
-              : state.sessionsByWorkspace,
-          };
-        }),
       setIsLoadingTerminals: (loading) => set({ isLoadingTerminals: loading }),
       setTerminalError: (error) => set({ terminalError: error }),
       updateWorkspaceList: (workspaces) => set({ workspaceList: workspaces }),
@@ -258,6 +224,23 @@ export const useAppStore = create<AppState>()(
               : w
           ),
         })),
+      reorderSessions: (fromIndex, toIndex) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId;
+          const sessions = wsId ? (state.sessionsByWorkspace[wsId] || []) : state.sessions;
+          const sorted = [...sessions].sort((a, b) => a.index - b.index);
+          if (fromIndex < 0 || fromIndex >= sorted.length || toIndex < 0 || toIndex >= sorted.length) return state;
+          [sorted[fromIndex], sorted[toIndex]] = [sorted[toIndex], sorted[fromIndex]];
+          const reindexed = sorted.map((s, idx) => ({ ...s, index: idx }));
+          const updatedByWorkspace = wsId
+            ? { ...state.sessionsByWorkspace, [wsId]: reindexed }
+            : state.sessionsByWorkspace;
+          return {
+            sessions: reindexed,
+            sessionsByWorkspace: updatedByWorkspace,
+          };
+        }),
+
       clearCurrentWorkspace: () =>
         set({
           currentWorkspace: null,
@@ -269,6 +252,8 @@ export const useAppStore = create<AppState>()(
         }),
 
       toggleTheme: () => set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
+      setAutoSave: (enabled) => set({ autoSave: enabled }),
+      setShowMinimap: (show) => set({ showMinimap: show }),
 
       openWorkspace: (workspace) =>
         set((state) => {
@@ -645,6 +630,8 @@ export const useAppStore = create<AppState>()(
         cliStatuses: state.cliStatuses,
         theme: state.theme,
         selectedIdes: state.selectedIdes,
+        autoSave: state.autoSave,
+        showMinimap: state.showMinimap,
       }),
     }
   )
