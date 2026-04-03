@@ -30,7 +30,7 @@ pub fn read_file_content(file_path: &str) -> Result<FileContent, String> {
         return Err(format!("Path is a directory: {}", file_path));
     }
 
-    check_file_size(&path)?;
+    check_file_size(path)?;
 
     let content = fs::read_to_string(path).map_err(|e| format!("Failed to read file: {}", e))?;
     let language = detect_language(path).to_string();
@@ -88,6 +88,7 @@ fn detect_language(path: &Path) -> &'static str {
         "doc" => "doc",
         "xlsx" => "xlsx",
         "xls" => "xls",
+        "csv" => "csv",
         _ => {
             let filename = path
                 .file_name()
@@ -117,7 +118,7 @@ pub fn read_file_as_base64(file_path: &str) -> Result<String, String> {
         return Err(format!("Path is a directory: {}", file_path));
     }
 
-    check_file_size(&path)?;
+    check_file_size(path)?;
 
     let bytes = fs::read(path).map_err(|e| format!("Failed to read file: {}", e))?;
     let mime_type = detect_mime_type(path);
@@ -147,8 +148,23 @@ fn detect_mime_type(path: &Path) -> &'static str {
         "doc" => "application/msword",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "xls" => "application/vnd.ms-excel",
+        "csv" => "text/csv",
         _ => "application/octet-stream",
     }
+}
+
+pub fn get_file_size(file_path: &str) -> Result<u64, String> {
+    validate_no_path_traversal(file_path).map_err(|e| e.to_string())?;
+    let path = Path::new(file_path);
+    if !path.exists() {
+        return Err(format!("File does not exist: {}", file_path));
+    }
+    if path.is_dir() {
+        return Err(format!("Path is a directory: {}", file_path));
+    }
+    let metadata =
+        fs::metadata(path).map_err(|e| format!("Failed to read file metadata: {}", e))?;
+    Ok(metadata.len())
 }
 
 pub fn is_binary_file(file_path: &str) -> Result<bool, String> {

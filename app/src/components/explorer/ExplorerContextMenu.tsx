@@ -21,6 +21,9 @@ interface ExplorerContextMenuProps {
   onCut: (node: TreeNodeData) => void;
   onCopyPath: (node: TreeNodeData) => void;
   onCopyRelativePath: (node: TreeNodeData) => void;
+  onOpenInTerminal: (node: TreeNodeData) => void;
+  onDuplicate: (node: TreeNodeData) => void;
+  onCopyAsImportPath: (node: TreeNodeData) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -59,6 +62,9 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
   onCut,
   onCopyPath,
   onCopyRelativePath,
+  onOpenInTerminal,
+  onDuplicate,
+  onCopyAsImportPath,
   containerRef,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -171,6 +177,24 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
     onClose();
   }, [menu, onCopyRelativePath, onClose]);
 
+  const handleOpenInTerminal = useCallback(() => {
+    if (!menu?.node) return;
+    onOpenInTerminal(menu.node);
+    onClose();
+  }, [menu, onOpenInTerminal, onClose]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!menu?.node) return;
+    onDuplicate(menu.node);
+    onClose();
+  }, [menu, onDuplicate, onClose]);
+
+  const handleCopyAsImportPath = useCallback(() => {
+    if (!menu?.node) return;
+    onCopyAsImportPath(menu.node);
+    onClose();
+  }, [menu, onCopyAsImportPath, onClose]);
+
   const isDir = menu?.node?.isDir ?? false;
 
   const hasNode = !!menu?.node;
@@ -205,6 +229,12 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
               {(isDir || !hasNode) && (
                 <div className="my-1 border-t border-theme mx-2" />
               )}
+              {isDir && (
+                <MenuItem
+                  label="Open in Terminal"
+                  onClick={handleOpenInTerminal}
+                />
+              )}
               <MenuItem
                 label="Copy"
                 shortcut="Ctrl+C"
@@ -214,6 +244,10 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
                 label="Cut"
                 shortcut="Ctrl+X"
                 onClick={handleCut}
+              />
+              <MenuItem
+                label="Duplicate"
+                onClick={handleDuplicate}
               />
               <div className="my-1 border-t border-theme mx-2" />
               <MenuItem
@@ -225,6 +259,10 @@ const ContextMenuInner: React.FC<ExplorerContextMenuProps> = ({
                 label="Copy Relative Path"
                 shortcut="Ctrl+Alt+C"
                 onClick={handleCopyRelativePath}
+              />
+              <MenuItem
+                label="Copy as Import Path"
+                onClick={handleCopyAsImportPath}
               />
               <div className="my-1 border-t border-theme mx-2" />
               <MenuItem

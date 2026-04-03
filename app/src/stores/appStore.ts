@@ -74,6 +74,9 @@ interface AppState {
   activeFileByWorkspace: Record<string, string | null>;
   activeViewByWorkspace: Record<string, "terminal" | "editor">;
   explorerClipboard: { operation: 'copy' | 'cut'; path: string; name: string; isDir: boolean } | null;
+  recentDirectories: string[];
+  addRecentDirectory: (path: string) => void;
+  clearRecentDirectories: () => void;
   toggleExplorer: () => void;
   setExplorerClipboard: (entry: { operation: 'copy' | 'cut'; path: string; name: string; isDir: boolean } | null) => void;
   setActiveView: (view: "terminal" | "editor") => void;
@@ -88,6 +91,7 @@ interface AppState {
   closeOtherFiles: (exceptPath: string) => void;
   closeFilesToRight: (path: string) => void;
   closeSavedFiles: () => void;
+  reorderOpenFiles: (fromIndex: number, toIndex: number) => void;
 }
 
 const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
@@ -394,9 +398,18 @@ export const useAppStore = create<AppState>()(
       activeFileByWorkspace: {} as Record<string, string | null>,
       activeViewByWorkspace: {} as Record<string, "terminal" | "editor">,
       explorerClipboard: null,
+      recentDirectories: [],
 
       toggleExplorer: () => set((state) => ({ explorerOpen: !state.explorerOpen })),
       setExplorerClipboard: (entry) => set({ explorerClipboard: entry }),
+
+      addRecentDirectory: (path) =>
+        set((state) => {
+          const filtered = state.recentDirectories.filter((p) => p !== path);
+          return { recentDirectories: [path, ...filtered].slice(0, 10) };
+        }),
+
+      clearRecentDirectories: () => set({ recentDirectories: [] }),
 
       setActiveView: (view) =>
         set((state) => {
@@ -623,6 +636,24 @@ export const useAppStore = create<AppState>()(
             },
           };
         }),
+
+      reorderOpenFiles: (fromIndex, toIndex) =>
+        set((state) => {
+          const wsId = state.activeWorkspaceId ?? state.currentWorkspace?.id ?? null;
+          if (!wsId) return state;
+          const currentFiles = state.filesByWorkspace[wsId] || [];
+          if (fromIndex < 0 || fromIndex >= currentFiles.length || toIndex < 0 || toIndex >= currentFiles.length) return state;
+          const newFiles = [...currentFiles];
+          const [moved] = newFiles.splice(fromIndex, 1);
+          newFiles.splice(toIndex, 0, moved);
+          return {
+            openFiles: newFiles,
+            filesByWorkspace: {
+              ...state.filesByWorkspace,
+              [wsId]: newFiles,
+            },
+          };
+        }),
     }),
     {
       name: 'yzpzcode-storage',
@@ -632,6 +663,7 @@ export const useAppStore = create<AppState>()(
         selectedIdes: state.selectedIdes,
         autoSave: state.autoSave,
         showMinimap: state.showMinimap,
+        recentDirectories: state.recentDirectories,
       }),
     }
   )

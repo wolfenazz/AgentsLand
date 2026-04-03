@@ -112,6 +112,17 @@ export const useAgentAllocation = (totalSlots: number) => {
     allocation,
   }), [totalSlots, allocation]);
 
+  const setAllocationFromTemplate = useCallback((newAllocation: Record<AgentType, number>) => {
+    setAllocation(newAllocation);
+    const enabled = new Set<AgentType>(
+      (Object.entries(newAllocation) as [AgentType, number][])
+        .filter(([, count]) => count > 0)
+        .map(([agent]) => agent)
+    );
+    setEnabledAgents(enabled);
+    persistAllocation(newAllocation);
+  }, []);
+
   const resetAllocation = useCallback(() => {
     setAllocation(DEFAULT_ALLOCATION);
     setEnabledAgents(new Set(VALID_AGENTS));
@@ -140,6 +151,22 @@ export const useAgentAllocation = (totalSlots: number) => {
     persistAllocation(newAllocation);
   }, [totalSlots]);
 
+  const distributeEvenly = useCallback(() => {
+    const enabled = Array.from(enabledAgents);
+    if (enabled.length === 0) return;
+
+    const newAllocation: Record<AgentType, number> = { ...DEFAULT_ALLOCATION };
+    const base = Math.floor(totalSlots / enabled.length);
+    const remainder = totalSlots % enabled.length;
+
+    enabled.forEach((agent, i) => {
+      newAllocation[agent] = base + (i < remainder ? 1 : 0);
+    });
+
+    setAllocation(newAllocation);
+    persistAllocation(newAllocation);
+  }, [totalSlots, enabledAgents]);
+
   return {
     allocation,
     enabledAgents,
@@ -153,5 +180,7 @@ export const useAgentAllocation = (totalSlots: number) => {
     getAgentFleet,
     resetAllocation,
     autoFillFromInstalled,
+    distributeEvenly,
+    setAllocationFromTemplate,
   };
 };

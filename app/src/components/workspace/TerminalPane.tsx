@@ -94,6 +94,8 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const launchAttemptsRef = useRef(0);
   const launchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showPasteConfirm, setShowPasteConfirm] = useState(false);
+  const [pendingPasteText, setPendingPasteText] = useState('');
 
   const theme = themeProp || 'dark';
   const isLight = theme === 'light';
@@ -267,14 +269,18 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
         navigator.clipboard.readText().then(async (text) => {
           if (!text) return;
           
+          if (text.length > 1024) {
+            setPendingPasteText(text);
+            setShowPasteConfirm(true);
+            return;
+          }
+          
           const CHUNK_SIZE = 512;
           const DELAY = 2;
           
           try {
-            // Start bracketed paste
             await invoke('write_to_terminal', { sessionId: session.id, input: '\x1b[200~' });
             
-            // Chunked paste
             for (let i = 0; i < text.length; i += CHUNK_SIZE) {
               const chunk = text.slice(i, i + CHUNK_SIZE);
               await invoke('write_to_terminal', { sessionId: session.id, input: chunk });
@@ -283,7 +289,6 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
               }
             }
             
-            // End bracketed paste
             await invoke('write_to_terminal', { sessionId: session.id, input: '\x1b[201~' });
           } catch (error) {
             console.error('Failed to paste to terminal:', error);
@@ -487,6 +492,36 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
     setShowAuthModal(true);
   };
 
+  const executePaste = useCallback(async () => {
+    if (!pendingPasteText) return;
+    setShowPasteConfirm(false);
+    
+    const CHUNK_SIZE = 512;
+    const DELAY = 2;
+    
+    try {
+      await invoke('write_to_terminal', { sessionId: session.id, input: '\x1b[200~' });
+      
+      for (let i = 0; i < pendingPasteText.length; i += CHUNK_SIZE) {
+        const chunk = pendingPasteText.slice(i, i + CHUNK_SIZE);
+        await invoke('write_to_terminal', { sessionId: session.id, input: chunk });
+        if (i + CHUNK_SIZE < pendingPasteText.length) {
+          await new Promise(resolve => setTimeout(resolve, DELAY));
+        }
+      }
+      
+      await invoke('write_to_terminal', { sessionId: session.id, input: '\x1b[201~' });
+    } catch (error) {
+      console.error('Failed to paste to terminal:', error);
+    }
+    setPendingPasteText('');
+  }, [pendingPasteText, session.id]);
+
+  const cancelPaste = useCallback(() => {
+    setShowPasteConfirm(false);
+    setPendingPasteText('');
+  }, []);
+
   return (
     <div className={`h-full flex flex-col overflow-hidden transition-all duration-300 font-mono ${
       isLight
@@ -579,6 +614,42 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
           getAuthInstructions={getAuthInstructions}
           theme={theme}
         />
+      )}
+
+      {showPasteConfirm && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className={`w-80 rounded-xl border shadow-2xl p-5 ${
+            isLight ? 'bg-zinc-900 border-zinc-700' : 'bg-zinc-950 border-zinc-800'
+          }`}>
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-zinc-200' : 'text-zinc-200'}`}>
+                Large Paste Detected
+              </span>
+            </div>
+            <p className={`text-[10px] leading-relaxed mb-4 ${isLight ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              You are about to paste {(pendingPasteText.length / 1024).toFixed(1)} KB of text into the terminal. This may take a moment.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={cancelPaste}
+                className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                  isLight ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executePaste}
+                className="flex-1 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white hover:bg-emerald-500 transition-colors cursor-pointer"
+              >
+                Paste Anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

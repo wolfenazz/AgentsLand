@@ -6,6 +6,7 @@ import { TreeNode, ExplorerContext } from './TreeNode';
 import { GitChangesPanel } from './GitChangesPanel';
 import { ExplorerContextMenu } from './ExplorerContextMenu';
 import { useAppStore } from '../../stores/appStore';
+import { invoke } from '@tauri-apps/api/core';
 
 interface FileExplorerProps {
   workspacePath: string;
@@ -22,6 +23,10 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const gitDiffStats = useAppStore((s) => s.gitDiffStats);
   const activeFilePath = useAppStore((s) => s.activeFilePath);
   const setExplorerClipboard = useAppStore((s) => s.setExplorerClipboard);
+  const currentWorkspace = useAppStore((s) => s.currentWorkspace);
+  const addSession = useAppStore((s) => s.addSession);
+  const setGitStatuses = useAppStore((s) => s.setGitStatuses);
+  const setGitDiffStats = useAppStore((s) => s.setGitDiffStats);
 
   const {
     treeData,
@@ -38,6 +43,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   } = useFileTree(workspacePath);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -46,6 +52,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [treeSize, setTreeSize] = useState({ width: 300, height: 400 });
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 200);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -142,6 +153,87 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       navigator.clipboard.writeText(relative).catch(console.error);
     },
     [workspacePath]
+  );
+
+  const handleOpenInTerminal = useCallback(
+    async (node: TreeNodeData) => {
+      if (!currentWorkspace || !node.isDir) return;
+      try {
+        const session = await invoke<{ id: string }>('create_single_terminal_session', {
+          request: {
+            workspaceId: currentWorkspace.id,
+            workspacePath: node.path,
+            index: -1,
+            agent: null,
+          },
+        });
+        addSession({
+          id: session.id,
+          workspaceId: currentWorkspace.id,
+          index: -1,
+          cwd: node.path,
+          status: 'idle',
+          shell: '',
+        });
+      } catch (err) {
+        console.error('Failed to open terminal:', err);
+      }
+    },
+    [currentWorkspace, addSession]
+  );
+
+  const handleDuplicate = useCallback(
+    async (node: TreeNodeData) => {
+      try {
+        await invoke('duplicate_entry', { path: node.path });
+        refreshRoot();
+      } catch (err) {
+        console.error('Failed to duplicate:', err);
+      }
+    },
+    [refreshRoot]
+  );
+
+  const handleCopyAsImportPath = useCallback(
+    (node: TreeNodeData) => {
+      const relative = node.path.startsWith(workspacePath)
+        ? node.path.slice(workspacePath.length).replace(/^[\\/]/, '')
+        : node.path;
+      const withoutExt = relative.replace(/\.[^.]+$/, '');
+      const withSlashes = withoutExt.replace(/\\/g, '/');
+      navigator.clipboard.writeText(withSlashes).catch(console.error);
+    },
+    [workspacePath]
+  );
+
+  const handleStageFile = useCallback(
+    async (filePath: string) => {
+      try {
+        await invoke('git_stage_file', { workspacePath, filePath });
+        const statuses = await invoke<{ path: string; change: string }[]>('get_git_status', { workspacePath });
+        setGitStatuses(statuses as never[]);
+        const stats = await invoke<{ path: string; linesAdded: number; linesDeleted: number }[]>('get_git_diff_stats', { workspacePath });
+        setGitDiffStats(stats as never[]);
+      } catch (err) {
+        console.error('Failed to stage file:', err);
+      }
+    },
+    [workspacePath, setGitStatuses, setGitDiffStats]
+  );
+
+  const handleUnstageFile = useCallback(
+    async (filePath: string) => {
+      try {
+        await invoke('git_unstage_file', { workspacePath, filePath });
+        const statuses = await invoke<{ path: string; change: string }[]>('get_git_status', { workspacePath });
+        setGitStatuses(statuses as never[]);
+        const stats = await invoke<{ path: string; linesAdded: number; linesDeleted: number }[]>('get_git_diff_stats', { workspacePath });
+        setGitDiffStats(stats as never[]);
+      } catch (err) {
+        console.error('Failed to unstage file:', err);
+      }
+    },
+    [workspacePath, setGitStatuses, setGitDiffStats]
   );
 
   const explorerContextValue = useMemo(
@@ -323,7 +415,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               indent={14}
               rowHeight={28}
               openByDefault={false}
-              searchTerm={searchQuery || undefined}
+              searchTerm={debouncedSearchQuery || undefined}
               onToggle={handleToggle}
               onMove={handleMove}
               onRename={handleRename}
@@ -353,6 +445,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           onCut={handleCut}
           onCopyPath={handleCopyPath}
           onCopyRelativePath={handleCopyRelativePath}
+          onOpenInTerminal={handleOpenInTerminal}
+          onDuplicate={handleDuplicate}
+          onCopyAsImportPath={handleCopyAsImportPath}
           containerRef={containerRef}
         />
       </div>
@@ -362,6 +457,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         gitDiffStats={gitDiffStats}
         workspacePath={workspacePath}
         onFileClick={onFileClick}
+        onStageFile={handleStageFile}
+        onUnstageFile={handleUnstageFile}
       />
     </div>
   );

@@ -34,7 +34,7 @@ export const IdesSelector: React.FC<IdesSelectorProps> = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <label className="block text-xs font-medium text-zinc-400 font-mono uppercase tracking-[0.15em]">
             IDEs
@@ -45,11 +45,11 @@ export const IdesSelector: React.FC<IdesSelectorProps> = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-4 text-zinc-500 font-mono text-xs">
+        <div className="flex items-center justify-center py-6 text-zinc-500 font-mono text-xs">
           <span className="animate-pulse">Detecting IDEs...</span>
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9 gap-1.5">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9 gap-2.5">
           {ideList.map((ide) => {
             const isSelected = selectedIdes.includes(ide.ide);
             const isInstalled = ide.installed;
@@ -60,36 +60,36 @@ export const IdesSelector: React.FC<IdesSelectorProps> = () => {
                 onClick={() => isInstalled && toggleIde(ide.ide)}
                 disabled={!isInstalled}
                 className={`
-                  group relative flex flex-col items-center justify-center p-2 rounded-md border
-                  font-mono text-[9px] uppercase tracking-[0.1em] min-h-[56px]
-                  transition-colors duration-150 cursor-pointer
+                  group relative flex flex-col items-center justify-center p-3 rounded-lg border
+                  font-mono text-[10px] uppercase tracking-[0.1em] min-h-[72px]
+                  transition-all duration-200 cursor-pointer
                   ${isInstalled
                     ? isSelected
-                      ? 'border-zinc-400 bg-zinc-800/60 text-zinc-200'
-                      : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-600 hover:bg-zinc-900/40 hover:text-zinc-300'
-                    : 'border-zinc-800/40 bg-zinc-950/50 text-zinc-700 cursor-not-allowed opacity-40'
+                      ? 'border-zinc-400/70 bg-zinc-800/70 text-zinc-200 shadow-[0_0_12px_rgba(161,161,170,0.04)]'
+                      : 'border-zinc-800 bg-zinc-950/60 text-zinc-500 hover:border-zinc-600 hover:bg-zinc-900/50 hover:text-zinc-300'
+                    : 'border-zinc-800/40 bg-zinc-950/30 text-zinc-700 cursor-not-allowed opacity-40'
                   }
                 `}
                 title={isInstalled ? ide.path || ide.name : 'Not installed'}
               >
-                <div className="relative mb-1">
+                <div className="relative mb-2">
                   <img
                     src={IDE_ICONS[ide.ide]}
                     alt={ide.name}
-                    className={`w-5 h-5 object-contain ${!isInstalled ? 'grayscale opacity-50' : ''}`}
+                    className={`w-8 h-8 object-contain transition-transform duration-200 ${!isInstalled ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                   {isSelected && (
-                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-zinc-200 rounded-full flex items-center justify-center">
-                      <svg className="w-1 h-1 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-200 rounded-full flex items-center justify-center shadow-sm">
+                      <svg className="w-1.5 h-1.5 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                   )}
                 </div>
-                <span className="truncate w-full text-center leading-tight">{IDE_DISPLAY_NAMES[ide.ide]}</span>
+                <span className="truncate w-full text-center leading-tight text-[9px]">{IDE_DISPLAY_NAMES[ide.ide]}</span>
               </button>
             );
           })}

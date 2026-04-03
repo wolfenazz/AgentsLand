@@ -9,6 +9,8 @@ interface GitChangesPanelProps {
   gitDiffStats: GitDiffStat[];
   workspacePath: string;
   onFileClick: (entry: FileEntry, change?: string) => void;
+  onStageFile: (filePath: string) => void;
+  onUnstageFile: (filePath: string) => void;
 }
 
 interface ChangedFile {
@@ -28,6 +30,8 @@ export const GitChangesPanel: React.FC<GitChangesPanelProps> = ({
   gitDiffStats,
   workspacePath,
   onFileClick,
+  onStageFile,
+  onUnstageFile,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT);
@@ -283,9 +287,34 @@ export const GitChangesPanel: React.FC<GitChangesPanelProps> = ({
                             {!hasChanges && file.change === 'untracked' && (
                               <span className="text-sky-500/50 font-black text-[8px]">new</span>
                             )}
-                          </div>
-                          
-                          <div className="w-14 h-1.5 rounded-full overflow-hidden shrink-0 bg-zinc-900 border border-zinc-800/50 flex shadow-inner">
+                         </div>
+
+                         <div className="flex items-center gap-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                            {(file.change === 'untracked' || file.change === 'modified') && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onStageFile(file.path); }}
+                                className="p-0.5 rounded hover:bg-emerald-500/20 text-zinc-500 hover:text-emerald-400 cursor-pointer transition-colors"
+                                title="Stage file"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </button>
+                            )}
+                            {(file.change === 'added' || file.change === 'modified') && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onUnstageFile(file.path); }}
+                                className="p-0.5 rounded hover:bg-rose-500/20 text-zinc-500 hover:text-rose-400 cursor-pointer transition-colors"
+                                title="Unstage file"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                </svg>
+                              </button>
+                            )}
+                         </div>
+                         
+                         <div className="w-14 h-1.5 rounded-full overflow-hidden shrink-0 bg-zinc-900 border border-zinc-800/50 flex shadow-inner">
                             {hasChanges ? (
                               <>
                                 <div
@@ -308,9 +337,9 @@ export const GitChangesPanel: React.FC<GitChangesPanelProps> = ({
                                 style={{ width: '100%' }}
                               />
                             )}
-                          </div>
-                      </div>
-                    </motion.div>
+                         </div>
+                       </div>
+                     </motion.div>
                   );
                 })}
               </div>

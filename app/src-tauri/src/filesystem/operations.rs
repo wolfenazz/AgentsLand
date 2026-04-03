@@ -125,3 +125,61 @@ pub fn reveal_in_file_manager(path: &str) -> Result<()> {
 
     Ok(())
 }
+
+pub fn duplicate_entry(path: &str) -> Result<String> {
+    validate_no_path_traversal(path)?;
+    let p = Path::new(path);
+    if !p.exists() {
+        return Err(anyhow::anyhow!("Path does not exist: {}", path));
+    }
+
+    let parent = p
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("No parent directory"))?;
+
+    let stem = p
+        .file_stem()
+        .ok_or_else(|| anyhow::anyhow!("Invalid file name"))?
+        .to_string_lossy()
+        .to_string();
+
+    let extension = p.extension().map(|e| format!(".{}", e.to_string_lossy()));
+
+    let mut new_name = format!("{}-copy{}", stem, extension.as_deref().unwrap_or(""));
+    let mut new_path = parent.join(&new_name);
+    let mut counter = 1;
+
+    while new_path.exists() {
+        new_name = format!(
+            "{}-copy-{}{}",
+            stem,
+            counter,
+            extension.as_deref().unwrap_or("")
+        );
+        new_path = parent.join(&new_name);
+        counter += 1;
+    }
+
+    if p.is_dir() {
+        copy_dir_recursive(p, &new_path)?;
+    } else {
+        fs::copy(p, &new_path)?;
+    }
+
+    Ok(new_path.to_string_lossy().to_string())
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if src_path.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}

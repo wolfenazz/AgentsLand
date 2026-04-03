@@ -30,7 +30,7 @@ pub fn get_ide_config(ide: IdeType) -> IdeConfig {
             linux_binary_names: vec!["code".to_string(), "code-oss".to_string()],
         },
         IdeType::VisualStudio => IdeConfig {
-            name: "Visual Studio 2022".to_string(),
+            name: "Visual Studio".to_string(),
             binary_names: vec!["devenv".to_string()],
             windows_binary_names: vec!["devenv.exe".to_string(), "WDExpress.exe".to_string()],
             windows_search_paths: vec![
@@ -38,9 +38,13 @@ pub fn get_ide_config(ide: IdeType) -> IdeConfig {
                 "Microsoft Visual Studio\\2022\\Community\\Common7\\IDE".to_string(),
                 "Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE".to_string(),
                 "Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE".to_string(),
+                "Microsoft Visual Studio\\2022\\Preview\\Common7\\IDE".to_string(),
                 "Microsoft Visual Studio\\2019\\Community\\Common7\\IDE".to_string(),
                 "Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE".to_string(),
                 "Microsoft Visual Studio\\2019\\Enterprise\\Common7\\IDE".to_string(),
+                "Microsoft Visual Studio\\2017\\Community\\Common7\\IDE".to_string(),
+                "Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE".to_string(),
+                "Microsoft Visual Studio\\2017\\Enterprise\\Common7\\IDE".to_string(),
             ],
             macos_app_names: vec!["Visual Studio.app".to_string()],
             linux_binary_names: vec!["devenv".to_string()],

@@ -134,10 +134,9 @@ const TreeNodeInner: React.FC<NodeRendererProps<TreeNodeData>> = ({
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      node.handleClick(e);
       onContextMenu(e, data);
     },
-    [node, data, onContextMenu]
+    [data, onContextMenu]
   );
 
   const handleSubmitEdit = useCallback(

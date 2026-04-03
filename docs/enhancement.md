@@ -115,7 +115,7 @@ Comprehensive plan for improving the workspace, startup page, editor, file explo
 
 | # | Feature | Description | File(s) to Modify |
 |---|---------|-------------|-------------------|
-| F14 | **Workspace templates** | Pre-configured workspace templates (React, Rust, Python, etc.) | `SetupScreen.tsx`, new types |
+| F14 | **Workspace templates** | Pre-configured workspace templates (React, Rust, Python, and More etc.) | `SetupScreen.tsx`, new types |
 | F15 | **"Distribute evenly" auto-allocation** | One-click to distribute terminal slots equally across installed agents | `AgentFleetConfig.tsx` |
 | F16 | **Recent directories dropdown** | Show recently used directories in the directory selector | `DirectorySelector.tsx` |
 | F17 | **Form validation messages** | Show inline validation for workspace name, required fields | `WorkspaceConfigForm.tsx` |
@@ -268,12 +268,12 @@ Comprehensive plan for improving the workspace, startup page, editor, file explo
 - R6-R9: All deduplication refactors
 - R10: Split appStore
 
-### Sprint 4 — New Features (Core) [2 weeks]
+### Sprint 4 — New Features (Core) [2 weeks] 
 
-- F1-F5: Editor enhancements (file size limit, quick-open, tab reorder, CSV)
-- F6-F10: Explorer enhancements (Open in Terminal, duplicate, git stage/unstage)
-- F11-F13: Terminal enhancements (agent descriptions, configurable shell, paste confirm)
-- F14-F17: Setup enhancements (templates, auto-allocation, recent dirs, validation)
+- F1-F5: Editor enhancements (file size limit, quick-open, tab reorder, CSV) [ compleated ]
+- F6-F10: Explorer enhancements (Open in Terminal, duplicate, git stage/unstage) [ compleated ]
+- F11-F13: Terminal enhancements (agent descriptions, configurable shell, paste confirm) [ compleated ]
+- F14-F17: Setup enhancements (templates, auto-allocation, recent dirs, validation) [ work on ]
 - FM3: Notification/toast system
 - FM6: Logging framework
 

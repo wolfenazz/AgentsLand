@@ -12,6 +12,7 @@ pub struct CreateSingleSessionRequest {
     pub workspace_path: String,
     pub index: usize,
     pub agent: Option<AgentType>,
+    pub shell: Option<String>,
 }
 
 #[tauri::command]
@@ -26,6 +27,7 @@ pub async fn create_single_terminal_session(
             request.workspace_path,
             request.index,
             request.agent,
+            request.shell,
         )
         .map_err(|e| e.to_string())?;
 
@@ -47,7 +49,6 @@ pub async fn create_terminal_sessions(
     launcher: State<'_, CliLauncher>,
     request: CreateSessionsRequest,
 ) -> Result<Vec<TerminalSession>, String> {
-    // Kill only existing sessions for this workspace to ensure a clean state
     if let Err(e) = manager.kill_sessions_by_workspace(&request.workspace_id) {
         eprintln!("Warning: failed to kill existing sessions: {}", e);
     }
@@ -58,11 +59,10 @@ pub async fn create_terminal_sessions(
             request.workspace_path,
             request.count,
             request.agent_fleet.allocation,
+            request.shell,
         )
         .map_err(|e| e.to_string())?;
 
-    // Automatically launch CLI for sessions that have an agent assigned
-    // We do this after creating all sessions
     for session in &sessions {
         if let Some(agent) = session.agent {
             if let Err(e) = launcher.launch_cli(&session.id, agent) {
@@ -138,4 +138,75 @@ pub fn get_grid_dimensions(count: usize) -> (usize, usize) {
         8 => (4, 2),
         _ => (1, 1),
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShellOption {
+    pub name: String,
+    pub path: String,
+    pub is_available: bool,
+}
+
+#[tauri::command]
+pub async fn get_available_shells() -> Result<Vec<ShellOption>, String> {
+    let mut shells = Vec::new();
+
+    #[cfg(target_os = "windows")]
+    {
+        let candidates = vec![
+            ("PowerShell 7", "pwsh"),
+            ("PowerShell", "powershell"),
+            ("Command Prompt", "cmd"),
+            ("Git Bash", "bash"),
+        ];
+        for (name, binary) in candidates {
+            let path = which::which(binary).ok().map(|p| p.to_string_lossy().to_string());
+            shells.push(ShellOption {
+                name: name.to_string(),
+                path: path.clone().unwrap_or_default(),
+                is_available: path.is_some(),
+            });
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let candidates = vec![
+            ("zsh", "/bin/zsh"),
+            ("bash", "/bin/bash"),
+            ("fish", "/opt/homebrew/bin/fish"),
+            ("fish (alt)", "/usr/local/bin/fish"),
+        ];
+        for (name, path) in candidates {
+            let available = std::path::Path::new(path).exists() || which::which(name).is_ok();
+            let resolved = which::which(name).ok().map(|p| p.to_string_lossy().to_string()).unwrap_or(path.to_string());
+            shells.push(ShellOption {
+                name: name.to_string(),
+                path: resolved,
+                is_available: available,
+            });
+        }
+    }
+
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+    {
+        let candidates = vec![
+            ("bash", "/bin/bash"),
+            ("zsh", "/usr/bin/zsh"),
+            ("fish", "/usr/bin/fish"),
+            ("sh", "/bin/sh"),
+        ];
+        for (name, path) in candidates {
+            let available = std::path::Path::new(path).exists() || which::which(name).is_ok();
+            let resolved = which::which(name).ok().map(|p| p.to_string_lossy().to_string()).unwrap_or(path.to_string());
+            shells.push(ShellOption {
+                name: name.to_string(),
+                path: resolved,
+                is_available: available,
+            });
+        }
+    }
+
+    Ok(shells)
 }

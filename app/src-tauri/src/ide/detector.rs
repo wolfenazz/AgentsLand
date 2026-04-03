@@ -55,6 +55,13 @@ impl IdeDetector {
     fn detect_ide_internal(&self, ide: IdeType) -> IdeInfo {
         let config = get_ide_config(ide);
 
+        if ide == IdeType::VisualStudio {
+            #[cfg(target_os = "windows")]
+            if let Some(info) = self.detect_visual_studio_vswhere() {
+                return info;
+            }
+        }
+
         let (installed, path) = self.check_ide_installed(&config);
 
         IdeInfo {
@@ -63,6 +70,85 @@ impl IdeDetector {
             binary_name: config.binary_names.first().cloned().unwrap_or_default(),
             installed,
             path,
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    fn detect_visual_studio_vswhere(&self) -> Option<IdeInfo> {
+        let pf_x86 = std::env::var("ProgramFiles(x86)")
+            .unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
+        let vswhere_path = std::path::PathBuf::from(pf_x86)
+            .join("Microsoft Visual Studio")
+            .join("Installer")
+            .join("vswhere.exe");
+
+        if !vswhere_path.exists() {
+            return None;
+        }
+
+        let output = std::process::Command::new(&vswhere_path)
+            .args(["-format", "json", "-products", "*", "-prerelease"])
+            .output()
+            .ok()?;
+
+        if !output.status.success() {
+            return None;
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let instances: Vec<serde_json::Value> = serde_json::from_str(&stdout).ok()?;
+
+        let instance = instances.first()?;
+
+        let install_path = instance
+            .get("installationPath")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+
+        let install_version = instance
+            .get("installationVersion")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+
+        let major_version = install_version
+            .split('.')
+            .next()
+            .and_then(|m| m.parse::<u32>().ok())
+            .unwrap_or(0);
+
+        let display_name = self.vs_version_name(major_version);
+
+        let dev_env_path = std::path::PathBuf::from(install_path)
+            .join("Common7")
+            .join("IDE")
+            .join("devenv.exe");
+
+        let resolved_path = if dev_env_path.exists() {
+            Some(dev_env_path.to_string_lossy().to_string())
+        } else {
+            Some(install_path.to_string())
+        };
+
+        Some(IdeInfo {
+            ide: IdeType::VisualStudio,
+            name: display_name,
+            binary_name: "devenv.exe".to_string(),
+            installed: true,
+            path: resolved_path,
+        })
+    }
+
+    #[cfg(target_os = "windows")]
+    fn vs_version_name(&self, major: u32) -> String {
+        match major {
+            15 => "Visual Studio 2017".to_string(),
+            16 => "Visual Studio 2019".to_string(),
+            17 => "Visual Studio 2022".to_string(),
+            v if v >= 18 => {
+                let year = 2017 + ((v - 15) * 3) - 3;
+                format!("Visual Studio {}", year)
+            }
+            _ => "Visual Studio".to_string(),
         }
     }
 

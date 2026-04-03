@@ -5,14 +5,22 @@ import { useAppStore } from '../stores/appStore';
 
 const BINARY_EXTENSIONS = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'avif', 'tiff', 'tif',
-  'pdf', 'docx', 'doc', 'xlsx', 'xls',
+  'pdf', 'docx', 'doc', 'xlsx', 'xls', 'csv',
 ]);
+
+const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
 
 function isLikelyBinary(entry: FileEntry): boolean {
   if (entry.extension && BINARY_EXTENSIONS.has(entry.extension.toLowerCase())) {
     return true;
   }
   return false;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export const useFileEditor = () => {
@@ -74,6 +82,15 @@ export const useFileEditor = () => {
         };
         openFileTab(tab);
       } else {
+        if (entry.size > LARGE_FILE_THRESHOLD) {
+          const confirmed = window.confirm(
+            `"${entry.name}" is ${formatFileSize(entry.size)}.\n\nLarge files may be slow to open and edit. Continue?`
+          );
+          if (!confirmed) {
+            setIsOpening(false);
+            return;
+          }
+        }
         const result = await invoke<FileContent>('read_file_content', { path: entry.path });
         const tab: FileTab = {
           path: entry.path,

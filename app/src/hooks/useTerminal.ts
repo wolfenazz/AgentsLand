@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { TerminalSession, AgentFleet } from '../types';
+import { TerminalSession, AgentFleet, AgentType } from '../types';
 import { useAppStore } from '../stores/appStore';
 
 interface CreateSessionsParams {
@@ -115,11 +115,34 @@ export const useTerminal = () => {
     }
   }, [setSessions]);
 
+  const createSingleSession = useCallback(async (params: {
+    workspaceId: string;
+    workspacePath: string;
+    agent: AgentType | null;
+  }) => {
+    try {
+      const session = await invoke<TerminalSession>('create_single_terminal_session', {
+        request: {
+          workspaceId: params.workspaceId,
+          workspacePath: params.workspacePath,
+          index: sessions.length,
+          agent: params.agent,
+        },
+      });
+      setSessions([...sessions, session]);
+      return session;
+    } catch (err) {
+      console.error('Failed to create terminal session:', err);
+      throw err;
+    }
+  }, [sessions, setSessions]);
+
   return {
     sessions,
     isLoading,
     error,
     createSessions,
+    createSingleSession,
     writeToTerminal,
     resizeTerminal,
     killSession,

@@ -3,8 +3,11 @@ import { DirectorySelector } from './DirectorySelector';
 import { LayoutSelector } from './LayoutSelector';
 import { AgentFleetConfig } from './AgentFleetConfig';
 import { IdesSelector } from './IdesSelector';
+import { WorkspaceTemplatePicker } from './WorkspaceTemplatePicker';
+import { InitializeWorkspace } from './InitializeWorkspace';
 import { HelpTooltip } from '../common/HelpTooltip';
 import { LayoutConfig, AgentFleet } from '../../types';
+import { WorkspaceTemplate } from '../../hooks/useWorkspace';
 
 interface WorkspaceConfigFormProps {
   selectedPath: string;
@@ -13,15 +16,36 @@ interface WorkspaceConfigFormProps {
   isAllocationValid: boolean;
   hasOpenWorkspaces?: boolean;
   onSelectDirectory: () => void;
+  onSelectRecentDirectory: (path: string) => void;
   onWorkspaceNameChange: (name: string) => void;
   onLayoutSelect: (layout: LayoutConfig) => void;
   onAllocationChange: (fleet: AgentFleet) => void;
+  onTemplateSelect: (templateId: string) => void;
+  onReapplyTemplate?: (templateId: string) => void;
+  onSaveCustomTemplate: (name: string) => void;
+  onDeleteCustomTemplate: (id: string) => void;
+  customTemplates: WorkspaceTemplate[];
   onCreateWorkspace: () => void;
   onCancel?: () => void;
   isValid: boolean;
   isLoading?: boolean;
   isExternalMode?: boolean;
+  validationErrors: Record<string, string>;
+  selectedTemplateId: string;
+  templateAllocation?: Record<string, number> | null;
 }
+
+const ValidationError: React.FC<{ message?: string }> = ({ message }) => {
+  if (!message) return null;
+  return (
+    <div className="flex items-center gap-1.5 mt-1.5">
+      <svg className="w-3 h-3 text-rose-400/80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span className="text-[10px] text-rose-400/80 font-mono">{message}</span>
+    </div>
+  );
+};
 
 export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
   selectedPath,
@@ -30,112 +54,198 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
   isAllocationValid,
   hasOpenWorkspaces,
   onSelectDirectory,
+  onSelectRecentDirectory,
   onWorkspaceNameChange,
   onLayoutSelect,
   onAllocationChange,
+  onTemplateSelect,
+  onReapplyTemplate,
+  onSaveCustomTemplate,
+  onDeleteCustomTemplate,
+  customTemplates,
   onCreateWorkspace,
   onCancel,
   isValid,
   isLoading,
   isExternalMode,
+  validationErrors,
+  selectedTemplateId,
+  templateAllocation,
 }) => {
   return (
-    <div className="w-full bg-theme-card border border-theme rounded-md">
+    <div className="w-full bg-theme-card border border-theme rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-theme">
-        <h1 className="text-sm font-mono font-semibold text-theme-main tracking-tight">
-          $ yzpz --setup
-        </h1>
-        <p className="text-zinc-500 font-mono text-xs mt-1 tracking-wide">
-          Initialize your multi-terminal AI development environment
-        </p>
+      <div className="px-8 py-6 border-b border-theme bg-gradient-to-r from-zinc-900/50 via-transparent to-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 flex items-center justify-center bg-zinc-800 border border-zinc-700 rounded-lg">
+            <svg className="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-sm font-mono font-bold text-theme-main tracking-tight">
+              $ yzpz --setup
+            </h1>
+            <p className="text-zinc-500 font-mono text-xs mt-0.5 tracking-wide">
+              Initialize your multi-terminal AI development environment
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Form Body */}
-      <div className="p-6 space-y-6">
-        {/* Workspace Name */}
-        {!isExternalMode && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <label className="block text-xs font-medium text-zinc-400 font-mono uppercase tracking-[0.15em]">
-                Workspace Name
-              </label>
-              <HelpTooltip text="A name to identify this workspace. Used as a tab label when switching between multiple workspaces." />
+      <div className="p-8 space-y-8">
+        {/* Section: Template */}
+        <div className="space-y-4">
+          <WorkspaceTemplatePicker
+            selectedTemplateId={selectedTemplateId}
+            onSelectTemplate={onTemplateSelect}
+            onReapplyTemplate={onReapplyTemplate}
+            customTemplates={customTemplates}
+            onDeleteCustomTemplate={onDeleteCustomTemplate}
+            onSaveCustomTemplate={onSaveCustomTemplate}
+          />
+        </div>
+
+        <div className="border-t border-zinc-800/60" />
+
+        {/* Section: Workspace Details */}
+        <div className="space-y-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-zinc-600 text-[10px] font-mono">//</span>
+            <h2 className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-[0.2em]">Workspace Details</h2>
+          </div>
+
+          {!isExternalMode && (
+            <div>
+              <div className="flex items-center gap-2 mb-2.5">
+                <label className="block text-xs font-medium text-zinc-400 font-mono uppercase tracking-[0.15em]">
+                  Workspace Name
+                </label>
+                <HelpTooltip text="A name to identify this workspace. Used as a tab label when switching between multiple workspaces." />
+              </div>
+              <input
+                type="text"
+                value={workspaceName}
+                onChange={(e) => onWorkspaceNameChange(e.target.value)}
+                placeholder="Enter workspace name..."
+                className={`w-full px-4 py-3 bg-theme-main border rounded-lg text-theme-main placeholder-zinc-600 focus:outline-none font-mono text-sm transition-colors duration-150 ${
+                  validationErrors.workspaceName
+                    ? 'border-rose-500/40 focus:border-rose-500'
+                    : 'border-theme focus:border-zinc-500'
+                }`}
+              />
+              <ValidationError message={validationErrors.workspaceName} />
             </div>
-            <input
-              type="text"
-              value={workspaceName}
-              onChange={(e) => onWorkspaceNameChange(e.target.value)}
-              placeholder="Enter workspace name..."
-              className="w-full px-3.5 py-2.5 bg-theme-main border border-theme rounded-md text-theme-main placeholder-zinc-600 focus:outline-none focus:border-zinc-500 font-mono text-sm transition-colors duration-150"
-            />
+          )}
+
+          <DirectorySelector
+            selectedPath={selectedPath}
+            onSelectDirectory={onSelectDirectory}
+            onSelectRecentDirectory={onSelectRecentDirectory}
+            errorMessage={validationErrors.directory}
+          />
+        </div>
+
+        <div className="border-t border-zinc-800/60" />
+
+        {/* Section: Project Init */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-zinc-600 text-[10px] font-mono">//</span>
+            <h2 className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-[0.2em]">Project Initialization</h2>
           </div>
-        )}
+          <InitializeWorkspace selectedPath={selectedPath} />
+        </div>
 
-        {/* Directory Selector */}
-        <DirectorySelector
-          selectedPath={selectedPath}
-          onSelectDirectory={onSelectDirectory}
-        />
+        <div className="border-t border-zinc-800/60" />
 
-        {/* Layout Selector */}
-        <LayoutSelector
-          selectedLayout={selectedLayout}
-          onSelectLayout={onLayoutSelect}
-        />
-
-        {/* IDEs Selector */}
-        <IdesSelector selectedPath={selectedPath} />
-
-        {/* Agent Fleet Config */}
-        <AgentFleetConfig
-          totalSlots={selectedLayout.sessions}
-          onAllocationChange={onAllocationChange}
-        />
-
-        {/* Allocation Error */}
-        {!isAllocationValid && (
-          <div className="px-3.5 py-2.5 bg-rose-500/[0.06] border border-rose-500/20 rounded-md">
-            <p className="text-xs text-rose-400/80 font-mono">
-              Error: Agent allocation exceeds available slots.
-            </p>
+        {/* Section: Layout & Environment */}
+        <div className="space-y-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-zinc-600 text-[10px] font-mono">//</span>
+            <h2 className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-[0.2em]">Layout & Environment</h2>
           </div>
-        )}
+
+          <LayoutSelector
+            selectedLayout={selectedLayout}
+            onSelectLayout={onLayoutSelect}
+          />
+
+          <IdesSelector selectedPath={selectedPath} />
+        </div>
+
+        <div className="border-t border-zinc-800/60" />
+
+        {/* Section: Agent Fleet */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-zinc-600 text-[10px] font-mono">//</span>
+            <h2 className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-[0.2em]">Agent Fleet</h2>
+          </div>
+
+          <AgentFleetConfig
+            totalSlots={selectedLayout.sessions}
+            onAllocationChange={onAllocationChange}
+            templateAllocation={templateAllocation as any}
+            selectedTemplateId={selectedTemplateId}
+          />
+
+          {!isAllocationValid && (
+            <div className="px-4 py-3 bg-rose-500/[0.06] border border-rose-500/20 rounded-lg">
+              <p className="text-xs text-rose-400/80 font-mono">
+                Error: Agent allocation exceeds available slots.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="px-6 py-4 border-t border-theme flex items-center justify-end gap-3">
-        {hasOpenWorkspaces && onCancel && (
+      <div className="px-8 py-5 border-t border-theme bg-zinc-900/30 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60" />
+          <span>{selectedLayout.sessions} slots configured</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {hasOpenWorkspaces && onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2.5 rounded-lg font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 bg-transparent text-zinc-400 border border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200 cursor-pointer"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="button"
-            onClick={onCancel}
-            className="px-5 py-2 rounded-md font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 bg-transparent text-zinc-400 border border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200 cursor-pointer"
+            onClick={onCreateWorkspace}
+            disabled={!isValid || isLoading}
+            className={`px-8 py-2.5 rounded-lg font-mono text-xs uppercase tracking-[0.1em] transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              isValid && !isLoading
+                ? 'bg-white text-zinc-900 hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.08)]'
+                : 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed'
+            }`}
           >
-            Cancel
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-3.5 w-3.5 text-zinc-600" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Launching</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Execute
+              </>
+            )}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onCreateWorkspace}
-          disabled={!isValid || isLoading}
-          className={`px-5 py-2 rounded-md font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 flex items-center gap-2 cursor-pointer ${
-            isValid && !isLoading
-              ? 'bg-white text-zinc-900 hover:bg-zinc-200'
-              : 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed'
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin h-3.5 w-3.5 text-zinc-600" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>Launching</span>
-            </>
-          ) : (
-            'Execute'
-          )}
-        </button>
+        </div>
       </div>
     </div>
   );

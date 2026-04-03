@@ -7,6 +7,11 @@ pub async fn list_directory_entries(path: String) -> Result<Vec<FileEntry>, Stri
 }
 
 #[tauri::command]
+pub async fn list_all_files(path: String) -> Result<Vec<FileEntry>, String> {
+    filesystem::explorer::list_all_files_recursive(&path)
+}
+
+#[tauri::command]
 pub async fn read_file_content(path: String) -> Result<FileContent, String> {
     filesystem::reader::read_file_content(&path)
 }
@@ -50,6 +55,11 @@ pub async fn read_file_as_base64(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn get_file_size(path: String) -> Result<u64, String> {
+    filesystem::reader::get_file_size(&path)
+}
+
+#[tauri::command]
 pub async fn is_binary_file(path: String) -> Result<bool, String> {
     filesystem::reader::is_binary_file(&path)
 }
@@ -82,4 +92,19 @@ pub async fn delete_entry(path: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn reveal_in_file_manager(path: String) -> Result<(), String> {
     filesystem::operations::reveal_in_file_manager(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn duplicate_entry(path: String) -> Result<String, String> {
+    filesystem::operations::duplicate_entry(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn git_stage_file(workspace_path: String, file_path: String) -> Result<(), String> {
+    filesystem::git_status::git_stage_file(&workspace_path, &file_path)
+}
+
+#[tauri::command]
+pub async fn git_unstage_file(workspace_path: String, file_path: String) -> Result<(), String> {
+    filesystem::git_status::git_unstage_file(&workspace_path, &file_path)
 }

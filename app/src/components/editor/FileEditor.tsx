@@ -195,6 +195,7 @@ export const FileEditor: React.FC = () => {
   const closeFilesToRight = useAppStore((s) => s.closeFilesToRight);
   const closeAllFiles = useAppStore((s) => s.closeAllFiles);
   const closeSavedFiles = useAppStore((s) => s.closeSavedFiles);
+  const reorderOpenFiles = useAppStore((s) => s.reorderOpenFiles);
   const theme = useAppStore((s) => s.theme);
   const autoSave = useAppStore((s) => s.autoSave);
   const showMinimapSetting = useAppStore((s) => s.showMinimap);
@@ -210,7 +211,7 @@ export const FileEditor: React.FC = () => {
   const isImage = isImageFile(fileExt);
   const isPdf = fileExt === 'pdf';
   const isDocx = fileExt === 'docx' || fileExt === 'doc';
-  const isSpreadsheet = fileExt === 'xlsx' || fileExt === 'xls';
+  const isSpreadsheet = fileExt === 'xlsx' || fileExt === 'xls' || fileExt === 'csv';
   const isPreviewable = isImage || isPdf || isDocx || isSpreadsheet;
 
   const handleSave = useCallback(async () => {
@@ -406,6 +407,7 @@ export const FileEditor: React.FC = () => {
         onCloseToRight={closeFilesToRight}
         onCloseAll={closeAllFiles}
         onCloseSaved={closeSavedFiles}
+        onReorder={reorderOpenFiles}
         theme={theme}
       />
 
@@ -426,6 +428,7 @@ export const FileEditor: React.FC = () => {
                   onClick={() => viewRef.current && openSearchPanel(viewRef.current)}
                   className={toolbarBtnClass(false)}
                   title="Find & Replace (Ctrl-F)"
+                  aria-label="Find and replace"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -436,6 +439,8 @@ export const FileEditor: React.FC = () => {
                   onClick={() => setWordWrap(!wordWrap)}
                   className={toolbarBtnClass(wordWrap)}
                   title="Toggle Word Wrap"
+                  aria-label="Toggle word wrap"
+                  aria-pressed={wordWrap}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -446,6 +451,8 @@ export const FileEditor: React.FC = () => {
                   onClick={() => setShowMinimap(!showMinimapSetting)}
                   className={toolbarBtnClass(showMinimapSetting)}
                   title="Toggle Minimap"
+                  aria-label="Toggle minimap"
+                  aria-pressed={showMinimapSetting}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
@@ -456,6 +463,8 @@ export const FileEditor: React.FC = () => {
                   onClick={() => setAutoSave(!autoSave)}
                   className={toolbarBtnClass(autoSave)}
                   title="Toggle Auto-Save (2s debounce)"
+                  aria-label="Toggle auto-save"
+                  aria-pressed={autoSave}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -475,6 +484,8 @@ export const FileEditor: React.FC = () => {
                     : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800'
               }`}
               title={mdPreview ? 'Show source' : 'Show preview'}
+              aria-label={mdPreview ? 'Show source code' : 'Show markdown preview'}
+              aria-pressed={mdPreview}
             >
               {mdPreview ? (
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

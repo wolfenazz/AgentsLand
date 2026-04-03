@@ -69,6 +69,7 @@ pub struct CreateSessionsRequest {
     pub workspace_path: String,
     pub count: usize,
     pub agent_fleet: AgentFleet,
+    pub shell: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

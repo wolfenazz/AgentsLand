@@ -12,6 +12,7 @@ interface EditorTabsProps {
   onCloseToRight: (path: string) => void;
   onCloseAll: () => void;
   onCloseSaved: () => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
   theme: 'dark' | 'light';
 }
 
@@ -30,6 +31,7 @@ const EditorTabsInner: React.FC<EditorTabsProps> = ({
   onCloseToRight,
   onCloseAll,
   onCloseSaved,
+  onReorder,
   theme,
 }) => {
   if (openFiles.length === 0) return null;
@@ -48,6 +50,7 @@ const EditorTabsInner: React.FC<EditorTabsProps> = ({
       onCloseToRight={onCloseToRight}
       onCloseAll={onCloseAll}
       onCloseSaved={onCloseSaved}
+      onReorder={onReorder}
     />
   );
 };
@@ -65,6 +68,7 @@ interface TabBarProps {
   onCloseToRight: (path: string) => void;
   onCloseAll: () => void;
   onCloseSaved: () => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
 }
 
 const TabBar: React.FC<TabBarProps> = ({
@@ -78,6 +82,7 @@ const TabBar: React.FC<TabBarProps> = ({
   onCloseToRight,
   onCloseAll,
   onCloseSaved,
+  onReorder,
 }) => {
   const [contextMenu, setContextMenu] = React.useState<{
     x: number;
@@ -85,6 +90,8 @@ const TabBar: React.FC<TabBarProps> = ({
     path: string;
     index: number;
   } | null>(null);
+  const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
   const menuItems = useMemo(() => {
     if (!contextMenu) return null;
@@ -123,6 +130,8 @@ const TabBar: React.FC<TabBarProps> = ({
     >
       {openFiles.map((file, index) => {
         const isActive = file.path === activeFilePath;
+        const isDragging = dragIndex === index;
+        const isDragOver = dragOverIndex === index;
         return (
           <div
             key={file.path}
@@ -130,7 +139,42 @@ const TabBar: React.FC<TabBarProps> = ({
             aria-selected={isActive}
             tabIndex={0}
             title={file.path}
+            draggable
+            onDragStart={(e) => {
+              setDragIndex(index);
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('text/plain', String(index));
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              setDragOverIndex(index);
+            }}
+            onDragLeave={() => {
+              setDragOverIndex(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const fromIdx = dragIndex;
+              setDragIndex(null);
+              setDragOverIndex(null);
+              if (fromIdx !== null && fromIdx !== index) {
+                onReorder(fromIdx, index);
+              }
+            }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
             className={`relative flex items-center gap-1.5 px-3 py-1.5 border-r cursor-pointer group min-w-0 max-w-[160px] transition-colors duration-100 ${
+              isDragging ? 'opacity-40' : ''
+            } ${
+              isDragOver
+                ? theme === 'light'
+                  ? 'border-l-2 border-l-blue-500 bg-blue-50'
+                  : 'border-l-2 border-l-blue-500 bg-blue-950/30'
+                : ''
+            } ${
               isActive
                 ? theme === 'light'
                   ? 'bg-zinc-100 text-zinc-800 border-zinc-300'

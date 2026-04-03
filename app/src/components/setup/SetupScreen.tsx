@@ -1,5 +1,6 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getVersion } from '@tauri-apps/api/app';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
@@ -22,19 +23,28 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     workspaceName,
     selectedLayout,
     agentFleet,
+    selectedTemplateId,
+    customTemplates,
     selectDirectory,
+    selectRecentDirectory,
     setWorkspaceName,
     setSelectedLayout,
     updateAgentFleet,
+    applyTemplate,
+    saveAsCustomTemplate,
+    deleteCustomTemplate,
     createWorkspace,
     isValid,
-    isAllocationValid
+    isAllocationValid,
+    validationErrors,
+    currentTemplateAllocation,
   } = useWorkspace();
 
     const [createError, setCreateError] = React.useState<string | null>(null);
     const [isLaunching, setIsLaunching] = React.useState(false);
     const [showWindows10Warning, setShowWindows10Warning] = React.useState(false);
     const [warningDismissed, setWarningDismissed] = React.useState(false);
+    const [appVersion, setAppVersion] = React.useState('');
 
     React.useEffect(() => {
         const checkWindowsVersion = async () => {
@@ -50,6 +60,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             }
         };
         checkWindowsVersion();
+        getVersion().then(setAppVersion).catch(() => {});
     }, [isWindows]);
 
   const handleWorkspaceClick = (workspaceId: string) => {
@@ -233,10 +244,25 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
 
       {/* ── Main Content ─────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto">
-        <div className="w-full max-w-5xl mx-auto px-6 py-8 space-y-5">
-          <div className="flex flex-col items-center pt-2 pb-1 group cursor-default">
-            <img src={logo} alt="YzPzCode" className="h-12 w-auto mb-2 opacity-70 group-hover:opacity-100 group-hover:scale-[1.05] group-hover:drop-shadow-[0_4px_12px_rgba(255,255,255,0.06)] transition-all duration-300" />
-            <p className="text-zinc-500 text-xs font-mono tracking-[0.15em] uppercase">Multi-terminal AI development environment</p>
+        <div className="w-full max-w-6xl mx-auto px-8 py-10 space-y-7">
+          <div className="flex flex-col items-center pt-4 pb-4 group cursor-default">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 bg-white/[0.03] rounded-2xl blur-2xl scale-150 group-hover:bg-white/[0.06] transition-all duration-500" />
+              <img
+                src={logo}
+                alt="YzPzCode"
+                className="relative h-20 w-auto opacity-80 group-hover:opacity-100 group-hover:scale-[1.08] group-hover:drop-shadow-[0_8px_24px_rgba(255,255,255,0.08)] transition-all duration-500"
+              />
+            </div>
+            <h1 className="text-lg font-mono font-bold tracking-tight text-theme-main/90 mb-1.5">YzPzCode</h1>
+            <p className="text-zinc-500 text-xs font-mono tracking-[0.2em] uppercase">Multi-terminal AI development environment</p>
+            <div className="flex items-center gap-3 mt-3">
+              {appVersion && (
+                <>
+                  <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-mono text-emerald-400/80 uppercase tracking-wider">v{appVersion}</span>
+                </>
+              )}
+            </div>
           </div>
 
           {showWindows10Warning && !warningDismissed && (
@@ -289,13 +315,22 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             isAllocationValid={isAllocationValid}
             hasOpenWorkspaces={openWorkspaces.length > 0}
             onSelectDirectory={selectDirectory}
+            onSelectRecentDirectory={selectRecentDirectory}
             onWorkspaceNameChange={setWorkspaceName}
             onLayoutSelect={setSelectedLayout}
             onAllocationChange={updateAgentFleet}
+            onTemplateSelect={applyTemplate}
+            onReapplyTemplate={applyTemplate}
+            onSaveCustomTemplate={saveAsCustomTemplate}
+            onDeleteCustomTemplate={deleteCustomTemplate}
+            customTemplates={customTemplates}
             onCreateWorkspace={handleCreateWorkspace}
             onCancel={handleCancel}
             isValid={isValid}
             isExternalMode={selectedLayout.openExternally}
+            validationErrors={validationErrors}
+            selectedTemplateId={selectedTemplateId}
+            templateAllocation={currentTemplateAllocation}
           />
 
           <CliToolsTable />

@@ -83,6 +83,7 @@ impl TerminalManager {
         workspace_path: String,
         count: usize,
         agent_allocation: HashMap<AgentType, usize>,
+        shell: Option<String>,
     ) -> Result<Vec<TerminalSession>> {
         let mut result_sessions = Vec::new();
         let mut agent_queue: Vec<Option<AgentType>> = Vec::new();
@@ -107,6 +108,7 @@ impl TerminalManager {
                 index,
                 workspace_path.clone(),
                 agent,
+                shell.clone(),
             ) {
                 Ok(res) => res,
                 Err(e) => {
@@ -209,11 +211,17 @@ impl TerminalManager {
         workspace_path: String,
         index: usize,
         agent: Option<AgentType>,
+        shell: Option<String>,
     ) -> Result<TerminalSession> {
         let app = self.app_handle.lock().unwrap();
 
-        let (pty_session, output_rx) =
-            PtySession::create(workspace_id.clone(), index, workspace_path.clone(), agent)?;
+        let (pty_session, output_rx) = PtySession::create(
+            workspace_id.clone(),
+            index,
+            workspace_path.clone(),
+            agent,
+            shell,
+        )?;
 
         let session_id = pty_session.get_session().id.clone();
         let sid = session_id.clone();

@@ -4,6 +4,7 @@ import { WorkspaceHeader } from './WorkspaceHeader';
 import { AppFooter } from '../common/AppFooter';
 import { FileExplorer } from '../explorer/FileExplorer';
 import { FileEditor } from '../editor/FileEditor';
+import { QuickOpenPalette } from '../editor/QuickOpenPalette';
 import { useFileEditor } from '../../hooks/useFileEditor';
 import { useFileWatcher } from '../../hooks/useFileWatcher';
 import { useTerminal } from '../../hooks/useTerminal';
@@ -50,6 +51,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
   const sidebarWidthRef = useRef(250);
   const [sidebarWidth, setSidebarWidth] = useState(250);
   const [isResizing, setIsResizing] = useState(false);
+  const [showQuickOpen, setShowQuickOpen] = useState(false);
   const isDragging = useRef(false);
   const rafIdRef = useRef<number | null>(null);
 
@@ -140,6 +142,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
           if (path) {
             closeFileTab(path);
           }
+        } else if (e.key === 'p') {
+          e.preventDefault();
+          setShowQuickOpen(true);
         }
       }
     };
@@ -151,6 +156,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
     if (!entry.isDir) {
       openFile(entry, change);
     }
+  }, [openFile]);
+
+  const handleQuickOpenSelect = useCallback((entry: FileEntry) => {
+    openFile(entry);
   }, [openFile]);
 
   const handleBackToSetup = useCallback(async () => {
@@ -307,6 +316,15 @@ export const Workspace: React.FC<WorkspaceProps> = ({ isWindows, onDocsClick }) 
       </main>
 
       <AppFooter />
+
+      {showQuickOpen && currentWorkspace && (
+        <QuickOpenPalette
+          workspacePath={currentWorkspace.path}
+          theme={theme}
+          onSelect={handleQuickOpenSelect}
+          onClose={() => setShowQuickOpen(false)}
+        />
+      )}
     </div>
   );
 };

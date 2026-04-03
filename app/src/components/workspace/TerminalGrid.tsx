@@ -90,7 +90,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const gridTemplateColumns = activeColSizes.map((s) => `${s}%`).join(' ');
   const gridTemplateRows = activeRowSizes.map((s) => `${s}%`).join(' ');
 
-  const handleAddTerminal = useCallback(async (agent: AgentType | null) => {
+  const handleAddTerminal = useCallback(async (agent: AgentType | null, shell: string | null) => {
     if (!currentWorkspace) return;
     setShowNewDialog(false);
     try {
@@ -100,6 +100,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           workspacePath: currentWorkspace.path,
           index: sessions.length,
           agent,
+          shell,
         },
       });
       addSession(newSession);

@@ -127,6 +127,7 @@ pub fn run() {
             commands::get_os_version,
             commands::launch_external_terminals,
             commands::list_directory_entries,
+            commands::list_all_files,
             commands::read_file_content,
             commands::write_file_content,
             commands::get_git_status,
@@ -136,12 +137,17 @@ pub fn run() {
             commands::stop_fs_watcher,
             commands::read_file_as_base64,
             commands::is_binary_file,
+            commands::get_file_size,
             commands::rename_entry,
             commands::move_entry,
             commands::create_file,
             commands::create_directory,
             commands::delete_entry,
             commands::reveal_in_file_manager,
+            commands::duplicate_entry,
+            commands::git_stage_file,
+            commands::git_unstage_file,
+            commands::get_available_shells,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

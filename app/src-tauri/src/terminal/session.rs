@@ -25,6 +25,7 @@ impl PtySession {
         index: usize,
         cwd: String,
         agent: Option<AgentType>,
+        shell_override: Option<String>,
     ) -> Result<(Self, Receiver<Vec<u8>>)> {
         let pty_system = native_pty_system();
         let pair = pty_system.openpty(PtySize {
@@ -34,7 +35,7 @@ impl PtySession {
             pixel_height: 0,
         })?;
 
-        let shell = get_default_shell();
+        let shell = shell_override.unwrap_or_else(get_default_shell);
         let session_id = Uuid::new_v4().to_string();
 
         // Canonicalize or at least check if path exists

@@ -57,3 +57,35 @@ fn parse_git_xy(xy: &str) -> GitFileChange {
         GitFileChange::Modified
     }
 }
+
+pub fn git_stage_file(workspace_path: &str, file_path: &str) -> Result<(), String> {
+    let root = std::path::Path::new(workspace_path);
+    if !root.exists() {
+        return Err(format!("Path does not exist: {}", workspace_path));
+    }
+
+    let rel_path = if let Some(rel) = file_path.strip_prefix(workspace_path) {
+        rel.trim_start_matches('/').trim_start_matches('\\')
+    } else {
+        file_path
+    };
+
+    super::run_git_hidden(&["add", "--", rel_path], workspace_path)?;
+    Ok(())
+}
+
+pub fn git_unstage_file(workspace_path: &str, file_path: &str) -> Result<(), String> {
+    let root = std::path::Path::new(workspace_path);
+    if !root.exists() {
+        return Err(format!("Path does not exist: {}", workspace_path));
+    }
+
+    let rel_path = if let Some(rel) = file_path.strip_prefix(workspace_path) {
+        rel.trim_start_matches('/').trim_start_matches('\\')
+    } else {
+        file_path
+    };
+
+    super::run_git_hidden(&["reset", "--", rel_path], workspace_path)?;
+    Ok(())
+}

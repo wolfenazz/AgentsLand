@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import * as XLSX from 'xlsx';
+import { FileContent } from '../../types';
 
 interface SpreadsheetPreviewProps {
   filePath: string;
@@ -22,66 +23,95 @@ const SpreadsheetPreviewInner: React.FC<SpreadsheetPreviewProps> = ({ filePath, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const isCsv = fileName.toLowerCase().endsWith('.csv');
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(false);
 
-    invoke<string>('read_file_as_base64', { path: filePath })
-      .then((dataUrl) => {
-        if (cancelled) return;
-        const rawBase64 = dataUrl.split(',')[1];
-        const binaryString = atob(rawBase64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        const parseWork = () => {
+    if (isCsv) {
+      invoke<FileContent>('read_file_content', { path: filePath })
+        .then((result) => {
           if (cancelled) return;
-          const workbook = XLSX.read(bytes, { type: 'array' });
-          const sheetDataList: SheetData[] = workbook.SheetNames.map((name) => {
-            const ws = workbook.Sheets[name];
+          const parsed = XLSX.read(result.content, { type: 'string' });
+          const sheetDataList: SheetData[] = parsed.SheetNames.map((name) => {
+            const ws = parsed.Sheets[name];
             const jsonData: (string | number | boolean | null)[][] = XLSX.utils.sheet_to_json(ws, {
               header: 1,
               defval: null,
             });
-
             const maxCols = jsonData.reduce((max, row) => Math.max(max, row.length), 0);
             const headers = jsonData.length > 0 ? jsonData[0] : [];
             const rows = jsonData.slice(1);
-
-            return {
-              name,
-              headers,
-              rows,
-              colCount: maxCols,
-              rowCount: rows.length,
-            };
+            return { name, headers, rows, colCount: maxCols, rowCount: rows.length };
           });
-
           if (!cancelled) {
             setSheets(sheetDataList);
             setActiveSheet(0);
             setLoading(false);
           }
-        };
+        })
+        .catch(() => {
+          if (!cancelled) { setError(true); setLoading(false); }
+        });
+    } else {
+      invoke<string>('read_file_as_base64', { path: filePath })
+        .then((dataUrl) => {
+          if (cancelled) return;
+          const rawBase64 = dataUrl.split(',')[1];
+          const binaryString = atob(rawBase64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
 
-        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-          requestIdleCallback(parseWork);
-        } else {
-          setTimeout(parseWork, 0);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError(true);
-          setLoading(false);
-        }
-      });
+          const parseWork = () => {
+            if (cancelled) return;
+            const workbook = XLSX.read(bytes, { type: 'array' });
+            const sheetDataList: SheetData[] = workbook.SheetNames.map((name) => {
+              const ws = workbook.Sheets[name];
+              const jsonData: (string | number | boolean | null)[][] = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: null,
+              });
+
+              const maxCols = jsonData.reduce((max, row) => Math.max(max, row.length), 0);
+              const headers = jsonData.length > 0 ? jsonData[0] : [];
+              const rows = jsonData.slice(1);
+
+              return {
+                name,
+                headers,
+                rows,
+                colCount: maxCols,
+                rowCount: rows.length,
+              };
+            });
+
+            if (!cancelled) {
+              setSheets(sheetDataList);
+              setActiveSheet(0);
+              setLoading(false);
+            }
+          };
+
+          if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+            requestIdleCallback(parseWork);
+          } else {
+            setTimeout(parseWork, 0);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setError(true);
+            setLoading(false);
+          }
+        });
+    }
 
     return () => { cancelled = true; };
-  }, [filePath]);
+  }, [filePath, isCsv]);
 
   const currentSheet = sheets[activeSheet] ?? null;
 

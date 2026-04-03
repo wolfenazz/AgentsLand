@@ -192,16 +192,24 @@ impl ProcessRunner {
         get_npm_global_prefix()
     }
 
-    fn search_dirs_for_binary(binary: &str, dirs: &[String], extensions: &[&str]) -> Option<String> {
+    fn search_dirs_for_binary(
+        binary: &str,
+        dirs: &[String],
+        extensions: &[&str],
+    ) -> Option<String> {
         for dir in dirs {
             for ext in extensions {
                 let full = if ext.is_empty() {
                     format!("{}/{}", dir, binary)
                 } else {
                     #[cfg(target_os = "windows")]
-                    { format!(r"{}\{}{}", dir, binary, ext) }
+                    {
+                        format!(r"{}\{}{}", dir, binary, ext)
+                    }
                     #[cfg(not(target_os = "windows"))]
-                    { format!("{}/{}{}", dir, binary, ext) }
+                    {
+                        format!("{}/{}{}", dir, binary, ext)
+                    }
                 };
                 if std::path::Path::new(&full).exists() {
                     return Some(full);
@@ -353,7 +361,11 @@ impl ProcessRunner {
 
     #[cfg(target_os = "windows")]
     fn find_in_platform_paths(binary: &str) -> Option<String> {
-        Self::search_dirs_for_binary(binary, &Self::platform_search_dirs(), &["", ".cmd", ".exe", ".bat"])
+        Self::search_dirs_for_binary(
+            binary,
+            &Self::platform_search_dirs(),
+            &["", ".cmd", ".exe", ".bat"],
+        )
     }
 
     #[cfg(not(target_os = "windows"))]
