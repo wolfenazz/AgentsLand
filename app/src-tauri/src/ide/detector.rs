@@ -75,6 +75,10 @@ impl IdeDetector {
 
     #[cfg(target_os = "windows")]
     fn detect_visual_studio_vswhere(&self) -> Option<IdeInfo> {
+        use std::os::windows::process::CommandExt;
+
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+
         let pf_x86 = std::env::var("ProgramFiles(x86)")
             .unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
         let vswhere_path = std::path::PathBuf::from(pf_x86)
@@ -88,6 +92,7 @@ impl IdeDetector {
 
         let output = std::process::Command::new(&vswhere_path)
             .args(["-format", "json", "-products", "*", "-prerelease"])
+            .creation_flags(CREATE_NO_WINDOW)
             .output()
             .ok()?;
 

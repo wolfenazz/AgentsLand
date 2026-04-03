@@ -15,6 +15,7 @@ pub static NPM_GLOBAL_PREFIX: LazyLock<Option<String>> = LazyLock::new(|| {
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
+            .creation_flags(CREATE_NO_WINDOW)
             .output()
             .ok()
             .filter(|o| o.status.success())
