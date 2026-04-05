@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import { WorkspaceTemplate } from '../../hooks/useWorkspace';
 import { AgentType } from '../../types';
@@ -371,8 +372,8 @@ const TemplateEditorModal: React.FC<{
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
         className="w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -617,7 +618,7 @@ const TemplateEditorModal: React.FC<{
           </div>
         </div>
       </div>
-    </div>
+    </div>, document.body
   );
 };
 
@@ -817,8 +818,8 @@ export const WorkspaceTemplatePicker: React.FC<WorkspaceTemplatePickerProps> = (
         />
       )}
 
-      {showSaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      {showSaveModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl">
             <div className="px-5 py-4 border-b border-zinc-800">
               <h3 className="text-xs font-mono font-semibold text-zinc-200 uppercase tracking-wider">
@@ -859,7 +860,7 @@ export const WorkspaceTemplatePicker: React.FC<WorkspaceTemplatePickerProps> = (
               </button>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );
