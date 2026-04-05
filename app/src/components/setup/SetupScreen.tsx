@@ -1,6 +1,7 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
+import { SetupStepper } from './SetupStepper';
 import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
@@ -17,7 +18,7 @@ interface SetupScreenProps {
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick, onSettingsClick }) => {
-  const { setView, theme, toggleTheme, openWorkspaces, switchWorkspace, sessionsByWorkspace, closeWorkspace, selectedIdes, ideStatuses } = useAppStore();
+  const { setView, theme, toggleTheme, openWorkspaces, switchWorkspace, sessionsByWorkspace, closeWorkspace, selectedIdes, ideStatuses, setupViewMode } = useAppStore();
   const {
     selectedPath,
     workspaceName,
@@ -282,7 +283,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             </div>
           )}
 
-          {createError && (
+          {createError && setupViewMode === 'page' && (
             <div className="flex items-center justify-between gap-4 px-4 py-3 bg-rose-500/[0.06] border border-rose-500/20 rounded-md">
               <div className="flex items-center gap-3">
                 <svg className="w-4 h-4 text-rose-500/80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,34 +303,67 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             </div>
           )}
 
-          <WorkspaceConfigForm
-            selectedPath={selectedPath}
-            workspaceName={workspaceName}
-            selectedLayout={selectedLayout}
-            isAllocationValid={isAllocationValid}
-            hasOpenWorkspaces={openWorkspaces.length > 0}
-            onSelectDirectory={selectDirectory}
-            onSelectRecentDirectory={selectRecentDirectory}
-            onWorkspaceNameChange={setWorkspaceName}
-            onLayoutSelect={setSelectedLayout}
-            onAllocationChange={updateAgentFleet}
-            onTemplateSelect={applyTemplate}
-            onReapplyTemplate={applyTemplate}
-            onSaveCustomTemplate={saveAsCustomTemplate}
-            onDeleteTemplate={deleteTemplate}
-            onUpdateTemplate={updateTemplate}
-            onRestoreDefaults={restoreDefaults}
-            templates={templates}
-            onCreateWorkspace={handleCreateWorkspace}
-            onCancel={handleCancel}
-            isValid={isValid}
-            isExternalMode={selectedLayout.openExternally}
-            validationErrors={validationErrors}
-            selectedTemplateId={selectedTemplateId}
-            templateAllocation={currentTemplateAllocation}
-          />
+          {setupViewMode === 'page' ? (
+            <>
+              <WorkspaceConfigForm
+                selectedPath={selectedPath}
+                workspaceName={workspaceName}
+                selectedLayout={selectedLayout}
+                isAllocationValid={isAllocationValid}
+                hasOpenWorkspaces={openWorkspaces.length > 0}
+                onSelectDirectory={selectDirectory}
+                onSelectRecentDirectory={selectRecentDirectory}
+                onWorkspaceNameChange={setWorkspaceName}
+                onLayoutSelect={setSelectedLayout}
+                onAllocationChange={updateAgentFleet}
+                onTemplateSelect={applyTemplate}
+                onReapplyTemplate={applyTemplate}
+                onSaveCustomTemplate={saveAsCustomTemplate}
+                onDeleteTemplate={deleteTemplate}
+                onUpdateTemplate={updateTemplate}
+                onRestoreDefaults={restoreDefaults}
+                templates={templates}
+                onCreateWorkspace={handleCreateWorkspace}
+                onCancel={handleCancel}
+                isValid={isValid}
+                isExternalMode={selectedLayout.openExternally}
+                validationErrors={validationErrors}
+                selectedTemplateId={selectedTemplateId}
+                templateAllocation={currentTemplateAllocation}
+              />
 
-          <CliToolsTable />
+              <CliToolsTable />
+            </>
+          ) : (
+            <SetupStepper
+              selectedPath={selectedPath}
+              workspaceName={workspaceName}
+              selectedLayout={selectedLayout}
+              isAllocationValid={isAllocationValid}
+              hasOpenWorkspaces={openWorkspaces.length > 0}
+              onSelectDirectory={selectDirectory}
+              onSelectRecentDirectory={selectRecentDirectory}
+              onWorkspaceNameChange={setWorkspaceName}
+              onLayoutSelect={setSelectedLayout}
+              onAllocationChange={updateAgentFleet}
+              onTemplateSelect={applyTemplate}
+              onReapplyTemplate={applyTemplate}
+              onSaveCustomTemplate={saveAsCustomTemplate}
+              onDeleteTemplate={deleteTemplate}
+              onUpdateTemplate={updateTemplate}
+              onRestoreDefaults={restoreDefaults}
+              templates={templates}
+              onCreateWorkspace={handleCreateWorkspace}
+              onCancel={handleCancel}
+              isValid={isValid}
+              isLaunching={isLaunching}
+              isExternalMode={selectedLayout.openExternally}
+              createError={createError}
+              validationErrors={validationErrors}
+              selectedTemplateId={selectedTemplateId}
+              templateAllocation={currentTemplateAllocation}
+            />
+          )}
         </div>
       </main>
 

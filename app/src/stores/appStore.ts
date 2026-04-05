@@ -59,6 +59,7 @@ interface AppState {
   autoCheckUpdates: boolean;
   autoDownloadUpdates: boolean;
   updateChannel: "stable" | "beta" | "nightly";
+  setupViewMode: "page" | "stepper";
 
   setView: (view: "setup" | "workspace" | "docs" | "settings") => void;
   setViewWithPrevious: (view: "docs" | "settings") => void;
@@ -109,6 +110,7 @@ interface AppState {
   setAutoCheckUpdates: (enabled: boolean) => void;
   setAutoDownloadUpdates: (enabled: boolean) => void;
   setUpdateChannel: (channel: "stable" | "beta" | "nightly") => void;
+  setSetupViewMode: (mode: "page" | "stepper") => void;
 
   openWorkspace: (workspace: WorkspaceConfig) => void;
   closeWorkspace: (workspaceId: string) => void;
@@ -224,6 +226,7 @@ export const useAppStore = create<AppState>()(
       autoCheckUpdates: true,
       autoDownloadUpdates: false,
       updateChannel: "stable",
+      setupViewMode: "page",
       ideStatuses: {
         vsCode: null,
         visualStudio: null,
@@ -386,6 +389,7 @@ export const useAppStore = create<AppState>()(
       setAutoCheckUpdates: (enabled) => set({ autoCheckUpdates: enabled }),
       setAutoDownloadUpdates: (enabled) => set({ autoDownloadUpdates: enabled }),
       setUpdateChannel: (channel) => set({ updateChannel: channel }),
+      setSetupViewMode: (mode) => set({ setupViewMode: mode }),
 
       openWorkspace: (workspace) =>
         set((state) => {
@@ -824,6 +828,7 @@ export const useAppStore = create<AppState>()(
         autoDownloadUpdates: state.autoDownloadUpdates,
         updateChannel: state.updateChannel,
         recentDirectories: state.recentDirectories,
+        setupViewMode: state.setupViewMode,
       }),
     }
   )

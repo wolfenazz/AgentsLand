@@ -18,6 +18,30 @@ const UI_DENSITIES = [
   { value: 'spacious' as const, label: 'Spacious' },
 ];
 
+const Divider = () => (
+  <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+);
+
+const ToggleSwitch: React.FC<{
+  enabled: boolean;
+  onToggle: () => void;
+}> = ({ enabled, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer ${
+      enabled ? 'bg-cyan-500/30' : 'bg-[#1a1a2e]'
+    }`}
+  >
+    <div
+      className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 ${
+        enabled
+          ? 'translate-x-5 bg-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.5)]'
+          : 'translate-x-0.5 bg-zinc-500'
+      }`}
+    />
+  </button>
+);
+
 export const SettingsAppearance: React.FC = () => {
   const {
     theme,
@@ -30,131 +54,151 @@ export const SettingsAppearance: React.FC = () => {
     setUiDensity,
     animationsEnabled,
     setAnimationsEnabled,
+    setupViewMode,
+    setSetupViewMode,
   } = useAppStore();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-sm font-bold text-zinc-100 tracking-widest uppercase mb-1">Appearance</h2>
-        <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Customize the look and feel of YzPzCode</p>
+        <h2 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em] mb-1">
+          Appearance
+        </h2>
+        <p className="text-[10px] text-zinc-600 font-mono">Customize the look and feel of YzPzCode</p>
       </div>
 
-      <div className="space-y-6">
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Theme</h3>
-          
+      <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+        <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">
+          Theme
+        </h3>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-300 font-mono">Color Theme</p>
+            <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Choose between dark and light mode</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">{theme}</span>
+            <button
+              onClick={toggleTheme}
+              className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer ${
+                theme === 'light' ? 'bg-cyan-500/30' : 'bg-[#1a1a2e]'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 ${
+                  theme === 'light'
+                    ? 'translate-x-5 bg-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.5)]'
+                    : 'translate-x-0.5 bg-zinc-500'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+        <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">
+          Accent Color
+        </h3>
+        <p className="text-[10px] text-zinc-600 font-mono">Select a primary accent for UI highlights</p>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          {ACCENT_COLORS.map((color) => (
+            <button
+              key={color.value}
+              onClick={() => setAccentColor(color.value)}
+              className={`group relative w-8 h-8 rounded-full transition-all duration-200 cursor-pointer ${
+                accentColor === color.value
+                  ? 'ring-2 ring-cyan-400/30 ring-offset-2 ring-offset-[#0a0a0f] scale-110'
+                  : 'hover:scale-105'
+              }`}
+              title={color.name}
+            >
+              <div
+                className="absolute inset-1 rounded-full border border-white/10"
+                style={{ backgroundColor: color.color }}
+              />
+              {accentColor === color.value && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+        <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">
+          UI Density
+        </h3>
+        <p className="text-[10px] text-zinc-600 font-mono">Adjust spacing and sizing across the interface</p>
+
+        <div className="flex items-center gap-2">
+          {UI_DENSITIES.map((density) => (
+            <button
+              key={density.value}
+              onClick={() => setUiDensity(density.value)}
+              className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+                uiDensity === density.value
+                  ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                  : 'bg-[#080810]/40 text-zinc-500 border border-[#1a1a2e]/30 hover:text-zinc-300 hover:border-[#1a1a2e]/60'
+              }`}
+            >
+              {density.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+        <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">
+          Preferences
+        </h3>
+
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-300">Color Theme</p>
-              <p className="text-[10px] text-zinc-600 mt-0.5">Choose between dark and light mode</p>
+              <p className="text-xs text-zinc-300 font-mono">Custom Cursor</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Enable the custom crosshair cursor</p>
+            </div>
+            <ToggleSwitch enabled={customCursor} onToggle={() => setCustomCursor(!customCursor)} />
+          </div>
+
+          <Divider />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-zinc-300 font-mono">Animations</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Enable motion animations throughout the app</p>
+            </div>
+            <ToggleSwitch enabled={animationsEnabled} onToggle={() => setAnimationsEnabled(!animationsEnabled)} />
+          </div>
+
+          <Divider />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-zinc-300 font-mono">Setup View Mode</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Choose between page layout or guided stepper</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-zinc-500 uppercase">{theme}</span>
-              <button
-                onClick={toggleTheme}
-                className="relative w-11 h-6 rounded-full bg-zinc-800 border border-zinc-700 transition-colors duration-200 cursor-pointer"
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-zinc-300 transition-transform duration-200 ${
-                    theme === 'light' ? 'translate-x-5' : 'translate-x-0.5'
+              {(['page', 'stepper'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setSetupViewMode(mode)}
+                  className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+                    setupViewMode === mode
+                      ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                      : 'bg-[#080810]/40 text-zinc-500 border border-[#1a1a2e]/30 hover:text-zinc-300 hover:border-[#1a1a2e]/60'
                   }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Accent Color</h3>
-          
-          <div className="flex items-center gap-3 flex-wrap">
-            {ACCENT_COLORS.map((color) => (
-              <button
-                key={color.value}
-                onClick={() => setAccentColor(color.value)}
-                className={`group relative w-8 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer ${
-                  accentColor === color.value
-                    ? 'border-zinc-300 scale-110'
-                    : 'border-zinc-800 hover:border-zinc-600'
-                }`}
-                title={color.name}
-              >
-                <div
-                  className="absolute inset-1 rounded-full"
-                  style={{ backgroundColor: color.color }}
-                />
-                {accentColor === color.value && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-3 h-3 text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">UI Density</h3>
-          
-          <div className="flex items-center gap-2">
-            {UI_DENSITIES.map((density) => (
-              <button
-                key={density.value}
-                onClick={() => setUiDensity(density.value)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all duration-150 cursor-pointer ${
-                  uiDensity === density.value
-                    ? 'bg-theme-main/10 text-theme-main border border-theme-main/20'
-                    : 'bg-zinc-900/50 text-zinc-500 border border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
-                }`}
-              >
-                {density.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Toggles</h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-300">Custom Cursor</p>
-                <p className="text-[10px] text-zinc-600 mt-0.5">Enable the custom crosshair cursor</p>
-              </div>
-              <button
-                onClick={() => setCustomCursor(!customCursor)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${
-                  customCursor ? 'bg-emerald-600/60' : 'bg-zinc-800'
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-zinc-300 transition-transform duration-200 ${
-                    customCursor ? 'translate-x-5' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-300">Animations</p>
-                <p className="text-[10px] text-zinc-600 mt-0.5">Enable motion animations throughout the app</p>
-              </div>
-              <button
-                onClick={() => setAnimationsEnabled(!animationsEnabled)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${
-                  animationsEnabled ? 'bg-emerald-600/60' : 'bg-zinc-800'
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-zinc-300 transition-transform duration-200 ${
-                    animationsEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
+                >
+                  {mode === 'page' ? 'Page' : 'Stepper'}
+                </button>
+              ))}
             </div>
           </div>
         </div>

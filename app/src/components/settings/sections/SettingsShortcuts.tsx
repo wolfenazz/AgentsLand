@@ -27,30 +27,30 @@ export const SettingsShortcuts: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-sm font-bold text-zinc-100 tracking-widest uppercase mb-1">Keyboard Shortcuts</h2>
-        <p className="text-[10px] text-zinc-500 uppercase tracking-wider">View all available keyboard shortcuts</p>
+        <h2 className="text-sm font-bold text-zinc-100 tracking-widest uppercase font-mono mb-1">Keyboard Shortcuts</h2>
+        <p className="text-[10px] text-zinc-600 uppercase tracking-wider font-mono">View all available keyboard shortcuts</p>
       </div>
 
       <div className="space-y-6">
         {SHORTCUTS.map((group) => (
-          <div key={group.category} className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-4">
+          <div key={group.category} className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-zinc-800"></div>
-              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{group.category}</h3>
-              <div className="h-px w-4 bg-zinc-800"></div>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-cyan-500/10"></div>
+              <h3 className="text-[10px] font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">{group.category}</h3>
+              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-cyan-500/10"></div>
             </div>
             <div className="grid grid-cols-1 gap-2">
               {group.items.map((shortcut, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-transparent hover:border-zinc-800 hover:bg-zinc-900/30 transition-all duration-200">
-                  <span className="text-xs text-zinc-400">{shortcut.action}</span>
+                <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-transparent hover:border-[#1a1a2e]/60 hover:bg-[#080810]/40 transition-all duration-200">
+                  <span className="text-xs text-zinc-400 font-mono">{shortcut.action}</span>
                   <div className="flex items-center gap-1.5">
                     {shortcut.keys.map((key, j) => (
                       <React.Fragment key={j}>
-                        <kbd className="min-w-[24px] h-6 flex items-center justify-center px-2 text-[10px] font-bold text-zinc-300 bg-zinc-900 border border-zinc-700 rounded-md shadow-[0_2px_0_0_rgba(0,0,0,0.4)]">
+                        <kbd className="min-w-[24px] h-6 flex items-center justify-center px-2 text-[10px] font-mono font-bold text-zinc-300 bg-[#080810] border border-[#1a1a2e] rounded-md shadow-[0_2px_0_0_#0a0a0f]">
                           {key}
                         </kbd>
                         {j < shortcut.keys.length - 1 && (
-                          <span className="text-zinc-700 text-xs font-bold">+</span>
+                          <span className="text-[#1a1a2e] text-xs font-bold">+</span>
                         )}
                       </React.Fragment>
                     ))}
@@ -58,6 +58,7 @@ export const SettingsShortcuts: React.FC = () => {
                 </div>
               ))}
             </div>
+            <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent"></div>
           </div>
         ))}
       </div>

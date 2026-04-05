@@ -14,7 +14,7 @@ import { SettingsData } from './sections/SettingsData';
 import { SettingsAbout } from './sections/SettingsAbout';
 import logo from '../../assets/YzPzCodeLogo.png';
 
-type SettingsSection = 
+type SettingsSection =
   | 'appearance'
   | 'terminal'
   | 'editor'
@@ -39,8 +39,9 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'appearance',
     label: 'Appearance',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.53 16.122a3 3 0 00-5.78 1.128 2.625 2.625 0 01-2.625 2.625h5.25a2.625 2.625 0 002.625-2.625 3 3 0 00-.772-.944" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
       </svg>
     ),
   },
@@ -48,9 +49,9 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'terminal',
     label: 'Terminal',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="2" y="4" width="20" height="16" rx="2" strokeWidth={1.5} />
-        <path strokeLinecap="round" strokeWidth={1.5} d="M6 8l4 4-4 4M12 16h6" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3" />
+        <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={1.5} />
       </svg>
     ),
   },
@@ -58,8 +59,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'editor',
     label: 'Editor',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
       </svg>
     ),
   },
@@ -67,11 +68,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'workspace',
     label: 'Workspace',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth={1.5} />
-        <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth={1.5} />
-        <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth={1.5} />
-        <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth={1.5} />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" />
       </svg>
     ),
   },
@@ -79,8 +77,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'agents',
     label: 'AI Agents',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
       </svg>
     ),
   },
@@ -88,8 +86,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'ide',
     label: 'IDE Integration',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
       </svg>
     ),
   },
@@ -97,9 +95,9 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'shortcuts',
     label: 'Keyboard Shortcuts',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth={1.5} />
-        <path strokeLinecap="round" strokeWidth={1.5} d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 5.25h16.5a1.5 1.5 0 011.5 1.5v10.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V6.75a1.5 1.5 0 011.5-1.5z" />
+        <path strokeLinecap="round" strokeWidth={1.5} d="M6 9h.008M9 9h.008M12 9h.008M15 9h.008M6 12.75h.008M9 12.75h.008M12 12.75h.008M15 12.75h.008M18 12.75h.008M7.5 15.75h9" />
       </svg>
     ),
   },
@@ -107,8 +105,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'updates',
     label: 'Updates',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M21.015 4.356v4.992" />
       </svg>
     ),
   },
@@ -116,10 +114,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'data',
     label: 'Data & Storage',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.5} />
-        <path strokeWidth={1.5} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-        <path strokeWidth={1.5} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
       </svg>
     ),
   },
@@ -127,8 +123,8 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     id: 'about',
     label: 'About',
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
       </svg>
     ),
   },
@@ -181,52 +177,57 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   }, [activeSection]);
 
+  const activeLabel = SECTIONS.find((s) => s.id === activeSection)?.label ?? activeSection;
+  const activeIndex = SECTIONS.findIndex((s) => s.id === activeSection) + 1;
+
   return (
     <div className={`h-screen bg-theme-main text-theme-main font-mono flex flex-col overflow-hidden ${theme === 'light' ? 'light-theme' : ''}`}>
       <header
         data-tauri-drag-region
-        className="relative z-50 flex items-center h-11 bg-theme-card/60 backdrop-blur-md border-b border-theme select-none titlebar-drag flex-shrink-0"
+        className="relative z-50 flex items-center h-11 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-cyan-500/10 select-none titlebar-drag flex-shrink-0"
       >
         <div className="flex items-center h-full titlebar-nodrag">
           <button
             onClick={onBack}
-            className="group/back flex items-center gap-1.5 px-4 h-full border-r border-theme hover:bg-theme-hover transition-colors duration-150 text-zinc-500 hover:text-theme-main cursor-pointer"
+            className="group/back flex items-center gap-1.5 px-4 h-full border-r border-white/[0.04] hover:bg-white/[0.03] transition-all duration-150 text-zinc-500 hover:text-cyan-400 cursor-pointer"
             title="Back (Esc)"
           >
             <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover/back:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="text-[9px] font-mono tracking-[0.15em] uppercase">back</span>
+            <span className="text-[9px] font-mono tracking-[0.15em] uppercase">esc</span>
           </button>
 
-          <div className="flex items-center gap-2.5 px-4 h-full border-r border-theme bg-theme-card/40 cursor-default">
-            <img src={logo} alt="YzPzCode" className="h-5 w-auto opacity-70" />
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-semibold tracking-tight text-theme-main">YZPZ</span>
-              <span className="text-[9px] text-zinc-600">/</span>
-              <span className="text-[10px] font-mono text-theme-secondary tracking-wide">settings</span>
+          <div className="flex items-center gap-2.5 px-4 h-full border-r border-white/[0.04] cursor-default">
+            <img src={logo} alt="YzPzCode" className="h-4 w-auto opacity-60" />
+            <div className="flex items-center gap-1.5 font-mono">
+              <span className="text-zinc-600 text-[10px]">~</span>
+              <span className="text-[10px] text-zinc-500">/</span>
+              <span className="text-[10px] text-zinc-400">yzpz</span>
+              <span className="text-[10px] text-zinc-600">/</span>
+              <span className="text-[10px] text-cyan-400/80">settings</span>
             </div>
           </div>
         </div>
 
         <div className="flex-1 flex items-center h-full min-w-0">
-          <div className="hidden lg:flex items-center gap-4 px-5 text-[9px] font-mono tracking-[0.2em] text-zinc-600 uppercase titlebar-nodrag">
-            <span>_settings</span>
-            <span className="text-zinc-700">:</span>
-            <span>{activeSection}</span>
+          <div className="hidden lg:flex items-center gap-2 px-4 text-[10px] font-mono titlebar-nodrag">
+            <span className="text-zinc-600">{String(activeIndex).padStart(2, '0')}</span>
+            <span className="text-zinc-700">//</span>
+            <span className="text-zinc-500 tracking-wide">{activeSection}</span>
           </div>
         </div>
 
         <div className="flex items-center h-full titlebar-nodrag">
-          <div className="flex items-center h-full border-l border-theme">
+          <div className="flex items-center h-full border-l border-white/[0.04]">
             <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
           </div>
 
           {isWindows && (
-            <div className="flex h-full border-l border-theme">
+            <div className="flex h-full border-l border-white/[0.04]">
               <button
                 onClick={onMinimizeWindow}
-                className="w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors duration-150 cursor-pointer"
+                className="w-[42px] h-full flex items-center justify-center hover:bg-white/[0.04] text-zinc-500 hover:text-zinc-300 transition-colors duration-150 cursor-pointer"
                 title="Minimize"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
@@ -235,7 +236,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
               <button
                 onClick={onMaximizeWindow}
-                className="w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors duration-150 cursor-pointer"
+                className="w-[42px] h-full flex items-center justify-center hover:bg-white/[0.04] text-zinc-500 hover:text-zinc-300 transition-colors duration-150 cursor-pointer"
                 title="Maximize"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
@@ -257,30 +258,53 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        <nav className="w-56 flex-shrink-0 bg-theme-card/40 border-r border-theme overflow-y-auto custom-scrollbar">
-          <div className="p-3 space-y-1">
-            {SECTIONS.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-mono transition-all duration-150 cursor-pointer ${
-                  activeSection === section.id
-                    ? 'bg-theme-main/10 text-theme-main border border-theme-main/20'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-theme-hover border border-transparent'
-                }`}
-              >
-                <span className={activeSection === section.id ? 'text-theme-main' : 'text-zinc-600'}>
-                  {section.icon}
-                </span>
-                <span className="tracking-wide">{section.label}</span>
-              </button>
-            ))}
+        <nav className="w-56 flex-shrink-0 bg-[#080810]/80 border-r border-cyan-500/5 overflow-y-auto custom-scrollbar">
+          <div className="py-3 px-2 space-y-[2px]">
+            {SECTIONS.map((section, index) => {
+              const isActive = activeSection === section.id;
+              const idx = String(index + 1).padStart(2, '0');
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[3px] text-[11px] font-mono transition-all duration-150 cursor-pointer relative ${
+                    isActive
+                      ? 'bg-cyan-500/[0.06] text-cyan-400'
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-cyan-400 rounded-r-full" />
+                  )}
+                  <span className={`text-[9px] tabular-nums w-4 text-right ${isActive ? 'text-cyan-500/50' : 'text-zinc-700'}`}>
+                    {idx}
+                  </span>
+                  <span className={isActive ? 'text-cyan-300/80' : 'text-zinc-600'}>
+                    {section.icon}
+                  </span>
+                  <span className={`tracking-wide ${isActive ? 'text-cyan-300' : ''}`}>
+                    {section.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </nav>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-3xl mx-auto p-8">
-            {renderSection()}
+        <main className="flex-1 bg-[#06060b] overflow-y-auto custom-scrollbar">
+          <div className="max-w-3xl mx-auto">
+            <div className="sticky top-0 z-10 bg-[#06060b]/80 backdrop-blur-md px-8 pt-6 pb-4 border-b border-white/[0.03]">
+              <div className="flex items-center gap-2 font-mono">
+                <span className="text-cyan-500/40 text-[10px]">&gt;</span>
+                <span className="text-[10px] text-zinc-600">settings</span>
+                <span className="text-[10px] text-zinc-700">/</span>
+                <span className="text-[11px] text-zinc-300 tracking-wide">{activeLabel}</span>
+                <span className="text-[10px] text-zinc-700 ml-1">.config</span>
+              </div>
+            </div>
+            <div className="p-8 pt-6">
+              {renderSection()}
+            </div>
           </div>
         </main>
       </div>

@@ -40,17 +40,17 @@ export const SettingsUpdates: React.FC = () => {
   const Toggle = ({ enabled, onToggle, label, description }: { enabled: boolean; onToggle: () => void; label: string; description?: string }) => (
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-xs text-zinc-300">{label}</p>
-        {description && <p className="text-[10px] text-zinc-600 mt-0.5">{description}</p>}
+        <p className="text-xs text-zinc-300 font-mono">{label}</p>
+        {description && <p className="text-[10px] text-zinc-600 mt-0.5 font-mono">{description}</p>}
       </div>
       <button
         onClick={onToggle}
         className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${
-          enabled ? 'bg-emerald-600/60' : 'bg-zinc-800'
+          enabled ? 'bg-cyan-500/30' : 'bg-[#1a1a2e]'
         }`}
       >
         <div
-          className={`absolute top-0.5 w-5 h-5 rounded-full bg-zinc-300 transition-transform duration-200 ${
+          className={`absolute top-0.5 w-5 h-5 rounded-full bg-zinc-200 transition-transform duration-200 ${
             enabled ? 'translate-x-5' : 'translate-x-0.5'
           }`}
         />
@@ -65,32 +65,32 @@ export const SettingsUpdates: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-mono">
       <div>
-        <h2 className="text-sm font-bold text-zinc-100 tracking-widest uppercase mb-1">Updates</h2>
-        <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Manage application updates</p>
+        <h2 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em] mb-1">Updates</h2>
+        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">Manage application updates</p>
       </div>
 
       <div className="space-y-6">
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Current Version</h3>
-          
+        <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+          <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">Current Version</h3>
+
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-300">Version</p>
-              <p className="text-[10px] text-zinc-600 mt-0.5">v{appVersion || '---'}</p>
+              <p className="text-xs text-zinc-300 font-mono">Version</p>
+              <p className="text-[10px] text-zinc-600 mt-0.5 font-mono">v{appVersion || '---'}</p>
             </div>
             <button
               onClick={() => checkForUpdates(true)}
               disabled={checking || downloading}
-              className="px-4 py-2 rounded-md bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 transition-colors cursor-pointer text-[10px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-md bg-[#1a1a2e] text-zinc-400 hover:text-zinc-200 hover:bg-[#252540] border border-[#1a1a2e] transition-colors cursor-pointer text-[10px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {checking ? 'Checking...' : 'Check for Updates'}
             </button>
           </div>
 
           {lastChecked > 0 && (
-            <p className="text-[10px] text-zinc-600">Last checked: {formatLastChecked(lastChecked)}</p>
+            <p className="text-[10px] text-zinc-600 font-mono">Last checked: {formatLastChecked(lastChecked)}</p>
           )}
 
           {upToDate && (
@@ -98,13 +98,13 @@ export const SettingsUpdates: React.FC = () => {
               <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
-              <span className="text-xs text-emerald-400/80">You are up to date</span>
+              <span className="text-xs text-emerald-400/80 font-mono">You are up to date</span>
             </div>
           )}
 
           {updateAvailable && (
             <div className="flex items-center justify-between px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/20">
-              <span className="text-xs text-amber-400/80">Update v{updateAvailable.version} available</span>
+              <span className="text-xs text-amber-400/80 font-mono">Update v{updateAvailable.version} available</span>
               <button
                 onClick={() => downloadAndInstall()}
                 className="px-3 py-1 rounded-md bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors cursor-pointer text-[10px] font-mono uppercase"
@@ -116,7 +116,7 @@ export const SettingsUpdates: React.FC = () => {
 
           {error && (
             <div className="flex items-center justify-between px-3 py-2 rounded-md bg-rose-500/10 border border-rose-500/20">
-              <span className="text-xs text-rose-400/80">{error}</span>
+              <span className="text-xs text-rose-400/80 font-mono">{error}</span>
               <button
                 onClick={clearError}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
@@ -129,9 +129,9 @@ export const SettingsUpdates: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Preferences</h3>
-          
+        <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-4">
+          <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">Preferences</h3>
+
           <div className="space-y-3">
             <Toggle
               enabled={autoCheckUpdates}
@@ -149,9 +149,9 @@ export const SettingsUpdates: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-theme-card/40 border border-theme rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-semibold text-zinc-300 tracking-wide">Update Channel</h3>
-          
+        <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
+          <h3 className="text-xs font-mono font-bold text-cyan-400/70 uppercase tracking-[0.2em]">Update Channel</h3>
+
           <div className="flex items-center gap-2">
             {(['stable', 'beta', 'nightly'] as const).map((channel) => (
               <button
@@ -159,8 +159,8 @@ export const SettingsUpdates: React.FC = () => {
                 onClick={() => setUpdateChannel(channel)}
                 className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all duration-150 cursor-pointer ${
                   updateChannel === channel
-                    ? 'bg-theme-main/10 text-theme-main border border-theme-main/20'
-                    : 'bg-zinc-900/50 text-zinc-500 border border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
+                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                    : 'bg-[#080810]/40 text-zinc-500 border border-[#1a1a2e]/30 hover:text-zinc-300 hover:border-[#1a1a2e]'
                 }`}
               >
                 {channel}
