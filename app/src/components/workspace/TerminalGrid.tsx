@@ -40,7 +40,7 @@ function makeEqualSizes(n: number): number[] {
 
 const MIN_SIZE = 12;
 const DIVIDER = 3;
-const GAP_PX = 6;
+const GAP_PX = 8;
 
 export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading, theme }) => {
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -258,8 +258,12 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     >
       <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
         <div
-          className="absolute inset-1 z-0"
+          className="absolute z-0"
           style={{
+            top: GAP_PX,
+            right: GAP_PX,
+            bottom: GAP_PX,
+            left: GAP_PX,
             display: 'grid',
             gridTemplateColumns,
             gridTemplateRows,
@@ -272,7 +276,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
             return (
               <div
                 key={session.id}
-                className={`relative overflow-hidden rounded-xl border bg-theme-card shadow-xl border-theme`}
+                className="relative overflow-hidden rounded-xl"
                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
               >
                 <SortableTerminalPane
@@ -285,7 +289,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           })}
           {sorted.length < cellCount && (
             <div
-              className={`relative overflow-hidden rounded-xl border bg-theme-card shadow-xl border-theme`}
+              className={`relative overflow-hidden rounded-xl border-2 bg-theme-card border-accent-light`}
               style={{ gridRow: Math.floor(sorted.length / cols) + 1, gridColumn: (sorted.length % cols) + 1 }}
             >
               <div
@@ -357,10 +361,12 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           <div
             key={`col-${ci}`}
             onMouseDown={(e) => handleDividerDrag(e, 'col', ci)}
-            className="absolute top-2 bottom-2 cursor-col-resize z-30 group/divider"
+            className="absolute cursor-col-resize z-30 group/divider"
             style={{
               left: `calc(${leftPercent}% - ${DIVIDER / 2}px)`,
               width: `${DIVIDER}px`,
+              top: GAP_PX,
+              bottom: GAP_PX,
             }}
           >
             <div className={`w-1 h-full transition-all duration-300 mx-auto rounded-full ${
@@ -378,10 +384,12 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           <div
             key={`row-${ri}`}
             onMouseDown={(e) => handleDividerDrag(e, 'row', ri)}
-            className="absolute left-2 right-2 cursor-row-resize z-30 group/divider"
+            className="absolute cursor-row-resize z-30 group/divider"
             style={{
               top: `calc(${topPercent}% - ${DIVIDER / 2}px)`,
               height: `${DIVIDER}px`,
+              left: GAP_PX,
+              right: GAP_PX,
             }}
           >
             <div className={`h-1 w-full transition-all duration-300 my-auto rounded-full ${
@@ -399,7 +407,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
     <div className={`h-full w-full flex flex-col bg-theme-main`}>
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 relative p-1"
+        className="flex-1 min-h-0 relative"
       >
         {renderGridContent()}
         {renderGridDividers()}
