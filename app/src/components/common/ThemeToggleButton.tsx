@@ -33,7 +33,7 @@ export const ThemeToggleButton: React.FC<ThemeToggleButtonProps> = ({ theme, onT
       aria-checked={theme === 'dark'}
       aria-label="Toggle dark mode"
       onClick={handleClick}
-      className="relative flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main overflow-hidden"
+      className="group/theme relative flex items-center justify-center w-10 h-full border-l border-theme hover:bg-theme-hover transition-colors text-theme-secondary hover:text-theme-main overflow-hidden"
       title="Switch Theme"
     >
       {ripple && (
@@ -48,7 +48,7 @@ export const ThemeToggleButton: React.FC<ThemeToggleButtonProps> = ({ theme, onT
         />
       )}
       
-      <div className="relative w-4 h-4">
+      <div className="relative w-4 h-4 transition-transform duration-300 group-hover/theme:scale-110 group-hover/theme:drop-shadow-[0_0_6px_rgba(161,161,170,0.4)]">
         <svg
           className={`absolute inset-0 w-4 h-4 transition-all duration-300 ${
             theme === 'dark' && !isTransitioning

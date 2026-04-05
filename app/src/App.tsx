@@ -4,6 +4,7 @@ import { Workspace } from './components/workspace/Workspace';
 import { DocsScreen } from './components/docs/DocsScreen';
 import { UpdateNotification } from './components/common/UpdateNotification';
 import { ContextMenu } from './components/common/ContextMenu';
+import { CustomCursor } from './components/common/CustomCursor';
 import { useAppStore } from './stores/appStore';
 import { initWindowPlatform } from './utils/window';
 
@@ -20,9 +21,21 @@ function App() {
     setView, 
     setViewWithPrevious,
     theme,
-    toggleTheme 
+    toggleTheme,
+    customCursor 
   } = useAppStore();
   const [isWindows, setIsWindows] = useState(false);
+
+  useEffect(() => {
+    if (customCursor) {
+      document.documentElement.classList.add('has-custom-cursor');
+    } else {
+      document.documentElement.classList.remove('has-custom-cursor');
+    }
+    return () => {
+      document.documentElement.classList.remove('has-custom-cursor');
+    };
+  }, [customCursor]);
 
   useEffect(() => {
     initWindowPlatform().then(setIsWindows).catch((err) => {
@@ -90,6 +103,7 @@ function App() {
         onDocsClick={handleDocsClick}
         onNewWorkspace={() => setView('setup')}
       />
+      {customCursor && <CustomCursor />}
     </div>
   );
 }

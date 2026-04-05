@@ -23,8 +23,10 @@ interface WorkspaceConfigFormProps {
   onTemplateSelect: (templateId: string) => void;
   onReapplyTemplate?: (templateId: string) => void;
   onSaveCustomTemplate: (name: string) => void;
-  onDeleteCustomTemplate: (id: string) => void;
-  customTemplates: WorkspaceTemplate[];
+  onDeleteTemplate: (id: string) => void;
+  onUpdateTemplate: (id: string, updates: Partial<Omit<WorkspaceTemplate, 'id'>>) => void;
+  onRestoreDefaults: () => void;
+  templates: WorkspaceTemplate[];
   onCreateWorkspace: () => void;
   onCancel?: () => void;
   isValid: boolean;
@@ -61,8 +63,10 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
   onTemplateSelect,
   onReapplyTemplate,
   onSaveCustomTemplate,
-  onDeleteCustomTemplate,
-  customTemplates,
+  onDeleteTemplate,
+  onUpdateTemplate,
+  onRestoreDefaults,
+  templates,
   onCreateWorkspace,
   onCancel,
   isValid,
@@ -99,11 +103,13 @@ export const WorkspaceConfigForm: React.FC<WorkspaceConfigFormProps> = ({
         <div className="space-y-4">
           <WorkspaceTemplatePicker
             selectedTemplateId={selectedTemplateId}
+            templates={templates}
             onSelectTemplate={onTemplateSelect}
             onReapplyTemplate={onReapplyTemplate}
-            customTemplates={customTemplates}
-            onDeleteCustomTemplate={onDeleteCustomTemplate}
+            onDeleteTemplate={onDeleteTemplate}
             onSaveCustomTemplate={onSaveCustomTemplate}
+            onUpdateTemplate={onUpdateTemplate}
+            onRestoreDefaults={onRestoreDefaults}
           />
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUpdaterStore } from '../../stores/updaterStore';
+import { useAppStore } from '../../stores/appStore';
 import { FeedbackModal } from '../feedback/FeedbackModal';
 import discordLogo from '../../assets/discordLOGO.png';
 import instagramLogo from '../../assets/Instagramlogo.png';
@@ -21,6 +22,8 @@ export const AppFooter: React.FC = () => {
     downloadAndInstall,
     resetUpToDate,
   } = useUpdaterStore();
+
+  const { customCursor, setCustomCursor } = useAppStore();
 
   const [appVersion, setAppVersion] = useState<string>('');
   const [openPopover, setOpenPopover] = useState<string | null>(null);
@@ -95,7 +98,7 @@ export const AppFooter: React.FC = () => {
           {/* Center: Branding & Authors */}
           <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-2 text-zinc-500">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span>Built</span>
+              <span>Built with </span>
               <svg className="w-3 h-3 text-rose-500/70 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
@@ -246,12 +249,42 @@ export const AppFooter: React.FC = () => {
               >
                 feedback
               </button>
+
+              <button
+                onClick={() => setCustomCursor(!customCursor)}
+                className={`px-2 py-1 transition-colors duration-150 border-l border-theme cursor-pointer ${
+                  customCursor
+                    ? 'text-green-500/70 hover:text-green-400 hover:bg-green-500/10'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                }`}
+                title={customCursor ? 'Disable custom cursor' : 'Enable custom cursor'}
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                  <line x1="12" y1="2" x2="12" y2="7" />
+                  <line x1="12" y1="17" x2="12" y2="22" />
+                  <line x1="2" y1="12" x2="7" y2="12" />
+                  <line x1="17" y1="12" x2="22" y2="12" />
+                </svg>
+              </button>
             </div>
 
             <div className="flex items-center gap-1.5 text-zinc-700">
               <span>v</span>
               <span className="text-zinc-500">{appVersion || '---'}</span>
             </div>
+
+            <a
+              href="https://github.com/wolfenazz/YzPzCode"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30 rounded transition-colors duration-150"
+              title="GitHub Repository"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+            </a>
           </div>
         </div>
       </footer>

@@ -773,3 +773,18 @@ body {
 .light-theme * {
   scrollbar-color: #a1a1aa transparent;
 }
+
+/* ── Custom Crosshair Cursor ──────────────────────────────────────────── */
+.custom-cursor-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99998;
+}
+
+html.has-custom-cursor,
+html.has-custom-cursor *,
+html.has-custom-cursor *::before,
+html.has-custom-cursor *::after {
+  cursor: none !important;
+}

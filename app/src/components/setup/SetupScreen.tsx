@@ -1,6 +1,5 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { getVersion } from '@tauri-apps/api/app';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
@@ -24,7 +23,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     selectedLayout,
     agentFleet,
     selectedTemplateId,
-    customTemplates,
+    templates,
     selectDirectory,
     selectRecentDirectory,
     setWorkspaceName,
@@ -32,7 +31,9 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     updateAgentFleet,
     applyTemplate,
     saveAsCustomTemplate,
-    deleteCustomTemplate,
+    deleteTemplate,
+    updateTemplate,
+    restoreDefaults,
     createWorkspace,
     isValid,
     isAllocationValid,
@@ -44,7 +45,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
     const [isLaunching, setIsLaunching] = React.useState(false);
     const [showWindows10Warning, setShowWindows10Warning] = React.useState(false);
     const [warningDismissed, setWarningDismissed] = React.useState(false);
-    const [appVersion, setAppVersion] = React.useState('');
 
     React.useEffect(() => {
         const checkWindowsVersion = async () => {
@@ -60,7 +60,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             }
         };
         checkWindowsVersion();
-        getVersion().then(setAppVersion).catch(() => {});
     }, [isWindows]);
 
   const handleWorkspaceClick = (workspaceId: string) => {
@@ -137,7 +136,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
       {/* ── TopBar ───────────────────────────────────────────────────────── */}
       <header
         data-tauri-drag-region
-        className="relative z-50 flex items-center h-11 bg-theme-card/60 backdrop-blur-md border-b border-theme select-none titlebar-drag overflow-hidden flex-shrink-0"
+        className="relative z-50 flex items-center h-11 bg-theme-card/60 backdrop-blur-md border-b border-theme select-none titlebar-drag overflow-visible flex-shrink-0"
       >
         {/* Left: Branding & Core Actions */}
         <div className="flex items-center h-full titlebar-nodrag">
@@ -152,13 +151,13 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
 
           <button
             onClick={onDocsClick}
-            className="flex items-center gap-1.5 px-4 h-full border-r border-theme hover:bg-theme-hover transition-colors duration-150 text-zinc-500 hover:text-theme-main cursor-pointer"
+            className="group/docs flex items-center gap-1.5 px-4 h-full border-r border-theme hover:bg-theme-hover transition-colors duration-150 text-zinc-500 hover:text-theme-main cursor-pointer"
             title="Documentation"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 transition-all duration-300 group-hover/docs:-translate-y-0.5 group-hover/docs:scale-110 group-hover/docs:drop-shadow-[0_0_6px_rgba(161,161,170,0.4)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            <span className="text-[9px] font-mono tracking-[0.15em] hidden sm:inline uppercase text-zinc-500">docs</span>
+            <span className="text-[9px] font-mono tracking-[0.15em] hidden sm:inline uppercase text-zinc-500 transition-all duration-300 group-hover/docs:tracking-[0.25em]">docs</span>
           </button>
         </div>
 
@@ -198,7 +197,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
               disabled
               className="flex items-center justify-center w-10 h-full border-l border-theme text-zinc-500 hover:text-zinc-200 transition-colors duration-150 cursor-not-allowed group"
             >
-              <svg className="w-4 h-4 transition-transform duration-500 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 transition-all duration-500 group-hover:rotate-180 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(161,161,170,0.3)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -217,28 +216,28 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             <div className="flex h-full border-l border-theme">
               <button
                 onClick={minimizeWindow}
-                className="w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors duration-150 cursor-pointer"
+                className="group/min w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-all duration-150 cursor-pointer"
                 title="Minimize"
               >
-                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5 transition-transform duration-300 group-hover/min:translate-y-[2px] group-hover/min:scale-125" viewBox="0 0 12 12">
                   <rect fill="currentColor" width="10" height="1" x="1" y="5.5" />
                 </svg>
               </button>
               <button
                 onClick={maximizeWindow}
-                className="w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-colors duration-150 cursor-pointer"
+                className="group/max w-[42px] h-full flex items-center justify-center hover:bg-theme-hover text-zinc-500 hover:text-zinc-200 transition-all duration-150 cursor-pointer"
                 title="Maximize"
               >
-                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5 transition-transform duration-300 group-hover/max:scale-125 group-hover/max:drop-shadow-[0_0_4px_rgba(161,161,170,0.4)]" viewBox="0 0 12 12">
                   <rect fill="none" stroke="currentColor" width="8" height="8" x="2" y="2" strokeWidth="1" />
                 </svg>
               </button>
               <button
                 onClick={closeWindow}
-                className="w-[48px] h-full flex items-center justify-center hover:bg-[#c42b1c] text-zinc-500 hover:text-white transition-colors duration-150 cursor-pointer"
+                className="group/close w-[48px] h-full flex items-center justify-center hover:bg-[#c42b1c] text-zinc-500 hover:text-white transition-all duration-150 cursor-pointer"
                 title="Close"
               >
-                <svg className="w-2.5 h-2.5" viewBox="0 0 12 12">
+                <svg className="w-2.5 h-2.5 transition-transform duration-300 group-hover/close:rotate-90 group-hover/close:scale-125 group-hover/close:drop-shadow-[0_0_6px_rgba(196,43,28,0.6)]" viewBox="0 0 12 12">
                   <path fill="none" stroke="currentColor" strokeWidth="1.2" d="M2.5,2.5 L9.5,9.5 M2.5,9.5 L9.5,2.5" />
                 </svg>
               </button>
@@ -261,13 +260,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             </div>
             <h1 className="text-lg font-mono font-bold tracking-tight text-theme-main/90 mb-1.5">YzPzCode</h1>
             <p className="text-zinc-500 text-xs font-mono tracking-[0.2em] uppercase">Multi-terminal AI development environment</p>
-            <div className="flex items-center gap-3 mt-3">
-              {appVersion && (
-                <>
-                  <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-mono text-emerald-400/80 uppercase tracking-wider">v{appVersion}</span>
-                </>
-              )}
-            </div>
+
           </div>
 
           {showWindows10Warning && !warningDismissed && (
@@ -327,8 +320,10 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
             onTemplateSelect={applyTemplate}
             onReapplyTemplate={applyTemplate}
             onSaveCustomTemplate={saveAsCustomTemplate}
-            onDeleteCustomTemplate={deleteCustomTemplate}
-            customTemplates={customTemplates}
+            onDeleteTemplate={deleteTemplate}
+            onUpdateTemplate={updateTemplate}
+            onRestoreDefaults={restoreDefaults}
+            templates={templates}
             onCreateWorkspace={handleCreateWorkspace}
             onCancel={handleCancel}
             isValid={isValid}

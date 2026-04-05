@@ -476,7 +476,7 @@ export const FileEditor: React.FC = () => {
             )}
           </div>
           <div className="flex items-center gap-1">
-            {showEditor && !isMarkdown && (
+            {showEditor && (
               <>
                 <button
                   onClick={() => {

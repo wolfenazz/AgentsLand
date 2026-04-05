@@ -3,7 +3,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { WorkspaceConfig, LayoutConfig, AgentFleet, AgentType } from '../types';
 import { useAppStore } from '../stores/appStore';
 
-const CUSTOM_TEMPLATES_KEY = 'yzpzcode-custom-templates';
+const ALL_TEMPLATES_KEY = 'yzpzcode-all-templates';
 
 const DEFAULT_AGENT_FLEET: AgentFleet = {
   totalSlots: 4,
@@ -27,7 +27,7 @@ export interface WorkspaceTemplate {
   allocation: Record<AgentType, number>;
 }
 
-export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
+export const SEED_TEMPLATES: WorkspaceTemplate[] = [
   {
     id: 'react',
     name: 'React',
@@ -84,17 +84,27 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
   },
 ];
 
-function loadCustomTemplates(): WorkspaceTemplate[] {
+export const WORKSPACE_TEMPLATES = SEED_TEMPLATES;
+
+const SEED_IDS = new Set(SEED_TEMPLATES.map((t) => t.id));
+
+function loadAllTemplates(): WorkspaceTemplate[] {
   try {
-    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(ALL_TEMPLATES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch {
-    return [];
+    // fall through to seed
   }
+  const seeded = SEED_TEMPLATES.map((t) => ({ ...t, allocation: { ...t.allocation }, layout: { ...t.layout } }));
+  saveAllTemplates(seeded);
+  return seeded;
 }
 
-function saveCustomTemplates(templates: WorkspaceTemplate[]) {
-  localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(templates));
+function saveAllTemplates(templates: WorkspaceTemplate[]) {
+  localStorage.setItem(ALL_TEMPLATES_KEY, JSON.stringify(templates));
 }
 
 export const useWorkspace = () => {
@@ -108,7 +118,7 @@ export const useWorkspace = () => {
   });
   const [agentFleet, setAgentFleet] = useState<AgentFleet>(DEFAULT_AGENT_FLEET);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('custom');
-  const [customTemplates, setCustomTemplates] = useState<WorkspaceTemplate[]>(loadCustomTemplates);
+  const [templates, setTemplates] = useState<WorkspaceTemplate[]>(loadAllTemplates);
 
   const selectDirectory = useCallback(async () => {
     try {
@@ -135,7 +145,7 @@ export const useWorkspace = () => {
   }, []);
 
   const applyTemplate = useCallback((templateId: string) => {
-    const allTemplates = [...WORKSPACE_TEMPLATES, ...loadCustomTemplates()];
+    const allTemplates = loadAllTemplates();
     const template = allTemplates.find((t) => t.id === templateId);
     if (!template) return;
     setSelectedTemplateId(templateId);
@@ -164,17 +174,43 @@ export const useWorkspace = () => {
       layout: { ...selectedLayout },
       allocation: { ...agentFleet.allocation },
     };
-    const updated = [...loadCustomTemplates(), newTemplate];
-    saveCustomTemplates(updated);
-    setCustomTemplates(updated);
+    const updated = [...loadAllTemplates(), newTemplate];
+    saveAllTemplates(updated);
+    setTemplates(updated);
     setSelectedTemplateId(id);
   }, [selectedLayout, agentFleet]);
 
-  const deleteCustomTemplate = useCallback((id: string) => {
-    const updated = loadCustomTemplates().filter((t) => t.id !== id);
-    saveCustomTemplates(updated);
-    setCustomTemplates(updated);
+  const updateTemplate = useCallback((id: string, updates: Partial<Omit<WorkspaceTemplate, 'id'>>) => {
+    const all = loadAllTemplates();
+    const idx = all.findIndex((t) => t.id === id);
+    if (idx === -1) return;
+    all[idx] = { ...all[idx], ...updates };
+    saveAllTemplates(all);
+    setTemplates(all);
+  }, []);
+
+  const deleteTemplate = useCallback((id: string) => {
+    const all = loadAllTemplates();
+    const filtered = all.filter((t) => t.id !== id);
+    saveAllTemplates(filtered);
+    setTemplates(filtered);
     if (selectedTemplateId === id) {
+      const first = filtered[0];
+      if (first) {
+        setSelectedTemplateId(first.id);
+      }
+    }
+  }, [selectedTemplateId]);
+
+  const restoreDefaults = useCallback(() => {
+    const current = loadAllTemplates();
+    const customTemplates = current.filter((t) => !SEED_IDS.has(t.id));
+    const freshSeeds = SEED_TEMPLATES.map((t) => ({ ...t, allocation: { ...t.allocation }, layout: { ...t.layout } }));
+    const merged = [...freshSeeds, ...customTemplates];
+    saveAllTemplates(merged);
+    setTemplates(merged);
+    const exists = merged.find((t) => t.id === selectedTemplateId);
+    if (!exists) {
       setSelectedTemplateId('custom');
     }
   }, [selectedTemplateId]);
@@ -227,10 +263,9 @@ export const useWorkspace = () => {
     (selectedLayout.openExternally || workspaceName.trim().length > 0);
 
   const currentTemplateAllocation = useMemo(() => {
-    const all = [...WORKSPACE_TEMPLATES, ...customTemplates];
-    const t = all.find((tpl) => tpl.id === selectedTemplateId);
+    const t = templates.find((tpl) => tpl.id === selectedTemplateId);
     return t ? t.allocation : null;
-  }, [selectedTemplateId, customTemplates]);
+  }, [selectedTemplateId, templates]);
 
   return {
     selectedPath,
@@ -238,7 +273,7 @@ export const useWorkspace = () => {
     selectedLayout,
     agentFleet,
     selectedTemplateId,
-    customTemplates,
+    templates,
     selectDirectory,
     selectRecentDirectory,
     setWorkspaceName,
@@ -246,7 +281,9 @@ export const useWorkspace = () => {
     updateAgentFleet,
     applyTemplate,
     saveAsCustomTemplate,
-    deleteCustomTemplate,
+    updateTemplate,
+    deleteTemplate,
+    restoreDefaults,
     createWorkspace,
     isValid,
     isAllocationValid,
