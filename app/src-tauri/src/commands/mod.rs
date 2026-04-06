@@ -1,5 +1,6 @@
 mod agent_commands;
 mod cli_commands;
+mod discord_commands;
 mod external_terminals;
 mod feedback_commands;
 mod filesystem_commands;
@@ -9,6 +10,7 @@ mod window_commands;
 
 pub use agent_commands::*;
 pub use cli_commands::*;
+pub use discord_commands::*;
 pub use external_terminals::*;
 pub use feedback_commands::*;
 pub use filesystem_commands::*;

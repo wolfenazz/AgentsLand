@@ -60,6 +60,7 @@ interface AppState {
   autoDownloadUpdates: boolean;
   updateChannel: "stable" | "beta" | "nightly";
   setupViewMode: "page" | "stepper";
+  discordRichPresence: boolean;
 
   setView: (view: "setup" | "workspace" | "docs" | "settings") => void;
   setViewWithPrevious: (view: "docs" | "settings") => void;
@@ -111,6 +112,7 @@ interface AppState {
   setAutoDownloadUpdates: (enabled: boolean) => void;
   setUpdateChannel: (channel: "stable" | "beta" | "nightly") => void;
   setSetupViewMode: (mode: "page" | "stepper") => void;
+  setDiscordRichPresence: (enabled: boolean) => void;
 
   openWorkspace: (workspace: WorkspaceConfig) => void;
   closeWorkspace: (workspaceId: string) => void;
@@ -229,6 +231,7 @@ export const useAppStore = create<AppState>()(
       autoDownloadUpdates: false,
       updateChannel: "stable",
       setupViewMode: "page",
+      discordRichPresence: false,
       ideStatuses: {
         vsCode: null,
         visualStudio: null,
@@ -392,6 +395,7 @@ export const useAppStore = create<AppState>()(
       setAutoDownloadUpdates: (enabled) => set({ autoDownloadUpdates: enabled }),
       setUpdateChannel: (channel) => set({ updateChannel: channel }),
       setSetupViewMode: (mode) => set({ setupViewMode: mode }),
+      setDiscordRichPresence: (enabled) => set({ discordRichPresence: enabled }),
 
       openWorkspace: (workspace) =>
         set((state) => {
@@ -839,6 +843,7 @@ export const useAppStore = create<AppState>()(
           updateChannel: state.updateChannel,
           recentDirectories: state.recentDirectories,
           setupViewMode: state.setupViewMode,
+          discordRichPresence: state.discordRichPresence,
         };
 
         if (state.saveWorkspaceState) {

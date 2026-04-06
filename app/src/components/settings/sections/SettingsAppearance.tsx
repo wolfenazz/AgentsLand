@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '../../../stores/appStore';
 import { SettingsToggle } from '../../common/SettingsToggle';
 
@@ -37,7 +38,19 @@ export const SettingsAppearance: React.FC = () => {
     setAnimationsEnabled,
     setupViewMode,
     setSetupViewMode,
+    discordRichPresence,
+    setDiscordRichPresence,
   } = useAppStore();
+
+  useEffect(() => {
+    if (discordRichPresence) {
+      invoke('enable_discord_presence').catch(() => {
+        setDiscordRichPresence(false);
+      });
+    } else {
+      invoke('disable_discord_presence').catch(() => {});
+    }
+  }, [discordRichPresence, setDiscordRichPresence]);
 
   return (
     <div className="space-y-6">
@@ -129,6 +142,10 @@ export const SettingsAppearance: React.FC = () => {
           <Divider />
 
           <SettingsToggle enabled={animationsEnabled} onToggle={() => setAnimationsEnabled(!animationsEnabled)} label="Animations" description="Enable motion animations throughout the app" />
+
+          <Divider />
+
+          <SettingsToggle enabled={discordRichPresence} onToggle={() => setDiscordRichPresence(!discordRichPresence)} label="Discord Rich Presence" description="Show your current workspace activity on Discord" />
 
           <Divider />
 

@@ -1,6 +1,7 @@
 mod agent;
 mod agent_cli;
 mod commands;
+mod discord_presence;
 mod filesystem;
 mod ide;
 mod terminal;
@@ -9,6 +10,7 @@ mod utils;
 
 use agent::AgentExecutor;
 use agent_cli::{AgentCliDetector, AgentCliInstaller, CliLauncher};
+use discord_presence::DiscordPresenceManager;
 use ide::IdeDetector;
 use tauri::Listener;
 #[cfg(target_os = "macos")]
@@ -50,6 +52,7 @@ pub fn run() {
     let mut cli_installer = AgentCliInstaller::new();
     let cli_launcher = CliLauncher::new(terminal_manager.clone());
     let ide_detector = IdeDetector::new();
+    let discord_manager = DiscordPresenceManager::new();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -62,6 +65,7 @@ pub fn run() {
         .manage(cli_installer.clone())
         .manage(cli_launcher.clone())
         .manage(ide_detector.clone())
+        .manage(discord_manager.clone())
         .setup(move |app| {
             terminal_manager.set_app_handle(app.handle().clone());
             agent_executor.set_app_handle(app.handle().clone());
@@ -149,6 +153,11 @@ pub fn run() {
             commands::git_unstage_file,
             commands::get_available_shells,
             commands::import_files,
+            commands::enable_discord_presence,
+            commands::disable_discord_presence,
+            commands::is_discord_presence_enabled,
+            commands::update_discord_activity,
+            commands::clear_discord_activity,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
