@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SetupScreen } from './components/setup/SetupScreen';
+import { NodeJsCheckScreen } from './components/setup/NodeJsCheckScreen';
 import { Workspace } from './components/workspace/Workspace';
 import { DocsScreen } from './components/docs/DocsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
@@ -39,6 +40,7 @@ function App() {
     accentColor,
     uiDensity,
     animationsEnabled,
+    nodejsCheckPassed,
   } = useAppStore();
   const [isWindows, setIsWindows] = useState(false);
 
@@ -92,11 +94,15 @@ function App() {
       console.error('Failed to initialize window platform:', err);
     });
 
-    if (saveWorkspaceState && openWorkspaces.length > 0) {
-      const targetId = activeWorkspaceId || openWorkspaces[0]?.id;
-      if (targetId) {
-        switchWorkspace(targetId);
-        setView('workspace');
+    if (nodejsCheckPassed) {
+      if (saveWorkspaceState && openWorkspaces.length > 0) {
+        const targetId = activeWorkspaceId || openWorkspaces[0]?.id;
+        if (targetId) {
+          switchWorkspace(targetId);
+          setView('workspace');
+        }
+      } else {
+        setView('setup');
       }
     }
   }, []);
@@ -136,6 +142,18 @@ function App() {
     }
   };
 
+  const handleNodeJsReady = () => {
+    if (saveWorkspaceState && openWorkspaces.length > 0) {
+      const targetId = activeWorkspaceId || openWorkspaces[0]?.id;
+      if (targetId) {
+        switchWorkspace(targetId);
+        setView('workspace');
+        return;
+      }
+    }
+    setView('setup');
+  };
+
   return (
     <div className={`min-h-screen ${theme === 'light' ? 'light-theme' : ''} overflow-hidden`}>
       <AnimatePresence mode="wait" initial={false}>
@@ -147,6 +165,9 @@ function App() {
           transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
           className="h-screen w-screen overflow-hidden"
         >
+          {view === 'nodejs-check' && (
+            <NodeJsCheckScreen onReady={handleNodeJsReady} />
+          )}
           {view === 'setup' && (
             <SetupScreen 
               isWindows={isWindows} 

@@ -105,6 +105,7 @@ pub fn run() {
             commands::get_agent_task_status,
             commands::cancel_agent_task,
             commands::check_prerequisites,
+            commands::check_nodejs,
             commands::detect_agent_cli,
             commands::detect_all_agent_clis,
             commands::clear_cli_cache,

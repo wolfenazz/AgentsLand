@@ -12,8 +12,8 @@ interface AppState {
   activeSessionId: string | null;
   activeSessionByWorkspace: Record<string, string | null>;
   isLoadingTerminals: boolean;
-  view: "setup" | "workspace" | "docs" | "settings";
-  previousView: "setup" | "workspace" | "settings" | null;
+  view: "nodejs-check" | "setup" | "workspace" | "docs" | "settings";
+  previousView: "nodejs-check" | "setup" | "workspace" | "settings" | null;
   lastOpenedWorkspaceId: string | null;
   terminalError: string | null;
 
@@ -61,8 +61,9 @@ interface AppState {
   updateChannel: "stable" | "beta" | "nightly";
   setupViewMode: "page" | "stepper";
   discordRichPresence: boolean;
+  nodejsCheckPassed: boolean;
 
-  setView: (view: "setup" | "workspace" | "docs" | "settings") => void;
+  setView: (view: "nodejs-check" | "setup" | "workspace" | "docs" | "settings") => void;
   setViewWithPrevious: (view: "docs" | "settings") => void;
   setCurrentWorkspace: (workspace: WorkspaceConfig | null) => void;
   setSessions: (sessions: TerminalSession[]) => void;
@@ -113,6 +114,7 @@ interface AppState {
   setUpdateChannel: (channel: "stable" | "beta" | "nightly") => void;
   setSetupViewMode: (mode: "page" | "stepper") => void;
   setDiscordRichPresence: (enabled: boolean) => void;
+  setNodeJsCheckPassed: (passed: boolean) => void;
 
   openWorkspace: (workspace: WorkspaceConfig) => void;
   closeWorkspace: (workspaceId: string) => void;
@@ -185,7 +187,7 @@ export const useAppStore = create<AppState>()(
       activeSessionId: null,
       activeSessionByWorkspace: {} as Record<string, string | null>,
       isLoadingTerminals: false,
-      view: "setup",
+      view: "nodejs-check" as const,
       previousView: null,
       lastOpenedWorkspaceId: null,
       terminalError: null,
@@ -232,6 +234,7 @@ export const useAppStore = create<AppState>()(
       updateChannel: "stable",
       setupViewMode: "page",
       discordRichPresence: false,
+      nodejsCheckPassed: false,
       ideStatuses: {
         vsCode: null,
         visualStudio: null,
@@ -247,7 +250,7 @@ export const useAppStore = create<AppState>()(
 
       setView: (view) => set({ view }),
       setViewWithPrevious: (view) => set((state) => ({ 
-        previousView: state.view === "docs" || state.view === "settings" ? state.previousView : state.view as "setup" | "workspace" | "settings",
+        previousView: state.view === "docs" || state.view === "settings" ? state.previousView : state.view as "nodejs-check" | "setup" | "workspace" | "settings",
         view 
       })),
       setCurrentWorkspace: (workspace) => set({
@@ -396,6 +399,7 @@ export const useAppStore = create<AppState>()(
       setUpdateChannel: (channel) => set({ updateChannel: channel }),
       setSetupViewMode: (mode) => set({ setupViewMode: mode }),
       setDiscordRichPresence: (enabled) => set({ discordRichPresence: enabled }),
+      setNodeJsCheckPassed: (passed) => set({ nodejsCheckPassed: passed }),
 
       openWorkspace: (workspace) =>
         set((state) => {
@@ -844,6 +848,7 @@ export const useAppStore = create<AppState>()(
           recentDirectories: state.recentDirectories,
           setupViewMode: state.setupViewMode,
           discordRichPresence: state.discordRichPresence,
+          nodejsCheckPassed: state.nodejsCheckPassed,
         };
 
         if (state.saveWorkspaceState) {

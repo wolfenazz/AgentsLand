@@ -13,6 +13,11 @@ pub async fn check_prerequisites() -> Result<Vec<PrerequisiteStatus>, String> {
 }
 
 #[tauri::command]
+pub async fn check_nodejs() -> Result<PrerequisiteStatus, String> {
+    Ok(PrerequisitesChecker::check_nodejs())
+}
+
+#[tauri::command]
 pub async fn detect_agent_cli(
     detector: State<'_, AgentCliDetector>,
     agent: AgentType,
