@@ -6,7 +6,6 @@ import { InitializeWorkspace } from './InitializeWorkspace';
 import { LayoutSelector } from './LayoutSelector';
 import { IdesSelector } from './IdesSelector';
 import { AgentFleetConfig } from './AgentFleetConfig';
-import { CliToolsTable } from './CliToolsTable';
 import { HelpTooltip } from '../common/HelpTooltip';
 import { LayoutConfig, AgentFleet } from '../../types';
 import { WorkspaceTemplate } from '../../hooks/useWorkspace';
@@ -231,7 +230,6 @@ export const SetupStepper: React.FC<SetupStepperProps> = ({
         return (
           <div className="space-y-6">
             <InitializeWorkspace selectedPath={selectedPath} />
-            <CliToolsTable />
           </div>
         );
 

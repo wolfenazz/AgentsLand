@@ -2,6 +2,8 @@ export type AgentType = "claude" | "codex" | "gemini" | "opencode" | "cursor" | 
 
 export type ToolCliType = "gh" | "stripe" | "supabase" | "valyu" | "posthog" | "elevenlabs" | "ramp" | "gws" | "agentmail" | "vercel";
 
+export type CliType = AgentType | ToolCliType;
+
 export type AgentTaskStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
 
 export type CliStatus = "NotInstalled" | "Installed" | "Checking" | "Error";
@@ -68,14 +70,14 @@ export interface InstallProgress {
 
 export interface CliLaunchState {
   sessionId: string;
-  agent: AgentType;
+  agent: CliType;
   status: CliLaunchStatus;
   error: string | null;
   version: string | null;
 }
 
 export interface AuthInfo {
-  agent: AgentType;
+  agent: CliType;
   status: AuthStatus;
   error: string | null;
   configPath: string | null;
@@ -91,7 +93,7 @@ export interface LayoutConfig {
 
 export interface AgentFleet {
   totalSlots: number;
-  allocation: Record<AgentType, number>;
+  allocation: Record<CliType, number>;
 }
 
 export interface WorkspaceConfig {
@@ -109,7 +111,7 @@ export interface TerminalSession {
   workspaceId: string;
   index: number;
   cwd: string;
-  agent?: AgentType;
+  agent?: CliType;
   status: "idle" | "running" | "error";
   shell: string;
 }

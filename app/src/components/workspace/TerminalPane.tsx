@@ -6,7 +6,7 @@ import { SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
-import { TerminalSession, AgentCliInfo, CliLaunchState, AuthInfo } from '../../types';
+import { TerminalSession, AgentCliInfo, CliLaunchState, AuthInfo, AgentType } from '../../types';
 import { useAgent } from '../../hooks/useAgent';
 import { useAgentCli } from '../../hooks/useAgentCli';
 import { useCliLauncher } from '../../hooks/useCliLauncher';
@@ -481,10 +481,12 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
 
   const handleRetryInstall = async () => {
     if (!session.agent) return;
+    const agentTypes: AgentType[] = ['claude', 'codex', 'gemini', 'opencode', 'cursor', 'kilo', 'hermes'];
+    if (!agentTypes.includes(session.agent as AgentType)) return;
     setInstalling(true);
-    await installCli(session.agent);
+    await installCli(session.agent as AgentType);
     if (session.agent) {
-      await detectCli(session.agent);
+      await detectCli(session.agent as AgentType);
     }
   };
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus, GitDiffStat, CliLaunchState, AuthInfo, ToolCliType, ToolCliInfo, ToolAuthInfo } from '../types';
+import { AgentType, WorkspaceConfig, TerminalSession, AgentCliInfo, PrerequisiteStatus, IdeType, IdeInfo, FileTab, GitFileStatus, GitDiffStat, CliLaunchState, AuthInfo, ToolCliType, ToolCliInfo, ToolAuthInfo, CliType } from '../types';
 
 interface AppState {
   currentWorkspace: WorkspaceConfig | null;
@@ -17,11 +17,11 @@ interface AppState {
   lastOpenedWorkspaceId: string | null;
   terminalError: string | null;
 
-  cliStatuses: Record<AgentType, AgentCliInfo | null>;
+  cliStatuses: Record<CliType, AgentCliInfo | null>;
   prerequisites: PrerequisiteStatus[];
   installInProgress: AgentType | null;
   cliLaunchStates: Record<string, CliLaunchState | null>;
-  authInfos: Record<AgentType, AuthInfo | null>;
+  authInfos: Record<CliType, AuthInfo | null>;
   toolCliStatuses: Record<ToolCliType, ToolCliInfo | null>;
   toolAuthInfos: Record<ToolCliType, ToolAuthInfo | null>;
   theme: "dark" | "light";
@@ -126,12 +126,12 @@ interface AppState {
   closeAllWorkspaces: () => void;
   setTerminalError: (error: string | null) => void;
 
-  setCliStatus: (agent: AgentType, info: AgentCliInfo) => void;
-  setCliStatuses: (statuses: Record<AgentType, AgentCliInfo>) => void;
+  setCliStatus: (agent: CliType, info: AgentCliInfo) => void;
+  setCliStatuses: (statuses: Record<CliType, AgentCliInfo>) => void;
   setPrerequisites: (prereqs: PrerequisiteStatus[]) => void;
   setInstallInProgress: (agent: AgentType | null) => void;
   setLaunchState: (sessionId: string, state: CliLaunchState | null) => void;
-  setAuthInfo: (agent: AgentType, info: AuthInfo | null) => void;
+  setAuthInfo: (agent: CliType, info: AuthInfo | null) => void;
   setToolCliStatuses: (statuses: Record<ToolCliType, ToolCliInfo>) => void;
   setToolAuthInfos: (infos: Record<ToolCliType, ToolAuthInfo>) => void;
   toggleIde: (ide: IdeType) => void;
@@ -170,7 +170,7 @@ interface AppState {
   reorderOpenFiles: (fromIndex: number, toIndex: number) => void;
 }
 
-const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
+const initialCliStatuses: Record<CliType, AgentCliInfo | null> = {
   claude: null,
   codex: null,
   gemini: null,
@@ -178,6 +178,16 @@ const initialCliStatuses: Record<AgentType, AgentCliInfo | null> = {
   cursor: null,
   kilo: null,
   hermes: null,
+  gh: null,
+  stripe: null,
+  supabase: null,
+  valyu: null,
+  posthog: null,
+  elevenlabs: null,
+  ramp: null,
+  gws: null,
+  agentmail: null,
+  vercel: null,
 };
 
 export const useAppStore = create<AppState>()(
@@ -200,7 +210,7 @@ export const useAppStore = create<AppState>()(
       prerequisites: [],
       installInProgress: null,
       cliLaunchStates: {} as Record<string, CliLaunchState | null>,
-      authInfos: {} as Record<AgentType, AuthInfo | null>,
+      authInfos: {} as Record<CliType, AuthInfo | null>,
       toolCliStatuses: {} as Record<ToolCliType, ToolCliInfo | null>,
       toolAuthInfos: {} as Record<ToolCliType, ToolAuthInfo | null>,
       theme: "dark",

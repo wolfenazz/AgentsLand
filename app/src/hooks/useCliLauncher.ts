@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { AgentType, CliLaunchState, AuthInfo } from '../types';
+import { CliType, CliLaunchState, AuthInfo } from '../types';
 import { useAppStore } from '../stores/appStore';
 
 export const useCliLauncher = () => {
@@ -26,7 +26,7 @@ export const useCliLauncher = () => {
     };
   }, [setLaunchState]);
 
-  const launchCli = useCallback(async (sessionId: string, agent: AgentType) => {
+  const launchCli = useCallback(async (sessionId: string, agent: CliType) => {
     await invoke('launch_cli_in_terminal', { sessionId, agent });
   }, []);
 
@@ -50,7 +50,7 @@ export const useCliLauncher = () => {
     return states;
   }, [setLaunchState]);
 
-  const checkAuth = useCallback(async (agent: AgentType): Promise<AuthInfo> => {
+  const checkAuth = useCallback(async (agent: CliType): Promise<AuthInfo> => {
     const info = await invoke<AuthInfo>('check_cli_auth', { agent });
     setAuthInfo(agent, info);
     return info;
@@ -62,11 +62,11 @@ export const useCliLauncher = () => {
     return infos;
   }, [setAuthInfo]);
 
-  const getAuthInstructions = useCallback(async (agent: AgentType): Promise<string[]> => {
+  const getAuthInstructions = useCallback(async (agent: CliType): Promise<string[]> => {
     return await invoke<string[]>('get_auth_instructions', { agent });
   }, []);
 
-  const getBinaryName = useCallback(async (agent: AgentType): Promise<string> => {
+  const getBinaryName = useCallback(async (agent: CliType): Promise<string> => {
     return await invoke<string>('get_cli_binary_name', { agent });
   }, []);
 
@@ -74,7 +74,7 @@ export const useCliLauncher = () => {
     return launchStates[sessionId];
   };
 
-  const getAuthInfoSync = (agent: AgentType): AuthInfo | null | undefined => {
+  const getAuthInfoSync = (agent: CliType): AuthInfo | null | undefined => {
     return authInfos[agent];
   };
 

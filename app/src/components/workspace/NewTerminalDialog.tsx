@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Icon } from '@iconify/react';
-import { AgentType, ToolCliType } from '../../types';
+import { AgentType, ToolCliType, CliType } from '../../types';
 import claudeLogo from '../../assets/claude.png';
 import codexLogo from '../../assets/codex.png';
 import geminiLogo from '../../assets/gemini-cli-logo.svg';
@@ -59,7 +59,7 @@ interface ShellOption {
 
 interface NewTerminalDialogProps {
   onClose: () => void;
-  onSelect: (agent: AgentType | null, shell: string | null) => void;
+  onSelect: (agent: CliType | null, shell: string | null) => void;
   theme: 'dark' | 'light';
 }
 
@@ -87,7 +87,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
     }).catch(console.error);
   }, []);
 
-  const handleSelect = (agent: AgentType | null) => {
+  const handleSelect = (agent: CliType | null) => {
     onSelect(agent, selectedShell);
   };
 
@@ -326,7 +326,7 @@ export const NewTerminalDialog: React.FC<NewTerminalDialogProps> = ({ onClose, o
             {TOOL_OPTIONS.map((tool) => (
               <button
                 key={tool.type}
-                onClick={() => handleSelect(null)}
+                onClick={() => handleSelect(tool.type)}
                 onMouseEnter={() => setHovered(`tool-${tool.type}`)}
                 onMouseLeave={() => setHovered(null)}
                 className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${

@@ -1,5 +1,6 @@
 import React from 'react';
-import { AgentType, TerminalSession } from '../../types';
+import { Icon } from '@iconify/react';
+import { CliType, AgentType, ToolCliType, TerminalSession } from '../../types';
 import { QuickActions } from './QuickActions';
 
 import claudeLogo from '../../assets/claude.png';
@@ -19,6 +20,21 @@ export const AGENT_LOGOS: Record<AgentType, string> = {
   kilo: kiloLogo,
   hermes: hermesLogo,
 };
+
+const TOOL_ICON_MAP: Record<ToolCliType, { icon: string; color: string }> = {
+  gh: { icon: 'simple-icons:github', color: '#ffffff' },
+  stripe: { icon: 'simple-icons:stripe', color: '#635BFF' },
+  supabase: { icon: 'simple-icons:supabase', color: '#3FCF8E' },
+  valyu: { icon: 'simple-icons:search', color: '#F59E0B' },
+  posthog: { icon: 'simple-icons:posthog', color: '#1D4AFF' },
+  elevenlabs: { icon: 'simple-icons:elevenlabs', color: '#8B5CF6' },
+  ramp: { icon: 'simple-icons:creditcard', color: '#1AE65E' },
+  gws: { icon: 'simple-icons:google', color: '#4285F4' },
+  agentmail: { icon: 'simple-icons:mailgun', color: '#EC4899' },
+  vercel: { icon: 'simple-icons:vercel', color: '#ffffff' },
+};
+
+const isAgentType = (cli: CliType): cli is AgentType => cli in AGENT_LOGOS;
 
 const STATUS_COLORS = {
   idle: 'bg-zinc-600',
@@ -75,18 +91,26 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
             <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md shrink-0 border transition-all duration-300 ${
               isLight ? 'bg-zinc-800 border-zinc-700' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 group/agent'
             }`}>
-              <img
-                src={AGENT_LOGOS[session.agent]}
-                alt={session.agent}
-                className={`w-3 h-3 object-contain transition-transform group-hover/agent:scale-110 ${session.agent === 'opencode' || session.agent === 'cursor' || session.agent === 'codex'
-                    ? isLight
-                      ? 'invert brightness-[3.5] contrast-[1.5]'
-                      : 'invert brightness-[3.5] contrast-[1.5]'
-                    : isLight
-                      ? 'brightness-[2.2] contrast-[1.2]'
-                      : 'brightness-[2.2] contrast-[1.2]'
-                  }`}
-              />
+              {isAgentType(session.agent) ? (
+                <img
+                  src={AGENT_LOGOS[session.agent]}
+                  alt={session.agent}
+                  className={`w-3 h-3 object-contain transition-transform group-hover/agent:scale-110 ${session.agent === 'opencode' || session.agent === 'cursor' || session.agent === 'codex'
+                      ? isLight
+                        ? 'invert brightness-[3.5] contrast-[1.5]'
+                        : 'invert brightness-[3.5] contrast-[1.5]'
+                      : isLight
+                        ? 'brightness-[2.2] contrast-[1.2]'
+                        : 'brightness-[2.2] contrast-[1.2]'
+                    }`}
+                />
+              ) : (
+                <Icon
+                  icon={TOOL_ICON_MAP[session.agent as ToolCliType].icon}
+                  style={{ color: TOOL_ICON_MAP[session.agent as ToolCliType].color }}
+                  className="w-3 h-3"
+                />
+              )}
               <span className={`text-[9px] uppercase font-black tracking-widest truncate max-w-[80px] ${
                 isLight ? 'text-zinc-300' : 'text-zinc-400'
               }`}>{session.agent}</span>

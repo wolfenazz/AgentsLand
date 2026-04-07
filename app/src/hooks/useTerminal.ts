@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { TerminalSession, AgentFleet, AgentType } from '../types';
+import { TerminalSession, AgentFleet, CliType } from '../types';
 import { useAppStore } from '../stores/appStore';
 
 interface CreateSessionsParams {
@@ -118,7 +118,7 @@ export const useTerminal = () => {
   const createSingleSession = useCallback(async (params: {
     workspaceId: string;
     workspacePath: string;
-    agent: AgentType | null;
+    agent: CliType | null;
   }) => {
     try {
       const session = await invoke<TerminalSession>('create_single_terminal_session', {

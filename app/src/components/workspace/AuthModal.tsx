@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { AgentType } from '../../types';
+import { CliType } from '../../types';
 
 interface AuthModalProps {
-  agent: AgentType;
+  agent: CliType;
   onClose: () => void;
-  getAuthInstructions: (agent: AgentType) => Promise<string[]>;
+  getAuthInstructions: (agent: CliType) => Promise<string[]>;
   theme: 'dark' | 'light';
 }
 

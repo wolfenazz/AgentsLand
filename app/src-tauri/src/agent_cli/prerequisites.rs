@@ -200,6 +200,105 @@ impl PrerequisitesChecker {
         }
         true
     }
+
+    pub fn get_install_command(prereq_type: &PrerequisiteType) -> Vec<String> {
+        match prereq_type {
+            PrerequisiteType::NodeJs | PrerequisiteType::Npm => {
+                #[cfg(target_os = "windows")]
+                {
+                    vec![
+                        "winget".to_string(),
+                        "install".to_string(),
+                        "--id".to_string(),
+                        "OpenJS.NodeJS.LTS".to_string(),
+                        "-e".to_string(),
+                        "--accept-package-agreements".to_string(),
+                        "--accept-source-agreements".to_string(),
+                    ]
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "brew install node@22".to_string(),
+                    ]
+                }
+                #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs".to_string(),
+                    ]
+                }
+            }
+            PrerequisiteType::Git => {
+                #[cfg(target_os = "windows")]
+                {
+                    vec![
+                        "winget".to_string(),
+                        "install".to_string(),
+                        "--id".to_string(),
+                        "Git.Git".to_string(),
+                        "-e".to_string(),
+                        "--accept-package-agreements".to_string(),
+                        "--accept-source-agreements".to_string(),
+                    ]
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "brew install git".to_string(),
+                    ]
+                }
+                #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "sudo apt-get install -y git".to_string(),
+                    ]
+                }
+            }
+            PrerequisiteType::Bun => {
+                #[cfg(target_os = "windows")]
+                {
+                    vec![
+                        "powershell".to_string(),
+                        "-c".to_string(),
+                        "irm bun.sh/install.ps1 | iex".to_string(),
+                    ]
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "curl -fsSL https://bun.sh/install | bash".to_string(),
+                    ]
+                }
+                #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+                {
+                    vec![
+                        "bash".to_string(),
+                        "-c".to_string(),
+                        "curl -fsSL https://bun.sh/install | bash".to_string(),
+                    ]
+                }
+            }
+            PrerequisiteType::Pnpm => {
+                vec![
+                    "npm".to_string(),
+                    "install".to_string(),
+                    "-g".to_string(),
+                    "pnpm".to_string(),
+                ]
+            }
+        }
+    }
 }
 
 impl Default for PrerequisitesChecker {

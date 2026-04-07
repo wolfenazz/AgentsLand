@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
-import { WorkspaceConfig, LayoutConfig, AgentFleet, AgentType } from '../types';
+import { WorkspaceConfig, LayoutConfig, AgentFleet, CliType } from '../types';
 import { useAppStore } from '../stores/appStore';
 
 const ALL_TEMPLATES_KEY = 'yzpzcode-all-templates';
@@ -15,6 +15,16 @@ const DEFAULT_AGENT_FLEET: AgentFleet = {
     cursor: 0,
     kilo: 0,
     hermes: 0,
+    gh: 0,
+    stripe: 0,
+    supabase: 0,
+    valyu: 0,
+    posthog: 0,
+    elevenlabs: 0,
+    ramp: 0,
+    gws: 0,
+    agentmail: 0,
+    vercel: 0,
   },
 };
 
@@ -25,8 +35,10 @@ export interface WorkspaceTemplate {
   icon: string;
   iconColor: string;
   layout: LayoutConfig;
-  allocation: Record<AgentType, number>;
+  allocation: Record<CliType, number>;
 }
+
+const TOOL_ZEROS = { gh: 0, stripe: 0, supabase: 0, valyu: 0, posthog: 0, elevenlabs: 0, ramp: 0, gws: 0, agentmail: 0, vercel: 0 };
 
 export const SEED_TEMPLATES: WorkspaceTemplate[] = [
   {
@@ -36,7 +48,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'react',
     iconColor: '#61DAFB',
     layout: { type: 'grid', sessions: 4 },
-    allocation: { claude: 2, codex: 1, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 2, codex: 1, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
   {
     id: 'rust',
@@ -45,7 +57,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'rust',
     iconColor: '#CE422B',
     layout: { type: 'grid', sessions: 4 },
-    allocation: { claude: 2, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 2, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
   {
     id: 'python',
@@ -54,7 +66,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'python',
     iconColor: '#3776AB',
     layout: { type: 'grid', sessions: 4 },
-    allocation: { claude: 1, codex: 0, gemini: 2, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 1, codex: 0, gemini: 2, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
   {
     id: 'fullstack',
@@ -63,7 +75,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'fullstack',
     iconColor: '#A855F7',
     layout: { type: 'grid', sessions: 6 },
-    allocation: { claude: 2, codex: 1, gemini: 1, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 2, codex: 1, gemini: 1, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
   {
     id: 'quick',
@@ -72,7 +84,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'quick',
     iconColor: '#10B981',
     layout: { type: 'grid', sessions: 1 },
-    allocation: { claude: 1, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 1, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
   {
     id: 'custom',
@@ -81,7 +93,7 @@ export const SEED_TEMPLATES: WorkspaceTemplate[] = [
     icon: 'custom',
     iconColor: '#71717A',
     layout: { type: 'grid', sessions: 4 },
-    allocation: { claude: 0, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0 },
+    allocation: { claude: 0, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0, ...TOOL_ZEROS },
   },
 ];
 

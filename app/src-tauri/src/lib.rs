@@ -125,6 +125,8 @@ pub fn run() {
             commands::check_all_tool_auths,
             commands::get_tool_install_command,
             commands::open_tool_install_terminal,
+            commands::get_prerequisite_install_command,
+            commands::open_prerequisite_install_terminal,
             commands::open_url,
             commands::minimize_window,
             commands::maximize_window,

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '../../../stores/appStore';
 import { SettingsToggle } from '../../common/SettingsToggle';
@@ -42,15 +42,18 @@ export const SettingsAppearance: React.FC = () => {
     setDiscordRichPresence,
   } = useAppStore();
 
+  const [discordError, setDiscordError] = useState<string | null>(null);
+
   useEffect(() => {
     if (discordRichPresence) {
       invoke('enable_discord_presence').catch(() => {
-        setDiscordRichPresence(false);
+        setDiscordError('Discord is not running. Open Discord to enable Rich Presence.');
       });
     } else {
+      setDiscordError(null);
       invoke('disable_discord_presence').catch(() => {});
     }
-  }, [discordRichPresence, setDiscordRichPresence]);
+  }, [discordRichPresence]);
 
   return (
     <div className="space-y-6">
@@ -145,7 +148,25 @@ export const SettingsAppearance: React.FC = () => {
 
           <Divider />
 
-          <SettingsToggle enabled={discordRichPresence} onToggle={() => setDiscordRichPresence(!discordRichPresence)} label="Discord Rich Presence" description="Show your current workspace activity on Discord" />
+          <SettingsToggle enabled={discordRichPresence} onToggle={() => { setDiscordRichPresence(!discordRichPresence); setDiscordError(null); }} label="Discord Rich Presence" description="Show your current workspace activity on Discord" />
+
+          {discordRichPresence && discordError && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500/[0.06] border border-amber-500/20">
+              <svg className="w-3 h-3 text-amber-400/80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span className="text-[10px] font-mono text-amber-400/80">{discordError}</span>
+              <button
+                type="button"
+                onClick={() => setDiscordError(null)}
+                className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer shrink-0"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           <Divider />
 

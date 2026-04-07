@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import { WorkspaceTemplate } from '../../hooks/useWorkspace';
-import { AgentType } from '../../types';
+import { CliType, AgentType } from '../../types';
 
 interface WorkspaceTemplatePickerProps {
   selectedTemplateId: string;
@@ -63,8 +63,9 @@ const AGENT_COLORS: Record<AgentType, string> = {
   hermes: '#F59E0B',
 };
 
-const EMPTY_ALLOCATION: Record<AgentType, number> = {
+const EMPTY_ALLOCATION: Record<CliType, number> = {
   claude: 0, codex: 0, gemini: 0, opencode: 0, cursor: 0, kilo: 0, hermes: 0,
+  gh: 0, stripe: 0, supabase: 0, valyu: 0, posthog: 0, elevenlabs: 0, ramp: 0, gws: 0, agentmail: 0, vercel: 0,
 };
 
 const AgentPill: React.FC<{ agent: AgentType; count: number }> = ({ agent, count }) => {
@@ -346,7 +347,7 @@ const TemplateEditorModal: React.FC<{
   const [selectedIcon, setSelectedIcon] = useState(template.icon);
   const [selectedColor, setSelectedColor] = useState(template.iconColor);
   const [sessions, setSessions] = useState(template.layout.sessions);
-  const [allocation, setAllocation] = useState<Record<AgentType, number>>({ ...template.allocation });
+  const [allocation, setAllocation] = useState<Record<CliType, number>>({ ...EMPTY_ALLOCATION, ...template.allocation });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const allocated = Object.values(allocation).reduce((s, c) => s + c, 0);
@@ -638,7 +639,7 @@ export const WorkspaceTemplatePicker: React.FC<WorkspaceTemplatePickerProps> = (
   const [saveName, setSaveName] = useState('');
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [editAllocation, setEditAllocation] = useState<Record<AgentType, number>>({ ...EMPTY_ALLOCATION });
+  const [editAllocation, setEditAllocation] = useState<Record<CliType, number>>({ ...EMPTY_ALLOCATION });
   const [editSessions, setEditSessions] = useState(4);
   const [advancedEditId, setAdvancedEditId] = useState<string | null>(null);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
@@ -676,7 +677,7 @@ export const WorkspaceTemplatePicker: React.FC<WorkspaceTemplatePickerProps> = (
     setEditingTemplateId(null);
   };
 
-  const handleEditAllocationChange = (agent: AgentType, count: number) => {
+  const handleEditAllocationChange = (agent: CliType, count: number) => {
     if (count < 0) return;
     const newAlloc = { ...editAllocation, [agent]: count };
     const total = Object.values(newAlloc).reduce((s, c) => s + c, 0);

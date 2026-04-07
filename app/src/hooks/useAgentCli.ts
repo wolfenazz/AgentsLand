@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { AgentType, AgentCliInfo, PrerequisiteStatus, InstallProgress } from '../types';
+import { AgentType, AgentCliInfo, PrerequisiteStatus, InstallProgress, CliType } from '../types';
 import { useAppStore } from '../stores/appStore';
 import { useState } from 'react';
 
@@ -42,7 +42,7 @@ export function useAgentCli() {
     setLoading(true);
     try {
       const result = await invoke<Record<AgentType, AgentCliInfo>>('detect_all_agent_clis');
-      setCliStatuses(result);
+      setCliStatuses(result as Record<CliType, AgentCliInfo>);
       return result;
     } catch (e) {
       setError(String(e));

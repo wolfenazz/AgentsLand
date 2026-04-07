@@ -2,7 +2,6 @@ import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { WorkspaceConfigForm } from './WorkspaceConfigForm';
 import { SetupStepper } from './SetupStepper';
-import { CliToolsTable } from './CliToolsTable';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAppStore } from '../../stores/appStore';
 import { minimizeWindow, maximizeWindow, closeWindow } from '../../utils/window';
@@ -332,7 +331,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ isWindows, onDocsClick
                 templateAllocation={currentTemplateAllocation}
               />
 
-              <CliToolsTable />
             </>
           ) : (
             <SetupStepper

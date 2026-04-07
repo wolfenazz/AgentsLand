@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { useAppStore } from '../../../stores/appStore';
 import { useAgentCli } from '../../../hooks/useAgentCli';
 import { useToolCli } from '../../../hooks/useToolCli';
-import { AgentCliInfo, ToolCliType, ToolAuthInfo } from '../../../types';
+import { AgentCliInfo, AgentType, ToolCliType } from '../../../types';
 import { SettingsSlider } from '../../common/SettingsSlider';
 import claudeLogo from '../../../assets/claude.png';
 import codexLogo from '../../../assets/codex.png';
@@ -50,27 +50,46 @@ const TOOL_COLORS: Record<ToolCliType, string> = {
 };
 
 export const SettingsAgents: React.FC = () => {
-  const { cliStatuses, detectAllClis, loading } = useAgentCli();
+  const { cliStatuses, detectAllClis, openInstallTerminal, getInstallCommand, loading } = useAgentCli();
   const {
     toolCliStatuses,
-    toolAuthInfos,
     detectAllToolClis,
-    checkAllToolAuths,
+    openToolInstallTerminal,
+    getToolInstallCommand,
     loading: toolLoading,
   } = useToolCli();
-  const { agentTimeout, setAgentTimeout, authInfos } = useAppStore();
+  const { agentTimeout, setAgentTimeout } = useAppStore();
 
   useEffect(() => {
     detectAllClis();
     detectAllToolClis();
-    checkAllToolAuths();
-  }, [detectAllClis, detectAllToolClis, checkAllToolAuths]);
+  }, [detectAllClis, detectAllToolClis]);
 
   const cliTools = Object.values(cliStatuses).filter((tool): tool is AgentCliInfo => tool !== null);
   const installedCount = cliTools.filter(t => t.status === 'Installed').length;
 
   const toolClis = Object.values(toolCliStatuses).filter((t): t is NonNullable<typeof t> => t !== null);
   const installedToolCount = toolClis.filter(t => t.status === 'Installed').length;
+
+  const [tooltips, setTooltips] = useState<Record<string, string>>({});
+  const [installing, setInstalling] = useState<Record<string, boolean>>({});
+
+  const loadTooltip = useCallback(async (key: string, getCmd: () => Promise<string | null>) => {
+    if (tooltips[key]) return;
+    const cmd = await getCmd();
+    if (cmd) setTooltips(prev => ({ ...prev, [key]: cmd }));
+  }, [tooltips]);
+
+  const handleInstall = async (key: string, installFn: () => Promise<unknown>) => {
+    setInstalling(prev => ({ ...prev, [key]: true }));
+    try {
+      await installFn();
+    } catch (err) {
+      console.error(`Failed to install ${key}:`, err);
+    } finally {
+      setInstalling(prev => ({ ...prev, [key]: false }));
+    }
+  };
 
   return (
     <div className="space-y-8 font-mono">
@@ -95,6 +114,13 @@ export const SettingsAgents: React.FC = () => {
           <span className="px-1.5 py-0.5 rounded text-[8px] font-mono text-zinc-500 border border-zinc-800 bg-zinc-900/50">
             {installedCount}/{cliTools.length} installed
           </span>
+          <button
+            onClick={() => { detectAllClis(); }}
+            disabled={loading}
+            className="ml-auto px-3 py-1 rounded-md bg-[#1a1a2e] text-zinc-500 hover:text-zinc-300 hover:bg-[#252540] border border-[#1a1a2e] transition-colors cursor-pointer text-[9px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Detecting...' : 'Re-detect'}
+          </button>
         </div>
 
         <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
@@ -115,63 +141,9 @@ export const SettingsAgents: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            {cliTools.map((tool) => (
-              <div
-                key={tool.agent}
-                className="flex items-center justify-between px-4 py-3 rounded-lg bg-[#0a0a0f]/40 border border-[#1a1a2e]/30 hover:border-[var(--accent-border)] hover:bg-[#0a0a0f]/80 transition-colors duration-200"
-              >
-                <div className="flex items-center gap-3">
-                  {AGENT_ICONS[tool.agent] && (
-                    <img
-                      src={AGENT_ICONS[tool.agent]}
-                      alt={tool.displayName}
-                      className="w-5 h-5 object-contain rounded-sm"
-                    />
-                  )}
-                  <div>
-                    <p className="text-xs text-zinc-300 font-medium">{tool.displayName}</p>
-                    <p className="text-[10px] text-zinc-600">{tool.provider}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
-                      tool.status === 'Installed'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : tool.status === 'Checking'
-                        ? 'bg-amber-500/10 text-amber-400/80 border border-amber-500/20'
-                        : 'bg-zinc-800/50 text-zinc-600 border border-zinc-700/50'
-                    }`}
-                  >
-                    {tool.status === 'Installed'
-                      ? tool.version
-                        ? `v${tool.version}`
-                        : 'Ready'
-                      : tool.status === 'Checking'
-                      ? 'Checking...'
-                      : 'Not Found'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {loading && (
-            <p className="text-[10px] text-[var(--accent)] opacity-60 font-mono animate-pulse">
-              Detecting CLI tools...
-            </p>
-          )}
-        </div>
-
-        {/* AI Agent Authentication */}
-        <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-bold text-[var(--accent-text)] uppercase tracking-[0.2em]">
-            Authentication
-          </h3>
-
-          <div className="space-y-1.5">
             {cliTools.map((tool) => {
-              const auth = authInfos[tool.agent];
+              const isInstalled = tool.status === 'Installed';
+              const agentKey = tool.agent;
               return (
                 <div
                   key={tool.agent}
@@ -185,24 +157,54 @@ export const SettingsAgents: React.FC = () => {
                         className="w-5 h-5 object-contain rounded-sm"
                       />
                     )}
-                    <p className="text-xs text-zinc-300 font-medium">{tool.displayName}</p>
+                    <div>
+                      <p className="text-xs text-zinc-300 font-medium">{tool.displayName}</p>
+                      <p className="text-[10px] text-zinc-600">{tool.provider}</p>
+                    </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
-                      auth?.status === 'Authenticated'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : auth?.status === 'NotAuthenticated'
-                        ? 'bg-amber-500/10 text-amber-400/80 border border-amber-500/20'
-                        : 'bg-zinc-800/50 text-zinc-600 border border-zinc-700/50'
-                    }`}
-                  >
-                    {auth?.status || 'Unknown'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {!isInstalled && (
+                      <button
+                        onClick={() => handleInstall(agentKey, () => openInstallTerminal(agentKey as AgentType))}
+                        onMouseEnter={() => loadTooltip(agentKey, () => getInstallCommand(agentKey as AgentType))}
+                        disabled={installing[agentKey]}
+                        className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer text-[9px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={tooltips[agentKey] || 'Install via terminal'}
+                      >
+                        {installing[agentKey] ? 'Opening...' : 'Install'}
+                      </button>
+                    )}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
+                        tool.status === 'Installed'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : tool.status === 'Checking'
+                          ? 'bg-amber-500/10 text-amber-400/80 border border-amber-500/20'
+                          : 'bg-zinc-800/50 text-zinc-600 border border-zinc-700/50'
+                      }`}
+                    >
+                      {tool.status === 'Installed'
+                        ? tool.version
+                          ? `v${tool.version}`
+                          : 'Ready'
+                        : tool.status === 'Checking'
+                        ? 'Checking...'
+                        : 'Not Found'}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
+
+          {loading && (
+            <p className="text-[10px] text-[var(--accent)] opacity-60 font-mono animate-pulse">
+              Detecting CLI tools...
+            </p>
+          )}
         </div>
+
+
       </div>
 
       {/* Divider */}
@@ -225,6 +227,13 @@ export const SettingsAgents: React.FC = () => {
           <span className="px-1.5 py-0.5 rounded text-[8px] font-mono text-zinc-500 border border-zinc-800 bg-zinc-900/50">
             {installedToolCount}/{toolClis.length} installed
           </span>
+          <button
+            onClick={() => { detectAllToolClis(); }}
+            disabled={toolLoading}
+            className="ml-auto px-3 py-1 rounded-md bg-[#1a1a2e] text-zinc-500 hover:text-zinc-300 hover:bg-[#252540] border border-[#1a1a2e] transition-colors cursor-pointer text-[9px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {toolLoading ? 'Detecting...' : 'Re-detect'}
+          </button>
         </div>
 
         <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
@@ -246,9 +255,10 @@ export const SettingsAgents: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
             {toolClis.map((tool) => {
-              const toolAuth = toolAuthInfos[tool.tool as ToolCliType] as ToolAuthInfo | undefined;
-              const iconName = TOOL_ICONS[tool.tool as ToolCliType];
-              const iconColor = TOOL_COLORS[tool.tool as ToolCliType];
+              const isInstalled = tool.status === 'Installed';
+              const toolKey = tool.tool as ToolCliType;
+              const iconName = TOOL_ICONS[toolKey];
+              const iconColor = TOOL_COLORS[toolKey];
               return (
                 <div
                   key={tool.tool}
@@ -264,17 +274,16 @@ export const SettingsAgents: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {toolAuth && (
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          toolAuth.status === 'Authenticated'
-                            ? 'bg-emerald-500'
-                            : toolAuth.status === 'NotAuthenticated'
-                            ? 'bg-amber-500'
-                            : 'bg-zinc-700'
-                        }`}
-                        title={toolAuth.status}
-                      />
+                    {!isInstalled && (
+                      <button
+                        onClick={() => handleInstall(toolKey, () => openToolInstallTerminal(toolKey))}
+                        onMouseEnter={() => loadTooltip(`tool-${toolKey}`, () => getToolInstallCommand(toolKey))}
+                        disabled={installing[`tool-${toolKey}`]}
+                        className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer text-[9px] font-mono uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={tooltips[`tool-${toolKey}`] || 'Install via terminal'}
+                      >
+                        {installing[`tool-${toolKey}`] ? 'Opening...' : 'Install'}
+                      </button>
                     )}
                     <span
                       className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
@@ -306,44 +315,7 @@ export const SettingsAgents: React.FC = () => {
           )}
         </div>
 
-        {/* Tool CLI Auth Details */}
-        <div className="bg-[#0a0a0f]/60 border border-[#1a1a2e]/50 backdrop-blur-sm rounded-lg p-5 space-y-5">
-          <h3 className="text-xs font-bold text-[var(--accent-text)] uppercase tracking-[0.2em]">
-            Tool Authentication
-          </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-            {toolClis.map((tool) => {
-              const toolAuth = toolAuthInfos[tool.tool as ToolCliType] as ToolAuthInfo | undefined;
-              const iconName = TOOL_ICONS[tool.tool as ToolCliType];
-              const iconColor = TOOL_COLORS[tool.tool as ToolCliType];
-              return (
-                <div
-                  key={`auth-${tool.tool}`}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-[#0a0a0f]/40 border border-[#1a1a2e]/30 hover:border-zinc-700 hover:bg-[#0a0a0f]/80 transition-colors duration-200"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                      <Icon icon={iconName} style={{ color: iconColor }} className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs text-zinc-300 font-medium truncate">{tool.displayName}</p>
-                  </div>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
-                      toolAuth?.status === 'Authenticated'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : toolAuth?.status === 'NotAuthenticated'
-                        ? 'bg-amber-500/10 text-amber-400/80 border border-amber-500/20'
-                        : 'bg-zinc-800/50 text-zinc-600 border border-zinc-700/50'
-                    }`}
-                  >
-                    {toolAuth?.status || 'Unknown'}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Timeout */}

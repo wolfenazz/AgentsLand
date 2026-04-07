@@ -13,7 +13,7 @@ import {
   SortableContext,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import { TerminalSession, AgentType } from '../../types';
+import { TerminalSession, CliType } from '../../types';
 import { SortableTerminalPane } from './SortableTerminalPane';
 import { NewTerminalDialog } from './NewTerminalDialog';
 import { invoke } from '@tauri-apps/api/core';
@@ -91,7 +91,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
   const gridTemplateColumns = activeColSizes.map((s) => `${s}%`).join(' ');
   const gridTemplateRows = activeRowSizes.map((s) => `${s}%`).join(' ');
 
-  const handleAddTerminal = useCallback(async (agent: AgentType | null, shell: string | null) => {
+  const handleAddTerminal = useCallback(async (agent: CliType | null, shell: string | null) => {
     if (!currentWorkspace) return;
     setShowNewDialog(false);
     try {

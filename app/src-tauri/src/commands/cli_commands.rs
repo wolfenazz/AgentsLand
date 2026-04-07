@@ -3,7 +3,7 @@ use tauri::State;
 
 use crate::agent_cli::{
     AgentCliDetector, AgentCliInfo, AgentCliInstaller, AuthDetector, AuthInfo, CliLaunchState,
-    CliLauncher, PrerequisiteStatus, PrerequisitesChecker,
+    CliLauncher, PrerequisiteStatus, PrerequisiteType, PrerequisitesChecker,
 };
 use crate::types::AgentType;
 
@@ -211,6 +211,90 @@ pub async fn get_tool_install_command(agent: AgentType) -> Result<String, String
 #[tauri::command]
 pub async fn open_tool_install_terminal(agent: AgentType) -> Result<(), String> {
     open_install_terminal(agent).await
+}
+
+#[tauri::command]
+pub async fn get_prerequisite_install_command(
+    prereq_type: PrerequisiteType,
+) -> Result<String, String> {
+    let cmd = PrerequisitesChecker::get_install_command(&prereq_type);
+    Ok(cmd.join(" "))
+}
+
+#[tauri::command]
+pub async fn open_prerequisite_install_terminal(
+    prereq_type: PrerequisiteType,
+) -> Result<(), String> {
+    let install_cmd = PrerequisitesChecker::get_install_command(&prereq_type);
+
+    if install_cmd.is_empty() {
+        return Err("No installation command available".to_string());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NEW_CONSOLE: u32 = 0x00000010;
+
+        let binary = install_cmd[0].to_lowercase();
+        let mut command = if binary == "powershell" || binary == "pwsh" {
+            let mut c = std::process::Command::new(&install_cmd[0]);
+            c.arg("-NoExit");
+            if install_cmd.len() > 1 {
+                c.args(&install_cmd[1..]);
+            }
+            c
+        } else {
+            let mut c = std::process::Command::new("cmd");
+            c.arg("/k").args(&install_cmd);
+            c
+        };
+
+        command.creation_flags(CREATE_NEW_CONSOLE);
+        command.spawn().map_err(|e| e.to_string())?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let full_cmd =
+            if install_cmd.len() >= 3 && install_cmd[0] == "bash" && install_cmd[1] == "-c" {
+                install_cmd[2..].join(" ")
+            } else {
+                install_cmd.join(" ")
+            };
+        std::process::Command::new("osascript")
+            .arg("-e")
+            .arg(format!(
+                "tell application \"Terminal\" to do script \"{}\"",
+                full_cmd
+            ))
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        let full_cmd =
+            if install_cmd.len() >= 3 && install_cmd[0] == "bash" && install_cmd[1] == "-c" {
+                install_cmd[2..].join(" ")
+            } else {
+                install_cmd.join(" ")
+            };
+        let _ = std::process::Command::new("x-terminal-emulator")
+            .arg("-e")
+            .arg(&full_cmd)
+            .spawn()
+            .or_else(|_| {
+                std::process::Command::new("gnome-terminal")
+                    .arg("--")
+                    .arg("bash")
+                    .arg("-c")
+                    .arg(format!("{}; exec bash", full_cmd))
+                    .spawn()
+            });
+    }
+
+    Ok(())
 }
 
 pub fn build_agent_queue(
