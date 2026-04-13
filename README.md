@@ -68,9 +68,9 @@
 
 <br>
 
-<video src="docs/capture/MomentsDesktopclipfromApr132026.mp4" controls width="100%" style="border-radius:8px"></video>
+[![Video Demo](docs/capture/Capture1.PNG)](docs/capture/MomentsDesktopclipfromApr132026.mp4)
 
-<p align="center"><i>Watch YzPzCode in action</i></p>
+<p align="center"><i>Watch YzPzCode in action - Video demo</i></p>
 
 </div>
 
