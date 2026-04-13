@@ -66,6 +66,14 @@
 
 </div>
 
+<br>
+
+<video src="docs/capture/MomentsDesktopclipfromApr132026.mp4" controls width="100%" style="border-radius:8px"></video>
+
+<p align="center"><i>Watch YzPzCode in action</i></p>
+
+</div>
+
 ---
 
 ## Core Capabilities
