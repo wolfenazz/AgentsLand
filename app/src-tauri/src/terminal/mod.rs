@@ -12,7 +12,7 @@ use tauri::{AppHandle, Emitter};
 
 use crate::types::{AgentType, TerminalSession};
 
-const EMIT_BATCH_INTERVAL_MS: u64 = 16;
+const EMIT_BATCH_INTERVAL_MS: u64 = 8;
 const MAX_BATCH_SIZE: usize = 32 * 1024;
 
 fn spawn_output_reader(app_clone: AppHandle, sid: String, output_rx: mpsc::Receiver<Vec<u8>>) {
@@ -29,27 +29,24 @@ fn spawn_output_reader(app_clone: AppHandle, sid: String, output_rx: mpsc::Recei
                         || last_emit.elapsed().as_millis() >= EMIT_BATCH_INTERVAL_MS as u128)
                         && !buffer.is_empty()
                     {
-                        if let Ok(output) = String::from_utf8(buffer.clone()) {
-                            let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
-                        }
+                        let output = String::from_utf8_lossy(&buffer).into_owned();
+                        let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
                         buffer.clear();
                         last_emit = Instant::now();
                     }
                 }
                 Err(mpsc::RecvTimeoutError::Timeout) => {
                     if !buffer.is_empty() {
-                        if let Ok(output) = String::from_utf8(buffer.clone()) {
-                            let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
-                        }
+                        let output = String::from_utf8_lossy(&buffer).into_owned();
+                        let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
                         buffer.clear();
                         last_emit = Instant::now();
                     }
                 }
                 Err(mpsc::RecvTimeoutError::Disconnected) => {
                     if !buffer.is_empty() {
-                        if let Ok(output) = String::from_utf8(buffer.clone()) {
-                            let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
-                        }
+                        let output = String::from_utf8_lossy(&buffer).into_owned();
+                        let _ = app_clone.emit(&format!("terminal-output:{}", sid), &output);
                     }
                     break;
                 }

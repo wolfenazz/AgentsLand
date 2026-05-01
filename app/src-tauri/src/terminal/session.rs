@@ -31,8 +31,8 @@ impl PtySession {
         let pair = pty_system.openpty(PtySize {
             rows: 24,
             cols: 80,
-            pixel_width: 0,
-            pixel_height: 0,
+            pixel_width: 80 * 8,   // 640px (approx char width * cols)
+            pixel_height: 24 * 16, // 384px (approx char height * rows)
         })?;
 
         let shell = shell_override.unwrap_or_else(get_default_shell);
@@ -205,11 +205,10 @@ impl PtySession {
             if let Ok(tmpdir) = std::env::var("TMPDIR") {
                 cmd.env("TMPDIR", tmpdir);
             }
-            if let Ok(term) = std::env::var("TERM") {
-                cmd.env("TERM", term);
-            } else {
-                cmd.env("TERM", "xterm-256color");
-            }
+            cmd.env("TERM", "xterm-256color");
+            cmd.env("COLORTERM", "truecolor");
+            cmd.env("TERM_PROGRAM", "YzPzCode");
+            cmd.env("TERM_PROGRAM_VERSION", "1.0.0");
             cmd.env("LANG", "en_US.UTF-8");
             cmd.env("LC_ALL", "en_US.UTF-8");
         }
@@ -257,11 +256,8 @@ impl PtySession {
             if let Ok(shell) = std::env::var("SHELL") {
                 cmd.env("SHELL", shell);
             }
-            if let Ok(term) = std::env::var("TERM") {
-                cmd.env("TERM", term);
-            } else {
-                cmd.env("TERM", "xterm-256color");
-            }
+            cmd.env("TERM", "xterm-256color");
+            cmd.env("COLORTERM", "truecolor");
             if let Ok(display) = std::env::var("DISPLAY") {
                 cmd.env("DISPLAY", display);
             }

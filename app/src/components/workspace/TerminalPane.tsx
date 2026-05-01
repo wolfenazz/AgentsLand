@@ -207,6 +207,9 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       cursorStyle: 'block',
       allowProposedApi: true,
       scrollback: 10000,
+      convertEol: false,
+      scrollSensitivity: 1,
+      allowTransparency: false,
     });
 
     const fitAddon = new FitAddon();
@@ -236,6 +239,11 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       e.stopPropagation();
     }, { capture: true });
 
+    // Focus terminal on click for immediate interaction
+    terminalRef.current.addEventListener('mousedown', () => {
+      xterm.focus();
+    });
+
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
     searchAddonRef.current = searchAddon;
@@ -245,11 +253,22 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       handleFitAndResize();
     }, 50);
 
-    xterm.onData(async (data) => {
-      try {
-        await invoke('write_to_terminal', { sessionId: session.id, input: data });
-      } catch (error) {
-        console.error('Failed to write to terminal:', error);
+    // Non-blocking input pipeline with write buffer for TUI mouse/scroll support.
+    // Fire-and-forget prevents mouse events from queue-blocking.
+    let inputBuffer = '';
+    let inputFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+    xterm.onData((data) => {
+      inputBuffer += data;
+      if (!inputFlushTimer) {
+        inputFlushTimer = setTimeout(() => {
+          const toSend = inputBuffer;
+          inputBuffer = '';
+          inputFlushTimer = null;
+          invoke('write_to_terminal', { sessionId: session.id, input: toSend }).catch((error) => {
+            console.error('Failed to write to terminal:', error);
+          });
+        }, 0);
       }
     });
 
@@ -607,6 +626,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       <div
         ref={terminalRef}
         className={`flex-1 overflow-hidden min-h-0 p-0.5 ${isLight ? 'bg-[#18181b]' : 'bg-[#09090b]'}`}
+        onClick={() => xtermRef.current?.focus()}
       />
 
       {showAuthModal && session.agent && (
