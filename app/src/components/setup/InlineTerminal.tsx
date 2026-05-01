@@ -128,10 +128,20 @@ export const InlineTerminal: React.FC<InlineTerminalProps> = ({ command, cwd, au
           }
         }, 50);
 
-        xterm.onData(async (data) => {
-          try {
-            await invoke('write_to_terminal', { sessionId: session.id, input: data });
-          } catch {}
+        // Non-blocking input pipeline — fire-and-forget for TUI mouse/scroll support
+        let inputBuffer = '';
+        let inputFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+        xterm.onData((data) => {
+          inputBuffer += data;
+          if (!inputFlushTimer) {
+            inputFlushTimer = setTimeout(() => {
+              const toSend = inputBuffer;
+              inputBuffer = '';
+              inputFlushTimer = null;
+              invoke('write_to_terminal', { sessionId: session.id, input: toSend }).catch(() => {});
+            }, 0);
+          }
         });
 
         xterm.attachCustomKeyEventHandler((event) => {

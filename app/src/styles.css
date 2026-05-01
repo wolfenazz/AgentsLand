@@ -823,20 +823,23 @@ html.animations-disabled *::after {
 }
 
 /* ── Terminal (xterm.js) ─────────────────────────────────────────────── */
-.xterm {
+/* Use .xterm descendant selectors to match xterm.css specificity (0,2,0) */
+/* and !important to guarantee overrides win in production builds */
+
+.xterm.xterm {
   padding: 0 !important;
+  height: 100% !important;
 }
 
-.xterm-viewport {
+.xterm .xterm-viewport {
   overflow-y: auto !important;
-  /* Ensure smooth scrolling for TUI applications */
-  scroll-behavior: auto;
-  /* Make sure mouse events pass through to the xterm handler */
+  scroll-behavior: auto !important;
   pointer-events: auto !important;
 }
 
-.xterm-screen {
+.xterm .xterm-screen {
   pointer-events: auto !important;
+  height: auto !important;
 }
 
 /* Prevent parent containers from capturing terminal scroll events */
@@ -846,31 +849,37 @@ html.animations-disabled *::after {
 }
 
 /* Ensure xterm rows don't interfere with click targeting */
-.xterm-rows > div {
-  cursor: text;
+.xterm .xterm-rows > div {
+  cursor: text !important;
 }
 
 /* Smooth text selection in terminal */
 .xterm .xterm-selection {
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
-/* Scrollbar styling for terminal viewport */
-.xterm-viewport::-webkit-scrollbar {
-  width: 6px;
+/* xterm scroll bar styling for both normal and alt screen */
+.xterm .xterm-viewport::-webkit-scrollbar {
+  width: 6px !important;
 }
 
-.xterm-viewport::-webkit-scrollbar-track {
-  background: transparent;
+.xterm .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent !important;
 }
 
-.xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(63, 63, 70, 0.5);
-  border-radius: 3px;
+.xterm .xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(63, 63, 70, 0.5) !important;
+  border-radius: 3px !important;
 }
 
-.xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(82, 82, 91, 0.7);
+.xterm .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(82, 82, 91, 0.7) !important;
+}
+
+/* Ensure xterm canvas receives all mouse/pointer events for TUI interaction */
+.xterm .xterm-screen canvas {
+  pointer-events: auto !important;
+  touch-action: none !important;
 }
 
 /* ── Custom Crosshair Cursor ──────────────────────────────────────────── */

@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { SetupScreen } from './components/setup/SetupScreen';
 import { NodeJsCheckScreen } from './components/setup/NodeJsCheckScreen';
-import { Workspace } from './components/workspace/Workspace';
-import { DocsScreen } from './components/docs/DocsScreen';
-import { SettingsScreen } from './components/settings/SettingsScreen';
 import { UpdateNotification } from './components/common/UpdateNotification';
 import { ContextMenu } from './components/common/ContextMenu';
 import { CustomCursor } from './components/common/CustomCursor';
@@ -12,6 +9,16 @@ import { initWindowPlatform } from './utils/window';
 import { minimizeWindow, maximizeWindow, closeWindow } from './utils/window';
 
 import { motion, AnimatePresence } from 'framer-motion';
+
+const Workspace = lazy(() => import('./components/workspace/Workspace').then(m => ({ default: m.Workspace })));
+const DocsScreen = lazy(() => import('./components/docs/DocsScreen').then(m => ({ default: m.DocsScreen })));
+const SettingsScreen = lazy(() => import('./components/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+
+const LoadingFallback = () => (
+  <div className="absolute inset-0 flex items-center justify-center bg-theme">
+    <div className="w-5 h-5 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
+  </div>
+);
 
 const ACCENT_COLOR_MAP: Record<string, string> = {
   default: '#a1a1aa',
@@ -176,28 +183,34 @@ function App() {
             />
           )}
           {view === 'workspace' && (
-            <Workspace 
-              isWindows={isWindows} 
-              onDocsClick={handleDocsClick}
-              onSettingsClick={handleSettingsClick}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <Workspace 
+                isWindows={isWindows} 
+                onDocsClick={handleDocsClick}
+                onSettingsClick={handleSettingsClick}
+              />
+            </Suspense>
           )}
           {view === 'docs' && (
-            <DocsScreen
-              isWindows={isWindows}
-              onBack={handleBackFromDocs}
-              theme={theme}
-              onThemeToggle={toggleTheme}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <DocsScreen
+                isWindows={isWindows}
+                onBack={handleBackFromDocs}
+                theme={theme}
+                onThemeToggle={toggleTheme}
+              />
+            </Suspense>
           )}
           {view === 'settings' && (
-            <SettingsScreen
-              isWindows={isWindows}
-              onBack={handleBackFromSettings}
-              onMinimizeWindow={() => minimizeWindow().catch(() => {})}
-              onMaximizeWindow={() => maximizeWindow().catch(() => {})}
-              onCloseWindow={() => closeWindow().catch(() => {})}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsScreen
+                isWindows={isWindows}
+                onBack={handleBackFromSettings}
+                onMinimizeWindow={() => minimizeWindow().catch(() => {})}
+                onMaximizeWindow={() => maximizeWindow().catch(() => {})}
+                onCloseWindow={() => closeWindow().catch(() => {})}
+              />
+            </Suspense>
           )}
         </motion.div>
       </AnimatePresence>

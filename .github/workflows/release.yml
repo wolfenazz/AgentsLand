@@ -85,7 +85,7 @@ jobs:
           releaseBody: 'See the release notes'
           releaseDraft: true
           prerelease: false
-          args: --target ${{ matrix.target }}
+          args: --target ${{ matrix.target }} --config '{"bundle":{"createUpdaterArtifacts":true}}'
 
   publish-release:
     needs: build
