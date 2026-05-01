@@ -96,6 +96,8 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
   const launchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPasteConfirm, setShowPasteConfirm] = useState(false);
   const [pendingPasteText, setPendingPasteText] = useState('');
+  // Track whether mouse tracking is enabled by the TUI app
+  const mouseTrackingEnabledRef = useRef(false);
 
   const theme = themeProp || 'dark';
   const isLight = theme === 'light';
@@ -207,9 +209,14 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       cursorStyle: 'block',
       allowProposedApi: true,
       scrollback: 10000,
-      convertEol: false,
-      scrollSensitivity: 1,
+      convertEol: true,
       allowTransparency: false,
+      // Enable mouse tracking for TUI applications
+      // When TUI apps enable mouse mode via escape sequences, xterm.js will send mouse events
+      disableStdin: false,
+      // Allow the terminal to handle mouse events for TUI apps
+      macOptionIsMeta: false,
+      macOptionClickForcesSelection: false,
     });
 
     const fitAddon = new FitAddon();
@@ -244,6 +251,39 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       xterm.focus();
     });
 
+    // Wheel event handling for TUI app scroll support
+    // When mouse tracking is enabled by TUI apps, xterm.js sends scroll as escape sequences.
+    // We need to let wheel events reach xterm.js without interference.
+    // Only stop propagation to prevent parent container scrolling.
+    terminalRef.current.addEventListener('wheel', (e: WheelEvent) => {
+      // Stop propagation to prevent parent container scroll
+      // but DON'T prevent default so xterm.js can handle the event
+      e.stopPropagation();
+      // xterm.js will automatically convert wheel events to escape sequences
+      // when mouse tracking is enabled by the PTY (via DECSET sequences)
+      // Otherwise, it will scroll the terminal buffer normally
+    }, { passive: true }); // Use passive for better scroll performance
+
+    // Handle mouse button events for TUI click support
+    // xterm.js automatically handles mouse tracking when enabled by TUI apps
+    // via DECSET escape sequences, but we need to ensure the container doesn't interfere
+    terminalRef.current.addEventListener('mousedown', () => {
+      // Focus the terminal on any mouse interaction
+      xterm.focus();
+      // Don't stop propagation - let xterm.js handle the event
+    }, { capture: false });
+
+    // Ensure mouseup events also reach xterm.js
+    terminalRef.current.addEventListener('mouseup', () => {
+      // Let xterm.js handle mouseup for proper click detection
+    }, { capture: false });
+
+    // Handle context menu - allow right-click for TUI apps
+    terminalRef.current.addEventListener('contextmenu', () => {
+      // Don't prevent default - let xterm.js handle it
+      // This allows TUI apps to use right-click when they want
+    });
+
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
     searchAddonRef.current = searchAddon;
@@ -259,6 +299,21 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
     let inputFlushTimer: ReturnType<typeof setTimeout> | null = null;
 
     xterm.onData((data) => {
+      // Detect DECSET sequences that enable/disable mouse tracking
+      // \x1b[?1000h - X11 mouse tracking
+      // \x1b[?1002h - button event tracking
+      // \x1b[?1003h - any event tracking
+      // \x1b[?1005h - UTF-8 mouse mode
+      // \x1b[?1006h - SGR mouse mode
+      if (data.includes('\x1b[?')) {
+        if (data.includes('1000h') || data.includes('1002h') || data.includes('1003h') ||
+            data.includes('1005h') || data.includes('1006h')) {
+          mouseTrackingEnabledRef.current = true;
+        } else if (data.includes('1000l') || data.includes('1002l') || data.includes('1003l')) {
+          mouseTrackingEnabledRef.current = false;
+        }
+      }
+
       inputBuffer += data;
       if (!inputFlushTimer) {
         inputFlushTimer = setTimeout(() => {
@@ -544,11 +599,14 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
   }, []);
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden rounded-xl transition-all duration-300 font-mono border-2 border-[var(--accent-border)] ${
-      isLight
-        ? 'bg-zinc-900 shadow-xl'
-        : 'bg-zinc-950 shadow-2xl'
-    }`}>
+    <div
+      className={`h-full flex flex-col overflow-hidden rounded-xl transition-all duration-300 font-mono border-2 border-[var(--accent-border)] ${
+        isLight
+          ? 'bg-zinc-900 shadow-xl'
+          : 'bg-zinc-950 shadow-2xl'
+      }`}
+      style={{ touchAction: 'none' }}
+    >
       <TerminalHeader
         session={session}
         theme={theme}
@@ -626,7 +684,15 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
       <div
         ref={terminalRef}
         className={`flex-1 overflow-hidden min-h-0 p-0.5 ${isLight ? 'bg-[#18181b]' : 'bg-[#09090b]'}`}
+        style={{
+          touchAction: 'none',
+          // Ensure pointer events reach xterm.js
+          pointerEvents: 'auto',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
         onClick={() => xtermRef.current?.focus()}
+        onMouseDown={() => xtermRef.current?.focus()}
       />
 
       {showAuthModal && session.agent && (

@@ -26,7 +26,6 @@ export default defineConfig(async () => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
           tauri: ['@tauri-apps/api/core', '@tauri-apps/api/window', '@tauri-apps/api/event'],
           zustand: ['zustand'],
           codemirror: [
@@ -37,7 +36,6 @@ export default defineConfig(async () => ({
             '@codemirror/lang-json', '@codemirror/lang-markdown', '@codemirror/lang-java',
             '@codemirror/lang-cpp', '@replit/codemirror-minimap'
           ],
-          xterm: ['@xterm/xterm', '@xterm/addon-fit', '@xterm/addon-web-links', '@xterm/addon-search', '@xterm/addon-unicode11'],
           pdfjs: ['pdfjs-dist'],
           xlsx: ['xlsx'],
           mammoth: ['mammoth'],

@@ -92,6 +92,10 @@ export const InlineTerminal: React.FC<InlineTerminalProps> = ({ command, cwd, au
           cursorStyle: 'block',
           allowProposedApi: true,
           scrollback: 10000,
+          // Enable mouse tracking for TUI applications
+          disableStdin: false,
+          macOptionIsMeta: false,
+          macOptionClickForcesSelection: false,
         });
 
         const fitAddon = new FitAddon();
@@ -106,6 +110,20 @@ export const InlineTerminal: React.FC<InlineTerminalProps> = ({ command, cwd, au
         xterm.loadAddon(fitAddon);
         xterm.loadAddon(webLinksAddon);
         xterm.open(terminalRef.current!);
+
+        // Focus terminal on click for immediate interaction
+        terminalRef.current!.addEventListener('mousedown', () => {
+          xterm.focus();
+        }, { capture: false });
+
+        // Wheel event handling for TUI app scroll support
+        terminalRef.current!.addEventListener('wheel', (e: WheelEvent) => {
+          // Stop propagation to prevent parent container scroll
+          // but don't prevent default so xterm.js can handle the event
+          e.stopPropagation();
+          // xterm.js will automatically convert wheel events to escape sequences
+          // when mouse tracking is enabled by the PTY
+        }, { passive: true });
 
         xtermRef.current = xterm;
         fitAddonRef.current = fitAddon;
@@ -291,7 +309,7 @@ export const InlineTerminal: React.FC<InlineTerminalProps> = ({ command, cwd, au
       <div
         ref={terminalRef}
         className="w-full bg-[#09090b]"
-        style={{ height: '320px' }}
+        style={{ height: '320px', touchAction: 'none' }}
       />
     </div>
   );

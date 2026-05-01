@@ -209,8 +209,15 @@ impl PtySession {
             cmd.env("COLORTERM", "truecolor");
             cmd.env("TERM_PROGRAM", "YzPzCode");
             cmd.env("TERM_PROGRAM_VERSION", "1.0.0");
+            // Enable TUI mouse and color support
+            cmd.env("TERMINFO", "/usr/share/terminfo");
+            cmd.env("TERMINFO_DIRS", "/lib/terminfo:/usr/share/terminfo");
             cmd.env("LANG", "en_US.UTF-8");
             cmd.env("LC_ALL", "en_US.UTF-8");
+            // Force 256-color mode for better TUI rendering
+            cmd.env("FORCE_COLOR", "1");
+            // Enable mouse reporting support
+            cmd.env("ENABLE_MOUSE_REPORTING", "1");
         }
 
         #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]

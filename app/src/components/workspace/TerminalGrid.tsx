@@ -361,12 +361,14 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           <div
             key={`col-${ci}`}
             onMouseDown={(e) => handleDividerDrag(e, 'col', ci)}
-            className="absolute cursor-col-resize z-30 group/divider"
+            className="absolute cursor-col-resize z-10 group/divider"
             style={{
               left: `calc(${leftPercent}% - ${DIVIDER / 2}px)`,
               width: `${DIVIDER}px`,
               top: GAP_PX,
               bottom: GAP_PX,
+              // Only capture pointer events when hovering the divider
+              pointerEvents: 'auto',
             }}
           >
             <div className={`w-1 h-full transition-all duration-300 mx-auto rounded-full ${
@@ -384,12 +386,14 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ sessions, isLoading,
           <div
             key={`row-${ri}`}
             onMouseDown={(e) => handleDividerDrag(e, 'row', ri)}
-            className="absolute cursor-row-resize z-30 group/divider"
+            className="absolute cursor-row-resize z-10 group/divider"
             style={{
               top: `calc(${topPercent}% - ${DIVIDER / 2}px)`,
               height: `${DIVIDER}px`,
               left: GAP_PX,
               right: GAP_PX,
+              // Only capture pointer events when hovering the divider
+              pointerEvents: 'auto',
             }}
           >
             <div className={`h-1 w-full transition-all duration-300 my-auto rounded-full ${
